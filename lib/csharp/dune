@@ -1,0 +1,13 @@
+(library
+ (public_name gamedata.csharp)
+ (name csharp)
+ (modules 
+  types
+  utils 
+  annotations
+  generator_types
+  generator_visitor
+  generator_converter
+  output
+  main)
+ (libraries atd gamedata))

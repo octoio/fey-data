@@ -1,0 +1,44 @@
+type metadata <ocaml from="Common"> = abstract
+type vector3 <ocaml from="Common"> = abstract
+type color <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+type skill_type <ocaml from="Common"> = abstract
+type stat_sheet <ocaml from="Stat"> = abstract
+
+type character_type <cs name="Character" namespace="Octoio.Fey.Data.Type"> = 
+  [ Adventurer
+  | Slime
+  | Boar
+  ]
+
+type character_variant_color_type <cs name="CharacterVariantColor" namespace="Octoio.Fey.Data.Type"> = 
+  [ Primary
+  | Secondary
+  | Tertiary
+  | Other
+  ]
+
+type character_variant_color <cs namespace="Octoio.Fey.Data.Dto" imports="System;UnityEngine"> = 
+  { color_type <json name="type"> <cs usetype="Type.CharacterVariantColor">: character_variant_color_type;
+    color: color;
+  }
+
+
+type character_variant <cs namespace="Octoio.Fey.Data.Dto" imports="System;UnityEngine"> = 
+  { colors: character_variant_color list;
+    scale: vector3;
+  }
+
+type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"> =
+  { metadata: metadata;
+    character_type <json name="type"> <cs usetype="Type.Character">: character_type;
+    ?variant <cs usetype="Optional<CharacterVariant>">: character_variant option;
+    pivot_offset: vector3;
+    vision_range: float;
+    auto_attack: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;
+    skills: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Skill">;
+    stat_sheet: stat_sheet;
+    drop_table: entity_reference <ocaml valid="Validation.entity_reference_of_type `DropTable">;
+    foot_step_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    hit_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+  }

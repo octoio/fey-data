@@ -1,0 +1,32 @@
+type int_range <ocaml from="Common"> = abstract
+type metadata <ocaml from="Common"> = abstract
+type stat_affix <ocaml from="Affix"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+type equipment_category <cs namespace="Octoio.Fey.Data.Type"> = 
+    [ Head
+    | Eyes
+    | Earings
+    | FaceAccessory
+    | Back
+    | Neck
+    | Shoulders
+    | Bracers
+    | Hands
+    | Ring
+    | Chest
+    | Waist
+    | Legs
+    | Feet
+    ]
+
+type equipment <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+    metadata: metadata;
+    category: equipment_category;
+    quality <cs usetype="Data.Type.Quality">: quality_type;
+    icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
+    base_stat_affixes: stat_affix list;
+    random_stat_affix_count: int_range <ocaml valid="Validation.int_range_between {min=0; max=100}">;
+    random_stat_affixes: stat_affix list;
+}

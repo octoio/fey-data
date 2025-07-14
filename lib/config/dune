@@ -1,0 +1,4 @@
+(library
+ (public_name gamedata.config)
+ (name config)
+ (modules constants))

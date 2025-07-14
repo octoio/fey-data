@@ -1,0 +1,46 @@
+{
+  "entities": [
+    {
+      "id": "entity_001",
+      "name": "Warrior",
+      "type": "character",
+      "stats": {
+        "health": 120,
+        "mana": 30,
+        "attack": 35,
+        "defense": 25,
+        "speed": 8
+      }
+    },
+    {
+      "id": "entity_002",
+      "name": "Mage",
+      "type": "character",
+      "stats": {
+        "health": 80,
+        "mana": 100,
+        "attack": 15,
+        "defense": 10,
+        "speed": 12
+      }
+    },
+    {
+      "id": "entity_003",
+      "name": "Archer",
+      "type": "character",
+      "stats": {
+        "health": 100,
+        "mana": 60,
+        "attack": 30,
+        "defense": 15,
+        "speed": 15
+      }
+    }
+  ],
+  "metadata": {
+    "dataset_name": "test_characters",
+    "version": "1.0.0",
+    "entity_count": 3,
+    "created": "2024-01-01T00:00:00Z"
+  }
+}

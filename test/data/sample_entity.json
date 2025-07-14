@@ -1,0 +1,38 @@
+{
+  "id": "test_entity_001",
+  "name": "Test Entity",
+  "type": "character",
+  "stats": {
+    "health": 100,
+    "mana": 50,
+    "attack": 25,
+    "defense": 15,
+    "speed": 10
+  },
+  "position": {
+    "x": 10.5,
+    "y": 20.0,
+    "z": 0.0
+  },
+  "animations": [
+    {
+      "name": "idle",
+      "frames": 8,
+      "duration": 1.0
+    },
+    {
+      "name": "walk",
+      "frames": 12,
+      "duration": 0.8
+    }
+  ],
+  "metadata": {
+    "created": "2024-01-01T00:00:00Z",
+    "version": "1.0.0",
+    "tags": [
+      "test",
+      "character",
+      "basic"
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+type entity_reference <ocaml from="Common"> = abstract
+type metadata <ocaml from="Common"> = abstract
+type int_range <ocaml from="Common"> = abstract
+type skill_category <ocaml from="Skill"> = abstract
+type requirement_evaluation <ocaml from="Requirement"> = abstract
+
+type drop_type <cs name="Drop" namespace="Octoio.Fey.Data.Type"> = 
+  [ Gold
+  | Equipment
+  | Weapon
+  | Skill
+  ]
+
+type drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" modifiers="abstract,partial"> =
+  { drop_type <json name="type"> <cs usetype="Type.Drop">: drop_type;
+    weight: int <ocaml valid="Validation.int_min 1">;
+  }
+
+type gold_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
+  { drop_type <json name="type"> <cs ignore="true">: drop_type;
+    weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+    amount: int_range <ocaml valid="Validation.int_range_between {min=1; max=1000}">;
+  }
+
+type equipment_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
+  { drop_type <json name="type"> <cs ignore="true">: drop_type;
+    weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+    equipment: entity_reference <ocaml valid="Validation.entity_reference_of_type `Equipment">;
+  }
+
+type weapon_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
+  { drop_type <json name="type"> <cs ignore="true">: drop_type;
+    weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+    weapon: entity_reference <ocaml valid="Validation.entity_reference_of_type `Weapon">;
+  }
+
+type skill_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
+  { drop_type <json name="type"> <cs ignore="true">: drop_type;
+    weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+    skill: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;
+  }
+
+type drop_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Drop),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Drop)"> =
+  [ Gold of gold_drop
+  | Equipment of equipment_drop
+  | Weapon of weapon_drop
+  | Skill of skill_drop
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type drop_evaluation <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { operator: requirement_evaluation;
+    drops <cs usetype="Drop[]">: drop_internal list;
+  }
+
+type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { metadata: metadata;
+    gold_drops <cs usetype="WeightedList<GoldDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
+    equipment_drops <cs usetype="WeightedList<EquipmentDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Equipment">;
+    weapon_drops <cs usetype="WeightedList<WeaponDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Weapon">;
+    skill_drops <cs usetype="WeightedList<SkillDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Skill">;
+  }

@@ -1,0 +1,46 @@
+type int_range <ocaml from="Common"> = abstract
+type metadata <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+type stat_affix <ocaml from="Affix"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
+type model_anchor_set <ocaml from="Model"> = abstract
+
+type weapon_category <cs namespace="Octoio.Fey.Data.Type"> = 
+    [ None
+    | OneHandMace
+    | TwoHandMace
+    | OneHandAxe
+    | TwoHandAxe
+    | OneHandSword
+    | TwoHandSword
+    | Dagger
+    | Fist
+    | Bow
+    | Staff
+    | Wand
+    | Shield
+    ]
+
+type weapon_equip_index <cs namespace="Octoio.Fey.Data.Type"> =
+    [ MainHand
+    | OffHand
+    | TwoHand
+    ]
+
+type weapon_sheathe_location <cs namespace="Octoio.Fey.Data.Type"> = 
+    [ Hips
+    | Back
+    ]
+
+type weapon <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+    metadata: metadata;
+    category: weapon_category;
+    quality <cs usetype="Data.Type.Quality">: quality_type;
+    sheathe_location: weapon_sheathe_location;
+    icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
+    base_stat_affixes: stat_affix list;
+    random_stat_affix_count: int_range <ocaml valid="Validation.int_range_between {min=0; max=100}">;
+    random_stat_affixes: stat_affix list;
+    ?basic_attack <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Skill">;
+    model_anchor_set: model_anchor_set;
+}

@@ -1,0 +1,64 @@
+type metadata <ocaml from="Common"> = abstract
+type color <ocaml from="Common"> = abstract
+
+type stat_type <cs name="Stat" namespace="Octoio.Fey.Data.Type"> =
+    [ Vit
+    | Str
+    | Int
+    | Dex
+    | Armor
+    | MagicResist
+    | Health
+    | Mana
+    | DamageTakenModifier
+    | DamageModifier
+    | MovementSpeed
+    | MovementSpeedModifier
+    | AttackSpeed
+    | AttackPower
+    | AbilityPower
+    | CriticalChance
+    | CriticalDamage
+    | CooldownReduction
+    | DodgeChance
+    | ManaRegen
+    | HealthRegen
+    | ExperienceModifier
+    | GoldModifier
+    | LifeSteal
+    ]
+
+type stat <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+    metadata: metadata;
+    stat_type <json name="type"> <cs usetype="Type.Stat">: stat_type;
+    color: color;
+}
+
+
+type stat_sheet <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+    vit: int <ocaml valid="Validation.int_min 0">;
+    str: int <ocaml valid="Validation.int_min 0">;
+    _int <json name="int">: int <ocaml valid="Validation.int_min 0">;
+    dex: int <ocaml valid="Validation.int_min 0">;
+    armor: int <ocaml valid="Validation.int_min 0">;
+    magic_resist: int <ocaml valid="Validation.int_min 0">;
+    health: int <ocaml valid="Validation.int_min 1">;
+    mana: int <ocaml valid="Validation.int_min 1">;
+    damage_taken_modifier: float <ocaml valid="Validation.float_min 0.">;
+    damage_modifier: float <ocaml valid="Validation.float_min 0.">;
+    movement_speed: float <ocaml valid="Validation.float_min 0.">;
+    movement_speed_modifier: float <ocaml valid="Validation.float_min 0.">;
+    attack_speed: float <ocaml valid="Validation.float_min 0.">;
+    attack_power: float <ocaml valid="Validation.float_min 0.">;
+    ability_power: float <ocaml valid="Validation.float_min 0.">;
+    critical_chance: float <ocaml valid="Validation.float_min 0.">;
+    critical_damage: float <ocaml valid="Validation.float_min 0.">;
+    cooldown_reduction: float <ocaml valid="Validation.float_min 0.">;
+    dodge_chance: float <ocaml valid="Validation.float_min 0.">;
+    mana_regen: float <ocaml valid="Validation.float_min 0.">;
+    health_regen: float <ocaml valid="Validation.float_min 0.">;
+    experience_modifier: float <ocaml valid="Validation.float_min 0.">;
+    gold_modifier: float <ocaml valid="Validation.float_min 0.">;
+    life_steal: float <ocaml valid="Validation.float_min 0.">;
+}
+ 

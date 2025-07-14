@@ -1,0 +1,49 @@
+{
+  "id": "weapon_sword_001",
+  "owner": "player",
+  "type": "Weapon",
+  "key": "iron_sword",
+  "version": 1,
+  "entity": {
+    "metadata": {
+      "name": "Iron Sword",
+      "description": "A sturdy iron sword"
+    },
+    "icon_reference": "sword_iron_icon",
+    "model_reference": "sword_iron_model",
+    "weapon_category": "Sword",
+    "damage": 30.0,
+    "attack_speed": 1.2,
+    "range": 1.5,
+    "requirements": [],
+    "stat_modifiers": {
+      "vit": 0,
+      "str": 8,
+      "_int": 0,
+      "dex": 0,
+      "armor": 0,
+      "magic_resist": 0,
+      "health": 0,
+      "mana": 0,
+      "damage_taken_modifier": 0.0,
+      "damage_modifier": 0.1,
+      "movement_speed": 0.0,
+      "movement_speed_modifier": 0.0,
+      "attack_speed": 0.0,
+      "attack_power": 15.0,
+      "ability_power": 0.0,
+      "critical_chance": 0.05,
+      "critical_damage": 0.0,
+      "cooldown_reduction": 0.0,
+      "dodge_chance": 0.0,
+      "mana_regen": 0.0,
+      "health_regen": 0.0,
+      "experience_modifier": 0.0,
+      "gold_modifier": 0.0,
+      "life_steal": 0.0
+    },
+    "equip_index": "MainHand",
+    "sheathe_location": "Back",
+    "basic_attack": null
+  }
+}

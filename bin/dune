@@ -1,0 +1,9 @@
+(executable
+ (public_name gamedata)
+ (name main)
+ (libraries gamedata gamedata.csharp gamedata.data gamedata.config))
+
+(executable
+ (public_name server)
+ (name server)
+ (libraries gamedata gamedata.data))

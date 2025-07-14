@@ -1,0 +1,7 @@
+type stat_type <ocaml from="Stat"> = abstract
+type float_range <ocaml from="Common"> = abstract
+
+type stat_affix <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+    stat <cs usetype="Type.Stat">: stat_type;
+    value: float_range;
+}

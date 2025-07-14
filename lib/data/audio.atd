@@ -1,0 +1,25 @@
+type entity_reference <ocaml from="Common"> = abstract
+
+type audio_clip <cs namespace="Octoio.Fey.Data.Dto"> = {
+    path: string <ocaml valid="Validation.validate_file \"audio/\" \".mp3\"">;
+    (* this volume will be multiplied to the sound volume *)
+    relative_volume: float;
+}
+
+type sound <cs namespace="Octoio.Fey.Data.Dto"> = {
+    audio_references: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `AudioClip">;
+    (* 0. for 2D and 1. for full 3D spatial *)
+    spatial_blend: float <ocaml valid="Validation.float_between 0. 1.">;
+    volume: float;
+}
+
+type sound_bank <cs namespace="Octoio.Fey.Data.Dto"> = {
+    hit_miss: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    item_received: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    gold_received: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    level_up: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    menu_open: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    menu_close: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    equipped: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    message: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+}

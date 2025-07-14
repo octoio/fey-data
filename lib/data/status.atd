@@ -1,0 +1,57 @@
+type metadata <ocaml from="Common"> = abstract
+type hit_type <ocaml from="Common"> = abstract
+type stat_type <ocaml from="Stat"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+type status_duration_type <cs name="StatusDuration" namespace="Octoio.Fey.Data.Type"> =
+    [ Chrono
+    | Logical
+    | Room
+    | Dungeon
+    ]
+
+type status_duration <cs namespace="Octoio.Fey.Data.Dto"> = {
+    duration <json name="type"> <cs usetype="Type.StatusDuration">: status_duration_type;
+    value: float <ocaml valid="Validation.float_min 0.">;
+}
+
+type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octoio.Fey.Data.Type"> =
+    [ StatChange
+    | HitOverTime
+    ]
+
+type status_effect_mechanic <cs namespace="Octoio.Fey.Data.Dto" modifiers="abstract,partial"> = {
+    mechanic_type <json name="type"> <cs usetype="Type.StatusEffectMechanic">: status_effect_mechanic_type;
+}
+
+type status_effect_mechanic_stat_change <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
+    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+    stat <cs usetype="Type.Stat">: stat_type;
+}
+
+type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=StatusEffectMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=StatusEffectMechanic)"> =
+    [ StatChange of status_effect_mechanic_stat_change
+    | HitOverTime of status_effect_mechanic_hit_over_time
+    ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type status_effect_mechanic_hit_over_time <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
+    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+    hit <cs usetype="Type.Hit">: hit_type;
+    tick_rate: float <ocaml valid="Validation.float_min 0.1">;
+}
+
+type status_stack_scaling_strategy <cs namespace="Octoio.Fey.Data.Type"> =
+    [ Additive
+    | Multiplicative
+    ]
+
+type status_stack <cs namespace="Octoio.Fey.Data.Dto"> = {
+    size <cs usetype="uint">: int <ocaml valid="Validation.int_min 1">;
+    scaling_strategy <cs usetype="Type.StatusStackScalingStrategy">: status_stack_scaling_strategy;
+} 
+
+type status <cs namespace="Octoio.Fey.Data.Dto"> = {
+    metadata: metadata;
+    mechanic <cs usetype="StatusEffectMechanic">: status_effect_mechanic_internal;
+    stack: status_stack
+}
