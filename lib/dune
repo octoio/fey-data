@@ -1,0 +1,13 @@
+(library
+ (public_name gamedata)
+ (name gamedata)
+ (modules
+  dataset
+  io
+  parity
+  processing
+  server
+  validate)
+ (libraries atd atdgen-runtime re dream lwt digestif base config util data)
+ (preprocess
+  (pps lwt_ppx ppx_deriving.eq ppx_deriving.show ppx_jane)))

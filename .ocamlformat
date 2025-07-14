@@ -1,0 +1,3 @@
+profile=janestreet
+break-separators=after
+parens-tuple=always

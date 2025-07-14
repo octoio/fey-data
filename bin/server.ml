@@ -1,0 +1,1 @@
+let () = Gamedata.Server.run ()

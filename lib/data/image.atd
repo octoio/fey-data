@@ -1,0 +1,13 @@
+type size <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+type image_type <cs name="Image" namespace="Octoio.Fey.Data.Type"> = 
+    [ Texture
+    | Sprite
+    ]
+
+type image <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { image_type <json name="type"> <cs usetype="Type.Image">: image_type;  
+    path: string <ocaml valid="Validation.validate_file \"image/\" \".png\"">;
+    size: size
+  }

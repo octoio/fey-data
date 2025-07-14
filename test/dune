@@ -1,0 +1,56 @@
+(test
+ (name test_gamedata)
+ (modules test_gamedata)
+ (libraries gamedata alcotest))
+
+(test
+ (name test_parity)
+ (modules test_parity)
+ (libraries gamedata alcotest test_fixtures)
+ (flags
+  (:standard -w -32-33)))
+
+(library
+ (name test_fixtures)
+ (modules test_fixtures)
+ (libraries gamedata gamedata.data))
+
+(test
+ (name test_dataset)
+ (modules test_dataset)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
+ (name test_processing)
+ (modules test_processing)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
+ (name test_validation)
+ (modules test_validation)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
+ (name test_io)
+ (modules test_io)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
+ (name test_util)
+ (modules test_util)
+ (libraries gamedata alcotest test_fixtures gamedata.data gamedata.util))
+
+(test
+ (name test_csharp)
+ (modules test_csharp)
+ (libraries gamedata gamedata.csharp alcotest test_fixtures))
+
+(test
+ (name test_config)
+ (modules test_config)
+ (libraries gamedata alcotest test_fixtures str gamedata.config))
+
+(test
+ (name test_integration)
+ (modules test_integration)
+ (libraries gamedata alcotest test_fixtures gamedata.data))

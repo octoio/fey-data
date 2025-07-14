@@ -1,0 +1,361 @@
+type metadata <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+type animation_type <cs name="Animation" namespace="Octoio.Fey.Data.Type"> = 
+  [ Generic
+  | HumanoidDaggerAttack
+  | HumanoidSwordAttack
+  | HumanoidSpearAttack
+  | HumanoidMaceAttack
+  | HumanoidTwoHandedStaffAttack
+  | HumanoidTwoHandedAxeAttack
+  | HumanoidItemAttack
+  | HumanoidShieldAttack
+  | HumanoidTwoHandedSpearAttack
+  | HumanoidTwoHandedSwordAttack
+  | HumanoidUnarmedAttack
+  | HumanoidCast
+  | HumanoidAttackCast
+  | HumanoidDualAttack
+  | HumanoidBlockedHit
+  ]
+
+type animation_source <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System" modifiers="abstract,partial"> = {
+  requires_sheath_weapon: bool;
+  original_duration: float <ocaml valid="Validation.float_min 0.">;
+  looping: bool;
+  animation_type <cs usetype="Type.Animation"> <json name="type">: animation_type;
+}
+
+type generic_animation_type <cs name="GenericAnimation" namespace="Octoio.Fey.Data.Type"> = 
+  [ Attack
+  | ChargingAttack
+  ]
+
+type generic_animation_source <cs namespace="Octoio.Fey.Data.Dto" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: animation_type;
+
+  generic_animation_type <cs usetype="Type.GenericAnimation">: generic_animation_type;
+  variant: int <ocaml valid="Validation.int_min 0">;
+}
+
+type dagger_attack <cs ignore="true"> = 
+  [ Unknown
+  | LeftAttack1
+  | LeftAttack2
+  | LeftAttack3
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  ]
+
+type humanoid_dagger_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  dagger_attack: dagger_attack;
+}
+
+type sword_attack <cs ignore="true"> = 
+  [ Unknown
+  | LeftAttack1
+  | LeftAttack2
+  | LeftAttack3
+  | LeftAttack4
+  | LeftAttack5
+  | LeftAttack6
+  | LeftAttack7
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  | RightAttack4
+  | RightAttack5
+  | RightAttack6
+  | RightAttack7
+  ]
+
+type humanoid_sword_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  sword_attack: sword_attack;
+}
+
+type spear_attack <cs ignore="true"> = 
+  [ Unknown
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  | RightAttack4
+  | RightAttack5
+  | RightAttack6
+  ]
+
+type humanoid_spear_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  spear_attack: spear_attack;
+}
+
+type mace_attack <cs ignore="true"> = 
+  [ Unknown
+  | LeftAttack1
+  | LeftAttack2
+  | LeftAttack3
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  ]
+
+type humanoid_mace_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  mace_attack: mace_attack;
+}
+
+type two_handed_staff_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  | Attack4
+  | Attack5
+  | Attack6
+  ]
+
+type humanoid_two_handed_staff_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  two_handed_staff_attack: two_handed_staff_attack;
+}
+
+type two_handed_axe_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  | Attack4
+  | Attack5
+  | Attack6
+  ]
+
+type humanoid_two_handed_axe_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  two_handed_axe_attack: two_handed_axe_attack;
+}
+
+type item_attack <cs ignore="true"> = 
+  [ Unknown
+  | LeftAttack1
+  | LeftAttack2
+  | LeftAttack3
+  | LeftAttack4
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  | RightAttack4
+  ]
+
+type humanoid_item_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  item_attack: item_attack;
+}
+
+type shield_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  ]
+
+type humanoid_shield_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  shield_attack: shield_attack;
+}
+
+type two_handed_spear_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  | Attack4
+  | Attack5
+  | Attack6
+  | Attack7
+  | Attack8
+  | Attack9
+  | Attack10
+  | Attack11
+  ]
+
+type humanoid_two_handed_spear_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  two_handed_spear_attack: two_handed_spear_attack;
+}
+
+type two_handed_sword_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  | Attack4
+  | Attack5
+  | Attack6
+  | Attack7
+  | Attack8
+  | Attack9
+  | Attack10
+  | Attack11
+  ]
+
+type humanoid_two_handed_sword_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  two_handed_sword_attack: two_handed_sword_attack;
+}
+
+type unarmed_attack <cs ignore="true"> = 
+  [ Unknown
+  | LeftAttack1
+  | LeftAttack2
+  | LeftAttack3
+  | RightAttack1
+  | RightAttack2
+  | RightAttack3
+  ] 
+
+type humanoid_unarmed_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  unarmed_attack: unarmed_attack;
+}
+
+type cast_type <cs ignore="true"> = 
+  [ Unknown
+  | Buff1
+  | Buff2
+  | AOE1
+  | AOE2
+  | Summon1
+  | Summon2
+  ]
+
+type humanoid_cast_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  cast_type: cast_type;
+}
+
+type attack_cast_type <cs ignore="true"> = 
+  [ Unknown
+  | Cast1
+  | Cast2
+  | Cast3
+  ]
+
+type humanoid_attack_cast_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  attack_cast_type: attack_cast_type;
+}
+
+type dual_attack <cs ignore="true"> = 
+  [ Unknown
+  | Attack1
+  | Attack2
+  | Attack3
+  ]
+
+type humanoid_dual_attack_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  dual_attack: dual_attack;
+}
+
+type blocked_hit_type <cs ignore="true"> = 
+  [ BlockedHit1
+  | BlockedHit2
+  ]
+
+type humanoid_blocked_hit_animation_source <cs namespace="Octoio.Fey.Data.Dto" imports="ExplosiveLLC.RPGCharacterAnims.Core.Lookups" extends="AnimationSource" modifiers="partial"> = {
+  requires_sheath_weapon <cs ignore="true">: bool;
+  original_duration <cs ignore="true">: float;
+  looping <cs ignore="true">: bool;
+  animation_type <cs ignore="true"> <json name="type">: string;
+
+  blocked_hit_type: blocked_hit_type;
+}
+
+(* Animation data internal union type *)
+type animation_source_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=AnimationSource,modifiers=abstract,partial),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=AnimationSource,enumname=Animation)"> = 
+  [ Generic of generic_animation_source
+  | HumanoidDaggerAttack of humanoid_dagger_attack_animation_source
+  | HumanoidSwordAttack of humanoid_sword_attack_animation_source
+  | HumanoidSpearAttack of humanoid_spear_attack_animation_source
+  | HumanoidMaceAttack of humanoid_mace_attack_animation_source
+  | HumanoidTwoHandedStaffAttack of humanoid_two_handed_staff_attack_animation_source
+  | HumanoidTwoHandedAxeAttack of humanoid_two_handed_axe_attack_animation_source
+  | HumanoidItemAttack of humanoid_item_attack_animation_source
+  | HumanoidShieldAttack of humanoid_shield_attack_animation_source
+  | HumanoidTwoHandedSpearAttack of humanoid_two_handed_spear_attack_animation_source
+  | HumanoidTwoHandedSwordAttack of humanoid_two_handed_sword_attack_animation_source
+  | HumanoidUnarmedAttack of humanoid_unarmed_attack_animation_source
+  | HumanoidCast of humanoid_cast_animation_source
+  | HumanoidAttackCast of humanoid_attack_cast_animation_source
+  | HumanoidDualAttack of humanoid_dual_attack_animation_source
+  | HumanoidBlockedHit of humanoid_blocked_hit_animation_source
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+
+type animation <cs namespace="Octoio.Fey.Data.Dto"> = {
+  metadata: metadata;
+  duration: float <ocaml valid="Validation.float_min 0.">;
+  sources: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `AnimationSource">;
+}

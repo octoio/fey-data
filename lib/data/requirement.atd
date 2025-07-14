@@ -1,0 +1,36 @@
+type weapon_category <ocaml from="Weapon"> = abstract
+type character_type <ocaml from="Character"> = abstract
+
+type requirement_type <cs name="Requirement" namespace="Octoio.Fey.Data.Type"> = 
+    [ Character
+    | WeaponCategory
+    ]
+
+type requirement <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+    requirement_type <json name="type"> <cs usetype="Type.Requirement">: requirement_type;
+}
+
+type character_requirement <cs extends="Requirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" extends="Requirement" modifiers="partial"> = {
+    requirement_type <json name="type"> <cs ignore="true">: requirement_type;
+    character <cs usetype="Type.Character">: character_type;
+}
+
+type weapon_category_requirement <cs extends="Requirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" extends="Requirement" modifiers="partial"> = {
+    requirement_type <json name="type"> <cs ignore="true">: requirement_type;
+    weapon_category: weapon_category;
+}
+
+type requirement_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Requirement),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Requirement)"> = 
+    [ Character of character_requirement
+    | WeaponCategory of weapon_category_requirement
+    ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type requirement_operator <cs namespace="Octoio.Fey.Data.Type"> = 
+    [ All
+    | Any
+    ]
+
+type requirement_evaluation <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+    operator: requirement_operator;
+    requirements <cs usetype="Requirement[]">: requirement_internal list;
+}

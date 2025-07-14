@@ -1,0 +1,17 @@
+type vector2 <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+type cursor_type <cs name="Cursor" namespace="Octoio.Fey.Data.Type" imports="System"> = 
+    [ General
+    | Target
+    | Attack
+    | Loot
+    | QuestBoard
+    | Interact
+    ] 
+
+type cursor <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+    cursor_type <json name="type"> <cs usetype="Type.Cursor"> : cursor_type;
+    icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
+    hot_spot : vector2 <ocaml valid="Validation.vector2_between {x=0.; y=0.} {x=64.; y=64.}">;
+}

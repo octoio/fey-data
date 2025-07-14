@@ -1,0 +1,118 @@
+type vector2 <cs ignore="true"> =
+  { x : float;
+    y : float
+  }
+
+type vector3 <cs ignore="true"> =
+  { x : float;
+    y : float;
+    z : float
+  }
+
+type float_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { min : float;
+    max : float
+  }
+
+type int_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { min : int;
+    max : int
+  }
+
+type metadata <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { title : string;
+    description : string
+  }
+
+type size <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { width : int;
+    height : int
+  }
+
+type color <cs ignore="true"> =
+  { r : float <ocaml valid="Validation.float_between 0. 1.">;
+    g : float <ocaml valid="Validation.float_between 0. 1.">;
+    b : float <ocaml valid="Validation.float_between 0. 1.">;
+    a : float <ocaml valid="Validation.float_between 0. 1.">
+  }
+
+type transform <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { position : vector3;
+    rotation : vector3;
+    scale : vector3
+  }
+
+type entity_type <cs name="Entity" namespace="Octoio.Fey.Data.Type"> = 
+  [ Model
+  | Skill
+  | Weapon
+  | Equipment
+  | Image
+  | Status
+  | Cursor
+  | Stat
+  | Quality
+  | AudioClip
+  | Sound
+  | SoundBank
+  | DropTable
+  | Character
+  | AnimationSource
+  | Animation
+  ]
+
+type entity_reference <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type;Octoio.Fey.Data.Interface" extends="IEntityReference"> =
+  { owner: string;
+    entity_type <json name="type"> <cs usetype="Entity"> : entity_type;
+    key: string;
+    version <cs usetype="uint">: int;
+    id: string;
+  } <ocaml valid="Validation.validate_entity_reference">
+
+type hit_type <cs name="Hit" namespace="Octoio.Fey.Data.Type"> =
+  [ Damage
+  | Heal
+  | Threat
+  | Mana
+  ]
+
+  (* TODO: remove this from the weapon file *)
+type skill_type <cs name="Skill" namespace="Octoio.Fey.Data.Type"> = 
+  [ None
+  | HealingZone
+  | DoubleSlash
+  | FireZone
+  | MagicBolt
+  | HealingOverTime
+  | Taunt
+  | FlashHeal
+  | MovementSpeedBoost
+  | Punch
+  | Slash
+  | BluntStrike
+  | WideSwing
+  | TwinStrike
+  | SlimyStrike
+  | SlimySurge
+  | SlimyDrag
+  | SlimyRecovery
+  | SlimyReinforcements
+  | PiercingThrust
+  | RavageBlow
+  | PebbleThrow
+  | Stomp
+  | TuskStrike
+  ]
+
+type highlight_type <cs name="Highlight" namespace="Octoio.Fey.Data.Type"> =
+  [ MouseOver
+  | Selected
+  ]
+
+type target_type <cs name="Target" namespace="Octoio.Fey.Data.Type"> =
+  [ Character
+  | Drop
+  | DeadCharacter
+  | QuestBoard
+  | Portal
+  ]
