@@ -21,7 +21,8 @@ let generate_visitor_interface base_name variants namespace =
       | None -> None)
   in
   { lines =
-      import_lines
+      generated_comment_header
+      @ import_lines
       @ blank_line_concat
       @ ns
       @ [ (`Class, Printf.sprintf "public interface %s<TResult>" interface_name);
@@ -46,7 +47,8 @@ let generate_abstract_base_class base_name namespace =
     List.map (fun imp -> (`Import, Printf.sprintf "using %s;" imp)) imports
   in
   { lines =
-      import_lines
+      generated_comment_header
+      @ import_lines
       @ blank_line_concat
       @ ns
       @ [ (`Class, Printf.sprintf "public abstract partial class %s" base_class_name);
@@ -77,7 +79,8 @@ let generate_partial_class_implementation type_name base_name namespace visitor_
     else []
   in
   { lines =
-      import_lines
+      generated_comment_header
+      @ import_lines
       @ visitor_using
       @ blank_line_concat
       @ ns
@@ -160,7 +163,8 @@ let generate_consolidated_visitables base_name variants namespace visitor_namesp
     |> List.flatten
   in
   { lines =
-      import_lines
+      generated_comment_header
+      @ import_lines
       @ visitor_using
       @ blank_line_concat
       @ ns

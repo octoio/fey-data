@@ -39,7 +39,8 @@ let generate_json_converter base_name variants _namespace converter_config =
       | None -> None)
   in
   { lines =
-      import_lines
+      generated_comment_header
+      @ import_lines
       @ blank_line_concat
       @ ns
       @ [ blank_line;

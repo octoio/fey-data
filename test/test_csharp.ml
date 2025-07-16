@@ -236,6 +236,41 @@ module IntegrationTests = struct
       struct_file.file_kind;
     Sys.remove temp_file
   ;;
+
+  let test_generated_comment_header () =
+    let temp_file = TestFixtures.create_temp_atd_file TestFixtures.sample_record_atd in
+    let parsed = CsharpUtils.parse_atd_file temp_file in
+    let _module_head, module_body = parsed in
+    let structs = CsharpMain.generate_csharp_struct module_body in
+    let struct_file = List.hd structs in
+    let generated_code = CsharpOutput.string_of_csharp_code struct_file.lines in
+    check
+      bool
+      "contains C# documentation comment summary"
+      true
+      (TestFixtures.string_contains generated_code "/// <summary>");
+    check
+      bool
+      "contains generated comment header"
+      true
+      (TestFixtures.string_contains generated_code "This file is auto-generated");
+    check
+      bool
+      "contains do not modify warning"
+      true
+      (TestFixtures.string_contains generated_code "DO NOT MODIFY");
+    check
+      bool
+      "contains overwrite warning"
+      true
+      (TestFixtures.string_contains generated_code "overwritten on next generation");
+    check
+      bool
+      "contains closing summary tag"
+      true
+      (TestFixtures.string_contains generated_code "/// </summary>");
+    Sys.remove temp_file
+  ;;
 end
 
 (* File Output Tests *)
@@ -328,7 +363,10 @@ let () =
         IntegrationTests.test_generate_enum_with_namespace );
       ( "generate_struct_with_namespace",
         `Quick,
-        IntegrationTests.test_generate_struct_with_namespace )
+        IntegrationTests.test_generate_struct_with_namespace );
+      ( "generated_comment_header",
+        `Quick,
+        IntegrationTests.test_generated_comment_header )
     ]
   in
   let file_output_tests =

@@ -83,7 +83,8 @@ let generate_csharp_enum type_name (variants : Atd.Ast.variant list) annot : cs_
   let imports = generate_imports annot in
   let ns = generate_namespace annot in
   { lines =
-      (imports
+      (generated_comment_header
+       @ imports
        @ blank_line_concat
        @ ns
        @ attributes
@@ -166,7 +167,8 @@ let generate_csharp_struct_from_type type_name type_expr annot : cs_file =
       if List.length all_modifiers > 0 then String.concat " " all_modifiers ^ " " else ""
     in
     { lines =
-        (imports
+        (generated_comment_header
+         @ imports
          @ blank_line_concat
          @ ns
          @ attributes
