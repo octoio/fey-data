@@ -16,6 +16,9 @@ opam switch create . 5.2.0
 eval $(opam env --set-switch)
 opam install . --deps-only
 
+# Configure paths (edit fey-data.config as needed)
+# Example: change game_root = "../fey-game-mock" for public demo project
+
 # Run the pipeline
 dune exec gamedata
 
@@ -64,6 +67,7 @@ JSON Files → Validation → Entity Processing → C# Generation → Unity Asse
 │   └── server.ml          # Web interface
 ├── bin/                   # Executables
 ├── test/                  # Comprehensive test suite
+├── fey-data.config       # Configuration file for paths
 ├── watch.fish            # Development file watcher
 └── test.fish             # Test runner
 ```
@@ -73,9 +77,27 @@ JSON Files → Validation → Entity Processing → C# Generation → Unity Asse
 The codebase follows a clean modular architecture:
 
 - **`Config.Constants.*`** - Configuration paths and settings
-- **`Data.*`** - Entity types, validation, and utilities
+- **`Data.*`** - Entity types, validation, and utilities  
 - **`Util.*`** - Generic utility functions
 - **`Gamedata.*`** - Core processing and pipeline logic
+
+## Configuration
+
+The `fey-data.config` file allows customization of input/output paths:
+
+```
+# Game project root (change to ../fey-game-mock for public demo)
+game_root = "../fey"
+
+# StreamingAssets folder location
+streaming_assets_path = "Assets/StreamingAssets"
+
+# JSON data subfolder
+json_path = "json"
+
+# C# output location
+scripts_path = "Assets/Scripts/Octoio/Fey/Data/Dto"
+```
 
 ## Entity Types
 
