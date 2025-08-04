@@ -17,16 +17,21 @@ dune exec gamedata
 
 # Function to run tests and handle errors
 function run_tests_and_build
-    echo (set_color blue)"🧪 Running tests..."(set_color normal)
-    
-    # Run tests first
-    if dune exec test/test_gamedata.exe >/dev/null 2>&1
-        echo (set_color green)"✅ Tests passed!"(set_color normal)
-        echo (set_color blue)"🏗️  Building gamedata..."(set_color normal)
-        dune exec gamedata
+    echo (set_color blue)"🏗️  Building gamedata..."(set_color normal)
+    if dune build
+        echo (set_color blue)"🧪 Running tests..."(set_color normal)
+        dune exec test/test_gamedata.exe
+        set test_status $status
+        if test $test_status -eq 0
+            echo (set_color green)"✅ Tests passed!"(set_color normal)
+            echo (set_color blue)"🔄 Running data pipeline"(set_color normal)
+            dune exec gamedata
+        else
+            echo (set_color red)"❌ Tests failed!"(set_color normal)
+            echo (set_color yellow)"Run './test.fish' for detailed test output."(set_color normal)
+        end
     else
-        echo (set_color red)"❌ Tests failed! Skipping build."(set_color normal)
-        echo (set_color yellow)"Run './test.fish' for detailed test output."(set_color normal)
+        echo (set_color red)"❌ Build failed!"(set_color normal)
     end
 end
 
