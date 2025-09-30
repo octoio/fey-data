@@ -4,32 +4,58 @@ type entity_reference <ocaml from="Common"> = abstract
 type hit_effect <ocaml from="Effect"> = abstract
 type status_effect <ocaml from="Effect"> = abstract
 
-type projectile_locomotion_type <cs name="ProjectileLocomotion" namespace="Octoio.Fey.Data.Type"> = 
+type projectile_impact_type <cs name="ProjectileImpact" namespace="Octoio.Fey.Data.Type"> = 
+  [ Hit
+  | Status
+  ]
+
+type projectile_impact <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+  impact_type <json name="type"> <cs usetype="ProjectileImpact">: projectile_impact_type;
+}
+
+type projectile_impact_hit <cs extends="ProjectileImpact" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  impact_type <json name="type"> <cs ignore="true">: projectile_impact_type;
+  hit_effect: hit_effect;
+}
+
+type projectile_impact_status <cs extends="ProjectileImpact" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  impact_type <json name="type"> <cs ignore="true">: projectile_impact_type;
+  status_effect: status_effect;
+}
+
+type projectile_impact_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=ProjectileImpact),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=ProjectileImpact,enumname=Type.ProjectileImpact)"> = 
+  [ Hit of projectile_impact_hit
+  | Status of projectile_impact_status
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type projectile_type <cs name="Projectile" namespace="Octoio.Fey.Data.Type"> = 
   [ Homing
   ]
 
-type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="abstract,partial"> = {
+type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic" modifiers="abstract,partial"> = {
   metadata: metadata;
-  locomotion_type <json name="type"> <cs usetype="ProjectileLocomotion">: projectile_locomotion_type;
+  projectile_type <json name="type"> <cs usetype="Type.Projectile">: projectile_type;
   model_reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
   lifetime: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset: vector3;
   max_hit_count: int <ocaml valid="Validation.int_min 1">;
+  on_impact <cs usetype="List<ProjectileImpact>">: projectile_impact_internal list;
+  on_end <cs usetype="List<ProjectileImpact>">: projectile_impact_internal list;
 }
 
 type projectile_homing <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   metadata <cs ignore="true">: metadata;
-  locomotion_type <json name="type"> <cs ignore="true">: projectile_locomotion_type;
+  projectile_type <json name="type"> <cs usetype="Type.Projectile">: projectile_type;
   model_reference <cs ignore="true">: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
   lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset <cs ignore="true">: vector3;
   max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+  on_impact <cs ignore="true">: projectile_impact_internal list;
+  on_end <cs ignore="true">: projectile_impact_internal list;
   speed: float <ocaml valid="Validation.float_min 0.1">;
   rotation_speed: float <ocaml valid="Validation.float_min 0.1">;
-  on_hit: hit_effect option;
-  on_status: status_effect option;
 }
 
-type projectile_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Projectile),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Projectile,enumname=ProjectileLocomotion)"> = 
+type projectile_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Projectile),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Projectile,enumname=Type.Projectile)"> = 
   [ Homing of projectile_homing
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

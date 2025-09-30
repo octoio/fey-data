@@ -334,7 +334,7 @@ type humanoid_blocked_hit_animation_source <cs namespace="Octoio.Fey.Data.Dto" i
 }
 
 (* Animation data internal union type *)
-type animation_source_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=AnimationSource,modifiers=abstract,partial),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=AnimationSource,enumname=Animation)"> = 
+type animation_source_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=AnimationSource,modifiers=abstract,partial),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=AnimationSource,enumname=Type.Animation)"> = 
   [ Generic of generic_animation_source
   | HumanoidDaggerAttack of humanoid_dagger_attack_animation_source
   | HumanoidSwordAttack of humanoid_sword_attack_animation_source

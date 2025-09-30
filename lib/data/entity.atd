@@ -214,7 +214,7 @@ type projectile_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes
     entity <cs usetype="Projectile">: projectile_internal;
   }
 
-type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EntityDefinition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EntityDefinition,enumname=Entity)"> =
+type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EntityDefinition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EntityDefinition,enumname=Type.Entity)"> =
   [ Weapon of weapon_entity_definition
   | Skill of skill_entity_definition
   | Equipment of equipment_entity_definition
