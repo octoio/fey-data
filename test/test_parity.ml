@@ -55,7 +55,8 @@ let test_entity_parity_comprehensive () =
       ("drop_table", minimal_drop_table_entity_definition, `DropTable);
       ("character", minimal_character_entity_definition, `Character);
       ("animation_source", minimal_animation_source_entity_definition, `AnimationSource);
-      ("animation", minimal_animation_entity_definition, `Animation)
+      ("animation", minimal_animation_entity_definition, `Animation);
+      ("projectile", minimal_projectile_entity_definition, `Projectile)
     ]
   in
   List.iter
