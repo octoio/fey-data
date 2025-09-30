@@ -7,6 +7,12 @@ type stat_type <ocaml from="Stat"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type status_duration <ocaml from="Status"> = abstract
 type requirement_evaluation <ocaml from="Requirement"> = abstract
+type hit_effect <ocaml from="Effect"> = abstract
+type status_effect <ocaml from="Effect"> = abstract
+type effect_target_mechanic_internal <ocaml from="Effect"> = abstract
+type effect_scaling <ocaml from="Effect"> = abstract
+type effect_target <ocaml from="Effect"> = abstract
+type character_team <ocaml from="Effect"> = abstract
 
 type skill_category <cs namespace="Octoio.Fey.Data.Type"> = 
   [ None
@@ -19,71 +25,6 @@ type skill_category <cs namespace="Octoio.Fey.Data.Type"> =
 
 type skill_cost <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
   mana: int <ocaml valid="Validation.int_min 0">;
-}
-
-type skill_effect_target_mechanic_type <cs namespace="Octoio.Fey.Data.Type"> =
-  [ Self
-  | Team
-  | Selected
-  | Circle
-  | Rectangle
-  ]
-
-(* TODO: Extract to character once implemented *)
-type character_team <cs namespace="Octoio.Fey.Data.Type"> = 
-  [ Ally
-  | Enemy
-  | Neutral
-  ]
-
-type skill_effect_target_mechanic <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
-  mechanic_type <json name="type">: skill_effect_target_mechanic_type;
-}
-
-type skill_effect_target_mechanic_self <cs extends="SkillEffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: skill_effect_target_mechanic_type;
-}
-
-type skill_effect_target_mechanic_team <cs extends="SkillEffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: skill_effect_target_mechanic_type;
-  team: character_team;
-}
-
-type skill_effect_target_mechanic_selected <cs extends="SkillEffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: skill_effect_target_mechanic_type;
-}
-
-type skill_effect_target_mechanic_circle <cs extends="SkillEffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: skill_effect_target_mechanic_type;
-  hit_count: int <ocaml valid="Validation.int_min 1">;
-  radius: float;
-}
-
-type skill_effect_target_mechanic_rectangle <cs extends="SkillEffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: skill_effect_target_mechanic_type;
-  hit_count: int <ocaml valid="Validation.int_min 1">;
-  width: float;
-  height: float;
-}
-
-type skill_effect_target_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=SkillEffectTargetMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=SkillEffectTargetMechanic,enumname=SkillEffectTargetMechanicType)"> =
-  [ Self of skill_effect_target_mechanic_self
-  | Team of skill_effect_target_mechanic_team
-  | Selected of skill_effect_target_mechanic_selected
-  | Circle of skill_effect_target_mechanic_circle
-  | Rectangle of skill_effect_target_mechanic_rectangle
-  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
-
-type skill_effect_target <cs namespace="Octoio.Fey.Data.Type"> = 
-  [ Ally
-  | Enemy
-  | Any
-  ]
-
-type skill_effect_scaling <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
-  base: float;
-  scaling: float_range;
-  stat <cs usetype="Type.Stat">: stat_type;
 }
 
 type skill_target_type <cs name="SkillTarget" namespace="Octoio.Fey.Data.Type"> = 
@@ -146,28 +87,10 @@ type skill_action_sound_node <cs extends="SkillActionNode" namespace="Octoio.Fey
     sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
 }
 
-type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
-  hit_type <cs usetype="Type.Hit">: hit_type;
-  scalers: skill_effect_scaling list;
-  target_mechanic <cs usetype="SkillEffectTargetMechanic">: skill_effect_target_mechanic_internal;
-  target: skill_effect_target;
-  hit_sound: entity_reference;
-  can_crit: bool;
-  can_miss: bool;
-} 
-
 type skill_action_hit_effect_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
   name <cs ignore="true">: string;
   hit_effect: hit_effect;
-}
-
-type status_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
-  target_mechanic <cs usetype="SkillEffectTargetMechanic">: skill_effect_target_mechanic_internal;
-  target: skill_effect_target;
-  durations: status_duration list;
-  scalers: skill_effect_scaling list;
-  status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
 }
 
 type skill_action_status_effect_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
