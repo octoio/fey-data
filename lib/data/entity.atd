@@ -16,6 +16,7 @@ type drop_table <ocaml from="Drop"> = abstract
 type character <ocaml from="Character"> = abstract
 type animation_source_internal <ocaml from="Animation"> = abstract
 type animation <ocaml from="Animation"> = abstract
+type projectile_internal <ocaml from="Projectile"> = abstract
 
 type entity_index <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
   { index <cs usetype="uint">: int <ocaml valid="Validation.int_min 0">;
@@ -203,6 +204,16 @@ type animation_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes=
     entity <cs usetype="Animation">: animation;
   }
 
+type projectile_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Projectile>" modifiers="partial"> =
+  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type"> <cs ignore="true">: entity_type;
+    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
+    id <cs ignore="true">: string;
+    
+    entity <cs usetype="Projectile">: projectile_internal;
+  }
+
 type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EntityDefinition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EntityDefinition,enumname=Entity)"> =
   [ Weapon of weapon_entity_definition
   | Skill of skill_entity_definition
@@ -220,4 +231,5 @@ type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Character of character_entity_definition
   | AnimationSource of animation_source_entity_definition
   | Animation of animation_entity_definition
+  | Projectile of projectile_entity_definition
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml valid="Validation.validate_entity_definition_internal">

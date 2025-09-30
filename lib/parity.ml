@@ -19,6 +19,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `Character _ -> `Character
   | `AnimationSource _ -> `AnimationSource
   | `Animation _ -> `Animation
+  | `Projectile _ -> `Projectile
 ;;
 
 let test_stat_sheet_parity

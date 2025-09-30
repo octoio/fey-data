@@ -28,6 +28,7 @@
 ../fey/Assets/Scripts/Data/Dto/CharacterEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/AnimationSourceEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/AnimationEntityDefinition.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/IEntityDefinitionVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/EntityDefinitionVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/EntityDefinitionConverter.cs

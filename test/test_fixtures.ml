@@ -540,4 +540,34 @@ let minimal_animation_entity_definition : Data.Entity_t.entity_definition_intern
     }
 ;;
 
+(* Minimal valid projectile *)
+let minimal_projectile_homing =
+  { Data.Projectile_t.metadata = minimal_metadata;
+    locomotion_type = `Homing;
+    model_reference = minimal_entity_reference;
+    lifetime = 5.0;
+    spawn_offset = minimal_vector3;
+    max_hit_count = 1;
+    speed = 10.0;
+    rotation_speed = 180.0;
+    on_hit = None;
+    on_status = None
+  }
+;;
+
+let minimal_projectile_internal : Data.Projectile_t.projectile_internal =
+  `Homing minimal_projectile_homing
+;;
+
+let minimal_projectile_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Projectile
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Projectile;
+      key = "MinimalProjectile";
+      version = 1;
+      id = "ownr:Projectile:MinimalProjectile:1";
+      entity = minimal_projectile_internal
+    }
+;;
+
 (* Add similar minimal entity_definition_internal values for other entity types as needed for parity tests *)
