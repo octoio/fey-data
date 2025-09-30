@@ -129,9 +129,11 @@
 ../fey/Assets/Scripts/Data/Dto/StatusEffect.cs
 ../fey/Assets/Scripts/Data/Type/SkillCategory.cs
 ../fey/Assets/Scripts/Data/Type/SkillTarget.cs
+../fey/Assets/Scripts/Data/Type/ProjectileSpawnPosition.cs
 ../fey/Assets/Scripts/Data/Type/SkillActionNode.cs
 ../fey/Assets/Scripts/Data/Type/SkillIndicatorPosition.cs
 ../fey/Assets/Scripts/Data/Dto/SkillCost.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileSpawnPosition.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionSequenceNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionParallelNode.cs
@@ -142,6 +144,7 @@
 ../fey/Assets/Scripts/Data/Dto/SkillActionStatusEffectNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionSummonNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionRequirementNode.cs
+../fey/Assets/Scripts/Data/Dto/SkillActionProjectileNode.cs
 ../fey/Assets/Scripts/Data/Dto/ISkillActionNodeVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionNodeVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/SkillActionNodeConverter.cs
