@@ -570,4 +570,69 @@ let minimal_projectile_entity_definition : Data.Entity_t.entity_definition_inter
     }
 ;;
 
+(* Minimal valid projectile_spawn_position *)
+let minimal_projectile_spawn_position =
+  { Data.Skill_t.position_type = `Character;
+    position = minimal_vector3;
+    offset = minimal_vector3
+  }
+;;
+
+(* Skill with projectile action node - for testing projectile spawning *)
+let skill_with_projectile =
+  let open Data.Skill_v in
+  let open Data.Requirement_v in
+  let minimal_requirement_eval =
+    create_requirement_evaluation ~operator:`All ~requirements:[] ()
+  in
+  let projectile_ref =
+    { Data.Common_t.owner = "ownr";
+      entity_type = `Projectile;
+      key = "MinimalProjectile";
+      version = 1;
+      id = "ownr:Projectile:MinimalProjectile:1"
+    }
+  in
+  let projectile_node =
+    `Projectile
+      (create_skill_action_projectile_node
+         ~skill_action_node_type:`Projectile
+         ~name:"spawn_projectile"
+         ~projectile:projectile_ref
+         ~spawn_position:minimal_projectile_spawn_position
+         ~direction:minimal_vector3
+         ())
+  in
+  let execution_root =
+    create_skill_action_requirement_node
+      ~skill_action_node_type:`Requirement
+      ~name:"root"
+      ~requirements:minimal_requirement_eval
+      ~child:projectile_node
+      ()
+  in
+  { Data.Skill_t.metadata = minimal_metadata;
+    quality = `Common;
+    icon_reference = minimal_entity_reference;
+    categories = [ `Offense ];
+    cost = { Data.Skill_t.mana = 10 };
+    cooldown = 2.0;
+    target_type = `Enemy;
+    execution_root;
+    cast_distance = minimal_float_range;
+    indicators = []
+  }
+;;
+
+let skill_with_projectile_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Skill
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Skill;
+      key = "ProjectileSkill";
+      version = 1;
+      id = "ownr:Skill:ProjectileSkill:1";
+      entity = skill_with_projectile
+    }
+;;
+
 (* Add similar minimal entity_definition_internal values for other entity types as needed for parity tests *)
