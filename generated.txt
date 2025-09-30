@@ -78,7 +78,14 @@
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariant.cs
 ../fey/Assets/Scripts/Data/Dto/Character.cs
-../fey/Assets/Scripts/Data/Type/ProjectileLocomotion.cs
+../fey/Assets/Scripts/Data/Type/ProjectileImpact.cs
+../fey/Assets/Scripts/Data/Type/Projectile.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileImpact.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileImpactHit.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileImpactStatus.cs
+../fey/Assets/Scripts/Data/Dto/IProjectileImpactVisitor.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileImpactVisitables.cs
+../fey/Assets/Scripts/Data/Mapper/ProjectileImpactConverter.cs
 ../fey/Assets/Scripts/Data/Dto/Projectile.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileHoming.cs
 ../fey/Assets/Scripts/Data/Dto/IProjectileVisitor.cs
