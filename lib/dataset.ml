@@ -43,7 +43,8 @@ let entity_reference_of_entity_definition
   | `DropTable { id; owner; entity_type; key; version; _ }
   | `Character { id; owner; entity_type; key; version; _ }
   | `AnimationSource { id; owner; entity_type; key; version; _ }
-  | `Animation { id; owner; entity_type; key; version; _ } ->
+  | `Animation { id; owner; entity_type; key; version; _ }
+  | `Projectile { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -123,6 +124,22 @@ let extract_entity_reference_from_drop_table_entity
 
 let extract_from_option_entity_reference o = Option.fold ~none:[] ~some:(fun x -> [ x ]) o
 
+let extract_entity_reference_from_projectile_entity
+  (projectile : Data.Projectile_t.projectile_internal)
+  =
+  match projectile with
+  | `Homing { model_reference; on_hit; on_status; _ } ->
+    let hit_refs = match on_hit with
+      | Some hit_effect -> [ hit_effect.hit_sound ]
+      | None -> []
+    in
+    let status_refs = match on_status with
+      | Some status_effect -> [ status_effect.status ]
+      | None -> []
+    in
+    [ model_reference ] @ hit_refs @ status_refs
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -140,6 +157,7 @@ let extract_entity_reference_from_entity_definition
     [ entity.hit_sound; entity.foot_step_sound; entity.auto_attack; entity.drop_table ]
     @ entity.skills
   | `Animation { entity; _ } -> entity.sources
+  | `Projectile { entity; _ } -> extract_entity_reference_from_projectile_entity entity
   | `AnimationSource _
   | `AudioClip _
   | `Quality _
