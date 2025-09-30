@@ -77,6 +77,12 @@
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariant.cs
 ../fey/Assets/Scripts/Data/Dto/Character.cs
+../fey/Assets/Scripts/Data/Type/ProjectileLocomotion.cs
+../fey/Assets/Scripts/Data/Dto/Projectile.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileHoming.cs
+../fey/Assets/Scripts/Data/Dto/IProjectileVisitor.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileVisitables.cs
+../fey/Assets/Scripts/Data/Mapper/ProjectileConverter.cs
 ../fey/Assets/Scripts/Data/Dto/AudioClip.cs
 ../fey/Assets/Scripts/Data/Dto/Sound.cs
 ../fey/Assets/Scripts/Data/Dto/SoundBank.cs
