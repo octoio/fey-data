@@ -48,7 +48,7 @@ type effect_target_mechanic_rectangle <cs extends="EffectTargetMechanic" namespa
   height: float;
 }
 
-type effect_target_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EffectTargetMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EffectTargetMechanic,enumname=EffectTargetMechanicType)"> =
+type effect_target_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EffectTargetMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EffectTargetMechanic,enumname=Type.EffectTargetMechanicType)"> =
   [ Self of effect_target_mechanic_self
   | Team of effect_target_mechanic_team
   | Selected of effect_target_mechanic_selected

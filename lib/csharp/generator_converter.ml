@@ -10,7 +10,7 @@ let generate_json_converter base_name variants _namespace converter_config =
     match converter_config with
     | Some config ->
       (match config.enumname with
-       | Some enum_name -> Printf.sprintf "Type.%s" enum_name
+       | Some enum_name -> enum_name
        | None -> Printf.sprintf "Type.%s" base_class_name)
     | None -> Printf.sprintf "Type.%s" base_class_name
   in

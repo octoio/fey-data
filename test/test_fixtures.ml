@@ -543,15 +543,15 @@ let minimal_animation_entity_definition : Data.Entity_t.entity_definition_intern
 (* Minimal valid projectile *)
 let minimal_projectile_homing =
   { Data.Projectile_t.metadata = minimal_metadata;
-    locomotion_type = `Homing;
+    projectile_type = `Homing;
     model_reference = minimal_entity_reference;
     lifetime = 5.0;
     spawn_offset = minimal_vector3;
     max_hit_count = 1;
+    on_impact = [];
+    on_end = [];
     speed = 10.0;
-    rotation_speed = 180.0;
-    on_hit = None;
-    on_status = None
+    rotation_speed = 180.0
   }
 ;;
 

@@ -19,7 +19,9 @@ let add_error origin_location file_path error dataset =
 ;;
 
 let add_definition (file_path, definition) dataset =
-  let truncated_file_path = Util.String.remove_before_prefix Config.Constants.json_sub_folder file_path in
+  let truncated_file_path =
+    Util.String.remove_before_prefix Config.Constants.json_sub_folder file_path
+  in
   { dataset with definitions = (truncated_file_path, definition) :: dataset.definitions }
 ;;
 
@@ -78,7 +80,9 @@ let extract_entity_reference_from_skill_entity
     | `Projectile { projectile; _ } -> [ projectile ]
   in
   [ icon_reference ]
-  @ List.map (fun (indicator : Data.Skill_t.skill_indicator) -> indicator.model_reference) indicators
+  @ List.map
+      (fun (indicator : Data.Skill_t.skill_indicator) -> indicator.model_reference)
+      indicators
   @ extract_entity_reference_from_skill_action_node execution_root.child
 ;;
 
@@ -125,20 +129,26 @@ let extract_entity_reference_from_drop_table_entity
 
 let extract_from_option_entity_reference o = Option.fold ~none:[] ~some:(fun x -> [ x ]) o
 
+let extract_entity_reference_from_projectile_impact
+  (impact : Data.Projectile_t.projectile_impact_internal)
+  =
+  match impact with
+  | `Hit { hit_effect; _ } -> [ hit_effect.hit_sound ]
+  | `Status { status_effect; _ } -> [ status_effect.status ]
+;;
+
 let extract_entity_reference_from_projectile_entity
   (projectile : Data.Projectile_t.projectile_internal)
   =
   match projectile with
-  | `Homing { model_reference; on_hit; on_status; _ } ->
-    let hit_refs = match on_hit with
-      | Some hit_effect -> [ hit_effect.hit_sound ]
-      | None -> []
+  | `Homing { model_reference; on_impact; on_end; _ } ->
+    let impact_refs =
+      List.concat_map extract_entity_reference_from_projectile_impact on_impact
     in
-    let status_refs = match on_status with
-      | Some status_effect -> [ status_effect.status ]
-      | None -> []
+    let end_refs =
+      List.concat_map extract_entity_reference_from_projectile_impact on_end
     in
-    [ model_reference ] @ hit_refs @ status_refs
+    [ model_reference ] @ impact_refs @ end_refs
 ;;
 
 let extract_entity_reference_from_entity_definition
@@ -183,7 +193,8 @@ let generate_indices dataset : dataset =
     ((file_path, entity_definition) : string * Data.Entity_t.entity_definition_internal)
     =
     let hash =
-      SHA1.digest_string (Data.Entity_j.string_of_entity_definition_internal entity_definition)
+      SHA1.digest_string
+        (Data.Entity_j.string_of_entity_definition_internal entity_definition)
       |> SHA1.to_hex
     in
     (* TODO: Move back to linear indices, this is for hotreload only when a new entity is added *)
