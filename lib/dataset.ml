@@ -75,6 +75,7 @@ let extract_entity_reference_from_skill_entity
     | `Delay _ -> []
     | `Status { status_effect; _ } -> [ status_effect.status ]
     | `Summon { summon_entity; _ } -> [ summon_entity ]
+    | `Projectile { projectile; _ } -> [ projectile ]
   in
   [ icon_reference ]
   @ List.map (fun (indicator : Data.Skill_t.skill_indicator) -> indicator.model_reference) indicators

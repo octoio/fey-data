@@ -144,6 +144,20 @@ let test_extract_entity_reference_from_skill () =
   check bool "Skill has expected reference count" true (List.length skill_refs >= 1)
 ;;
 
+let test_extract_entity_reference_from_skill_with_projectile () =
+  let skill_refs =
+    Dataset.extract_entity_reference_from_entity_definition
+      skill_with_projectile_entity_definition
+  in
+  (* Should contain icon_reference + projectile reference = 2 *)
+  check bool "Skill with projectile has references" true (List.length skill_refs >= 2);
+  (* Verify projectile reference is included *)
+  let has_projectile_ref =
+    List.exists (fun ref -> ref.Data.Common_t.entity_type = `Projectile) skill_refs
+  in
+  check bool "Skill contains projectile entity reference" true has_projectile_ref
+;;
+
 let test_extract_entity_reference_from_equipment () =
   let equipment_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -164,7 +178,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_skill_entity_definition;
       minimal_character_entity_definition;
       minimal_equipment_entity_definition;
-      minimal_status_entity_definition
+      minimal_status_entity_definition;
+      minimal_projectile_entity_definition
     ]
   in
   List.iter
@@ -364,6 +379,10 @@ let dataset_tests =
       "Extract entity reference from skill"
       `Quick
       test_extract_entity_reference_from_skill;
+    test_case
+      "Extract entity reference from skill with projectile"
+      `Quick
+      test_extract_entity_reference_from_skill_with_projectile;
     test_case
       "Extract entity reference from equipment"
       `Quick

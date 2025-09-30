@@ -36,6 +36,17 @@ type skill_target_type <cs name="SkillTarget" namespace="Octoio.Fey.Data.Type"> 
   | None
   ]
 
+type projectile_spawn_position_type <cs name="ProjectileSpawnPosition" namespace="Octoio.Fey.Data.Type"> = 
+  [ Character
+  | World
+  ]
+
+type projectile_spawn_position <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine"> = {
+  position_type <json name="type"> <cs usetype="ProjectileSpawnPosition">: projectile_spawn_position_type;
+  position: vector3;
+  offset: vector3;
+}
+
 type skill_action_node_type <cs name="SkillActionNode" namespace="Octoio.Fey.Data.Type"> = 
   [ Sequence
   | Parallel
@@ -46,6 +57,7 @@ type skill_action_node_type <cs name="SkillActionNode" namespace="Octoio.Fey.Dat
   | Status
   | Summon
   | Requirement
+  | Projectile
   ]
 
 type skill_action_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
@@ -113,6 +125,14 @@ type skill_action_requirement_node <cs extends="SkillActionNode" namespace="Octo
   child <cs usetype="SkillActionNode">: skill_action_node_internal;
 }
 
+type skill_action_projectile_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
+  name <cs ignore="true">: string;
+  projectile: entity_reference <ocaml valid="Validation.entity_reference_of_type `Projectile">;
+  spawn_position: projectile_spawn_position;
+  direction: vector3;
+}
+
 type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=SkillActionNode),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=SkillActionNode)"> = 
   [ Sequence of skill_action_sequence_node
   | Parallel of skill_action_parallel_node
@@ -123,6 +143,7 @@ type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Status of skill_action_status_effect_node
   | Summon of skill_action_summon_node
   | Requirement of skill_action_requirement_node
+  | Projectile of skill_action_projectile_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type skill_indicator_position <cs namespace="Octoio.Fey.Data.Type"> = 
