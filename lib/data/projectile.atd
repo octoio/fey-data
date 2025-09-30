@@ -1,0 +1,35 @@
+type metadata <ocaml from="Common"> = abstract
+type vector3 <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+type hit_effect <ocaml from="Effect"> = abstract
+type status_effect <ocaml from="Effect"> = abstract
+
+type projectile_locomotion_type <cs name="ProjectileLocomotion" namespace="Octoio.Fey.Data.Type"> = 
+  [ Homing
+  ]
+
+type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="abstract,partial"> = {
+  metadata: metadata;
+  locomotion_type <json name="type"> <cs usetype="ProjectileLocomotion">: projectile_locomotion_type;
+  model_reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+  lifetime: float <ocaml valid="Validation.float_min 0.1">;
+  spawn_offset: vector3;
+  max_hit_count: int <ocaml valid="Validation.int_min 1">;
+}
+
+type projectile_homing <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  metadata <cs ignore="true">: metadata;
+  locomotion_type <json name="type"> <cs ignore="true">: projectile_locomotion_type;
+  model_reference <cs ignore="true">: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+  lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
+  spawn_offset <cs ignore="true">: vector3;
+  max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+  speed: float <ocaml valid="Validation.float_min 0.1">;
+  rotation_speed: float <ocaml valid="Validation.float_min 0.1">;
+  on_hit: hit_effect option;
+  on_status: status_effect option;
+}
+
+type projectile_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Projectile),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Projectile,enumname=ProjectileLocomotion)"> = 
+  [ Homing of projectile_homing
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
