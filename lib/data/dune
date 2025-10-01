@@ -5,6 +5,7 @@
 ; Generate the dune.inc file from all .atd files
 
 (rule
+ (alias genatd)
  (mode promote)
  (deps
   (glob_files *.atd))
