@@ -1,14 +1,13 @@
-; Include auto-generated rules for .atd files
+(subdir
+ data
+ (dynamic_include ../generate/dune.inc))
 
-(include dune.inc)
-
-; Generate the dune.inc file from all .atd files
-
-(rule
- (mode promote)
- (deps
-  (glob_files *.atd))
- (action
-  (with-stdout-to
-   dune.inc
-   (run gen/gen.exe))))
+(subdir
+ generate
+ (rule
+  (deps
+   (glob_files ../*.atd))
+  (action
+   (with-stdout-to
+    dune.inc
+    (run ../gen/gen.exe)))))

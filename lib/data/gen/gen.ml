@@ -65,8 +65,8 @@ let generate_modules_list atd_files =
   Printf.printf "  entity_util\n";
   Printf.printf "  validation)\n";
   Printf.printf " (libraries atd atdgen-runtime re base config util)\n";
-  Printf.printf " (preprocess\n";
-  Printf.printf "  (pps ppx_deriving.eq ppx_deriving.show)))\n"
+"  Printf.printf " (preprocess\n";
+  Printf.printf "  (pps ppx_deriving.eq ppx_deriving.show))")\n"
 ;;
 
 let () =
