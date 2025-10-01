@@ -146,6 +146,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets effect_j.ml effect_j.mli)
+ (deps effect.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets effect_t.ml effect_t.mli)
+ (deps effect.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets effect_v.ml effect_v.mli)
+ (deps effect.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets entity_j.ml entity_j.mli)
  (deps entity.atd)
  (mode fallback)
@@ -225,6 +246,27 @@
 (rule
  (targets model_v.ml model_v.mli)
  (deps model.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets projectile_j.ml projectile_j.mli)
+ (deps projectile.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets projectile_t.ml projectile_t.mli)
+ (deps projectile.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets projectile_v.ml projectile_v.mli)
+ (deps projectile.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -380,6 +422,9 @@
   drop_j
   drop_t
   drop_v
+  effect_j
+  effect_t
+  effect_v
   entity_j
   entity_t
   entity_v
@@ -392,6 +437,9 @@
   model_j
   model_t
   model_v
+  projectile_j
+  projectile_t
+  projectile_v
   quality_j
   quality_t
   quality_v
