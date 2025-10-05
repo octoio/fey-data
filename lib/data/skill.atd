@@ -42,7 +42,7 @@ type projectile_spawn_position_type <cs name="ProjectileSpawnPosition" namespace
   ]
 
 type projectile_spawn_position <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine"> = {
-  position_type <json name="type"> <cs usetype="ProjectileSpawnPosition">: projectile_spawn_position_type;
+  position_type <json name="type"> <cs usetype="Type.ProjectileSpawnPosition">: projectile_spawn_position_type;
   position: vector3;
   offset: vector3;
 }
