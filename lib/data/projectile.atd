@@ -45,7 +45,7 @@ type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
 
 type projectile_homing <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   metadata <cs ignore="true">: metadata;
-  projectile_type <json name="type"> <cs usetype="Type.Projectile">: projectile_type;
+  projectile_type <json name="type"> <cs ignore="true">: projectile_type;
   model_reference <cs ignore="true">: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
   lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset <cs ignore="true">: vector3;
