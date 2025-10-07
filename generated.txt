@@ -80,6 +80,7 @@
 ../fey/Assets/Scripts/Data/Dto/Character.cs
 ../fey/Assets/Scripts/Data/Type/ProjectileImpact.cs
 ../fey/Assets/Scripts/Data/Type/Projectile.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileModel.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileImpact.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileImpactHit.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileImpactStatus.cs

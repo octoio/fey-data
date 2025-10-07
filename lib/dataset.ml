@@ -141,14 +141,14 @@ let extract_entity_reference_from_projectile_entity
   (projectile : Data.Projectile_t.projectile_internal)
   =
   match projectile with
-  | `Homing { model_reference; on_impact; on_end; _ } ->
+  | `Homing { model; on_impact; on_end; _ } ->
     let impact_refs =
       List.concat_map extract_entity_reference_from_projectile_impact on_impact
     in
     let end_refs =
       List.concat_map extract_entity_reference_from_projectile_impact on_end
     in
-    [ model_reference ] @ impact_refs @ end_refs
+    [ model.reference ] @ impact_refs @ end_refs
 ;;
 
 let extract_entity_reference_from_entity_definition

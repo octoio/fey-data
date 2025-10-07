@@ -4,13 +4,19 @@ type entity_reference <ocaml from="Common"> = abstract
 type hit_effect <ocaml from="Effect"> = abstract
 type status_effect <ocaml from="Effect"> = abstract
 
+type projectile_model <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" modifiers="partial"> = {
+  reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+  model_scale: vector3;
+  collider_scale: vector3;
+}
+
 type projectile_impact_type <cs name="ProjectileImpact" namespace="Octoio.Fey.Data.Type"> = 
   [ Hit
   | Status
   ]
 
 type projectile_impact <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
-  impact_type <json name="type"> <cs usetype="ProjectileImpact">: projectile_impact_type;
+  impact_type <json name="type"> <cs usetype="Type.ProjectileImpact">: projectile_impact_type;
 }
 
 type projectile_impact_hit <cs extends="ProjectileImpact" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
@@ -35,7 +41,7 @@ type projectile_type <cs name="Projectile" namespace="Octoio.Fey.Data.Type"> =
 type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic" modifiers="abstract,partial"> = {
   metadata: metadata;
   projectile_type <json name="type"> <cs usetype="Type.Projectile">: projectile_type;
-  model_reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+  model: projectile_model;
   lifetime: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset: vector3;
   max_hit_count: int <ocaml valid="Validation.int_min 1">;
@@ -46,7 +52,7 @@ type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
 type projectile_homing <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   metadata <cs ignore="true">: metadata;
   projectile_type <json name="type"> <cs ignore="true">: projectile_type;
-  model_reference <cs ignore="true">: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+  model <cs ignore="true">: projectile_model;
   lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset <cs ignore="true">: vector3;
   max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;

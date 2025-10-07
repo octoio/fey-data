@@ -540,11 +540,19 @@ let minimal_animation_entity_definition : Data.Entity_t.entity_definition_intern
     }
 ;;
 
+(* Minimal valid projectile model *)
+let minimal_projectile_model =
+  { Data.Projectile_t.reference = minimal_entity_reference;
+    model_scale = minimal_vector3;
+    collider_scale = minimal_vector3
+  }
+;;
+
 (* Minimal valid projectile *)
 let minimal_projectile_homing =
   { Data.Projectile_t.metadata = minimal_metadata;
     projectile_type = `Homing;
-    model_reference = minimal_entity_reference;
+    model = minimal_projectile_model;
     lifetime = 5.0;
     spawn_offset = minimal_vector3;
     max_hit_count = 1;
