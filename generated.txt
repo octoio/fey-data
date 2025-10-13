@@ -78,6 +78,7 @@
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariant.cs
 ../fey/Assets/Scripts/Data/Dto/Character.cs
+../fey/Assets/Scripts/Data/Type/ProjectileModel.cs
 ../fey/Assets/Scripts/Data/Type/ProjectileImpact.cs
 ../fey/Assets/Scripts/Data/Type/Projectile.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileModel.cs
