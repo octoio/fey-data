@@ -59,6 +59,7 @@ type entity_type <cs name="Entity" namespace="Octoio.Fey.Data.Type"> =
   | Character
   | AnimationSource
   | Animation
+  | Projectile
   ]
 
 type entity_reference <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type;Octoio.Fey.Data.Interface" extends="IEntityReference"> =

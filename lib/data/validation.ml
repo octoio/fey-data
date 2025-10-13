@@ -119,7 +119,8 @@ let validate_entity_definition_internal
   | `DropTable { owner; id; entity_type; key; version; _ }
   | `Character { owner; id; entity_type; key; version; _ }
   | `AnimationSource { owner; id; entity_type; key; version; _ }
-  | `Animation { owner; id; entity_type; key; version; _ } ->
+  | `Animation { owner; id; entity_type; key; version; _ }
+  | `Projectile { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `Cursor { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
