@@ -543,8 +543,7 @@ let minimal_animation_entity_definition : Data.Entity_t.entity_definition_intern
 (* Minimal valid projectile model *)
 let minimal_projectile_model =
   { Data.Projectile_t.reference = minimal_entity_reference;
-    model_scale = minimal_vector3;
-    collider_scale = minimal_vector3
+    model_scale = minimal_vector3
   }
 ;;
 
