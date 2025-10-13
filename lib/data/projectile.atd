@@ -4,8 +4,14 @@ type entity_reference <ocaml from="Common"> = abstract
 type hit_effect <ocaml from="Effect"> = abstract
 type status_effect <ocaml from="Effect"> = abstract
 
-type projectile_model <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" modifiers="partial"> = {
-  reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
+type projectile_model_type <cs name="ProjectileModel" namespace="Octoio.Fey.Data.Type"> = 
+  [ Pebble
+  | Fireball
+  ]
+
+type projectile_model <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  (* Using Unity prefabs for now; will switch to Sandbox .glb models in the future with trails, textures, particles *)
+  model_type <json name="type"> <cs usetype="Type.ProjectileModel">: projectile_model_type;
   model_scale: vector3;
 }
 
