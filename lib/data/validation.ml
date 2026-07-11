@@ -137,7 +137,8 @@ let validate_entity_definition_internal
   | `AnimationSource { owner; id; entity_type; key; version; _ }
   | `Animation { owner; id; entity_type; key; version; _ }
   | `Projectile { owner; id; entity_type; key; version; _ }
-  | `Quest { owner; id; entity_type; key; version; _ } ->
+  | `Quest { owner; id; entity_type; key; version; _ }
+  | `Anchor { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id

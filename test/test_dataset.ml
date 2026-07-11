@@ -198,7 +198,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_status_entity_definition;
       minimal_projectile_entity_definition;
       minimal_quest_entity_definition;
-      minimal_quest_difficulty_entity_definition
+      minimal_quest_difficulty_entity_definition;
+      minimal_anchor_entity_definition
     ]
   in
   List.iter

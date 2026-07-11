@@ -1,0 +1,57 @@
+type metadata <ocaml from="Common"> = abstract
+type transform <ocaml from="Common"> = abstract
+type color <ocaml from="Common"> = abstract
+
+type anchor_type <cs name="Anchor" namespace="Octoio.Fey.Data.Type"> =
+  [ Zone
+  | SpawnPoint
+  | Portal
+  | QuestBoard
+  ]
+
+type zone_detection_type <cs name="ZoneDetection" namespace="Octoio.Fey.Data.Type"> =
+  [ Overlap
+  | Trigger
+  ]
+
+(* Gameplay markers owned by a stage; transforms are relative to the stage's StageOrigin *)
+type anchor <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="abstract,partial"> = {
+  anchor_type <json name="type"> <cs usetype="Type.Anchor">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+}
+
+type anchor_zone <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  anchor_type <json name="type"> <cs ignore="true">: anchor_type;
+  metadata <cs ignore="true">: metadata;
+  transform <cs ignore="true">: transform;
+  detection <cs usetype="Type.ZoneDetection">: zone_detection_type;
+  radius: float <ocaml valid="Validation.float_min 0.1">;
+  color: color;
+  show_vfx: bool;
+}
+
+type anchor_spawn_point <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  anchor_type <json name="type"> <cs ignore="true">: anchor_type;
+  metadata <cs ignore="true">: metadata;
+  transform <cs ignore="true">: transform;
+}
+
+type anchor_portal <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  anchor_type <json name="type"> <cs ignore="true">: anchor_type;
+  metadata <cs ignore="true">: metadata;
+  transform <cs ignore="true">: transform;
+}
+
+type anchor_quest_board <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  anchor_type <json name="type"> <cs ignore="true">: anchor_type;
+  metadata <cs ignore="true">: metadata;
+  transform <cs ignore="true">: transform;
+}
+
+type anchor_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Anchor),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Anchor,enumname=Type.Anchor)"> =
+  [ Zone of anchor_zone
+  | SpawnPoint of anchor_spawn_point
+  | Portal of anchor_portal
+  | QuestBoard of anchor_quest_board
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

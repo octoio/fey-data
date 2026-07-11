@@ -769,4 +769,45 @@ let quest_with_spawns_entity_definition : Data.Entity_t.entity_definition_intern
     }
 ;;
 
+(* Minimal valid anchor *)
+let minimal_transform =
+  { Data.Common_t.position = minimal_vector3;
+    rotation = minimal_vector3;
+    scale = minimal_vector3
+  }
+;;
+
+let minimal_anchor_zone =
+  { Data.Anchor_t.anchor_type = `Zone;
+    metadata = minimal_metadata;
+    transform = minimal_transform;
+    detection = `Overlap;
+    radius = 3.0;
+    color = minimal_color;
+    show_vfx = true
+  }
+;;
+
+let minimal_anchor_internal : Data.Anchor_t.anchor_internal = `Zone minimal_anchor_zone
+
+let minimal_anchor_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key = "MinimalAnchor";
+      version = 1;
+      id = "ownr:Anchor:MinimalAnchor:1";
+      entity = minimal_anchor_internal
+    }
+;;
+
+let minimal_anchor_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Anchor;
+    key = "MinimalAnchor";
+    version = 1;
+    id = "ownr:Anchor:MinimalAnchor:1"
+  }
+;;
+
 (* Add similar minimal entity_definition_internal values for other entity types as needed for parity tests *)
