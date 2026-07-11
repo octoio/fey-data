@@ -1,0 +1,17 @@
+type entity_reference <ocaml from="Common"> = abstract
+
+type spawn <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  spawn_count: int <ocaml valid="Validation.int_min 1">;
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  target_adventurer_on_spawn: bool;
+}
+
+type spawn_sequence_step <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;System.Collections.Generic"> = {
+  timing: float <ocaml valid="Validation.float_between 0. 1.">;
+  spawns: spawn list <ocaml valid="Validation.list_min_length 1">;
+}
+
+type spawn_sequence <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;System.Collections.Generic"> = {
+  duration: float <ocaml valid="Validation.float_between 1. 300.">;
+  steps: spawn_sequence_step list <ocaml valid="Validation.validate_spawn_sequence_steps">;
+}

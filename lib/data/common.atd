@@ -60,6 +60,8 @@ type entity_type <cs name="Entity" namespace="Octoio.Fey.Data.Type"> =
   | AnimationSource
   | Animation
   | Projectile
+  | Quest
+  | QuestDifficulty
   ]
 
 type entity_reference <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type;Octoio.Fey.Data.Interface" extends="IEntityReference"> =
@@ -116,4 +118,9 @@ type target_type <cs name="Target" namespace="Octoio.Fey.Data.Type"> =
   | DeadCharacter
   | QuestBoard
   | Portal
+  ]
+
+type zone_type <cs name="Zone" namespace="Octoio.Fey.Data.Type"> =
+  [ StartQuestZone
+  | StayInZone
   ]

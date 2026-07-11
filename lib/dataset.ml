@@ -46,7 +46,9 @@ let entity_reference_of_entity_definition
   | `Character { id; owner; entity_type; key; version; _ }
   | `AnimationSource { id; owner; entity_type; key; version; _ }
   | `Animation { id; owner; entity_type; key; version; _ }
-  | `Projectile { id; owner; entity_type; key; version; _ } ->
+  | `Projectile { id; owner; entity_type; key; version; _ }
+  | `Quest { id; owner; entity_type; key; version; _ }
+  | `QuestDifficulty { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -152,6 +154,34 @@ let extract_entity_reference_from_projectile_entity
     impact_refs @ end_refs
 ;;
 
+let extract_entity_reference_from_quest_completion_result
+  (result : Data.Quest_t.quest_completion_result_internal)
+  =
+  match result with
+  | `Spawn { characters; _ } -> characters
+  | `StartSpawnSequence { spawn_sequence; _ } ->
+    List.concat_map
+      (fun (step : Data.Spawn_t.spawn_sequence_step) ->
+        List.map (fun (spawn : Data.Spawn_t.spawn) -> spawn.character) step.spawns)
+      spawn_sequence.steps
+  | `ActivatePortal _ | `EnableQuestBoardQuest _ | `ActivateZone _ | `DeactivateZone _ ->
+    []
+;;
+
+let extract_entity_reference_from_quest_entity
+  Data.Quest_t.{ difficulty; steps; start_results; _ }
+  =
+  let step_results =
+    List.concat_map
+      (fun (step : Data.Quest_t.quest_step) -> step.completion_results)
+      steps
+  in
+  difficulty
+  :: List.concat_map
+       extract_entity_reference_from_quest_completion_result
+       (start_results @ step_results)
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -170,6 +200,8 @@ let extract_entity_reference_from_entity_definition
     @ entity.skills
   | `Animation { entity; _ } -> entity.sources
   | `Projectile { entity; _ } -> extract_entity_reference_from_projectile_entity entity
+  | `Quest { entity; _ } -> extract_entity_reference_from_quest_entity entity
+  | `QuestDifficulty _
   | `AnimationSource _
   | `AudioClip _
   | `Quality _
