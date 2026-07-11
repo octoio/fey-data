@@ -41,6 +41,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets anchor_j.ml anchor_j.mli)
+ (deps anchor.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets anchor_t.ml anchor_t.mli)
+ (deps anchor.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets anchor_v.ml anchor_v.mli)
+ (deps anchor.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets animation_j.ml animation_j.mli)
  (deps animation.atd)
  (mode fallback)
@@ -491,6 +512,9 @@
   affix_j
   affix_t
   affix_v
+  anchor_j
+  anchor_t
+  anchor_v
   animation_j
   animation_t
   animation_v

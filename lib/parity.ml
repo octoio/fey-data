@@ -22,6 +22,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `Projectile _ -> `Projectile
   | `Quest _ -> `Quest
   | `QuestDifficulty _ -> `QuestDifficulty
+  | `Anchor _ -> `Anchor
 ;;
 
 let test_stat_sheet_parity
