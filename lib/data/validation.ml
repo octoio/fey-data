@@ -51,6 +51,22 @@ let int_range_between
 ;;
 
 let list_min_length min l = List.length l >= min
+
+(* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
+let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
+  let rec strictly_increasing = function
+    | ({ Spawn_t.timing = a; _ } : Spawn_t.spawn_sequence_step)
+      :: ({ Spawn_t.timing = b; _ } as second) :: tl ->
+      a < b && strictly_increasing (second :: tl)
+    | _ -> true
+  in
+  let last_is_one steps =
+    match List.rev steps with
+    | ({ Spawn_t.timing; _ } : Spawn_t.spawn_sequence_step) :: _ -> timing = 1.0
+    | [] -> false
+  in
+  list_min_length 1 steps && strictly_increasing steps && last_is_one steps
+;;
 let common_regex = Re.Perl.compile_pat "^[a-zA-Z0-9_]{3,64}$"
 
 let create_id_from ~owner ~entity_type ~key ~version =
@@ -120,8 +136,12 @@ let validate_entity_definition_internal
   | `Character { owner; id; entity_type; key; version; _ }
   | `AnimationSource { owner; id; entity_type; key; version; _ }
   | `Animation { owner; id; entity_type; key; version; _ }
-  | `Projectile { owner; id; entity_type; key; version; _ } ->
+  | `Projectile { owner; id; entity_type; key; version; _ }
+  | `Quest { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
+  | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
+    validate_entity_definition ~owner ~entity_type ~key ~version ~id
+    && key = Entity_util.string_of_quest_difficulty_type entity.difficulty_type
   | `Cursor { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
     && key = Entity_util.string_of_cursor_type entity.cursor_type

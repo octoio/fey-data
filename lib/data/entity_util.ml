@@ -20,3 +20,7 @@ let string_of_stat_type (stat_type : Stat_t.stat_type) =
 let string_of_quality_type (quality_type : Quality_t.quality_type) =
   strip_quotes @@ Quality_j.string_of_quality_type quality_type
 ;;
+
+let string_of_quest_difficulty_type (quest_difficulty_type : Quest_t.quest_difficulty_type) =
+  strip_quotes @@ Quest_j.string_of_quest_difficulty_type quest_difficulty_type
+;;

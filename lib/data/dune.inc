@@ -1,4 +1,25 @@
 (rule
+ (targets achievement_j.ml achievement_j.mli)
+ (deps achievement.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets achievement_t.ml achievement_t.mli)
+ (deps achievement.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets achievement_v.ml achievement_v.mli)
+ (deps achievement.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets affix_j.ml affix_j.mli)
  (deps affix.atd)
  (mode fallback)
@@ -293,6 +314,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets quest_j.ml quest_j.mli)
+ (deps quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets quest_t.ml quest_t.mli)
+ (deps quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets quest_v.ml quest_v.mli)
+ (deps quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets requirement_j.ml requirement_j.mli)
  (deps requirement.atd)
  (mode fallback)
@@ -330,6 +372,48 @@
 (rule
  (targets skill_v.ml skill_v.mli)
  (deps skill.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets spawn_j.ml spawn_j.mli)
+ (deps spawn.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets spawn_t.ml spawn_t.mli)
+ (deps spawn.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets spawn_v.ml spawn_v.mli)
+ (deps spawn.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets stage_j.ml stage_j.mli)
+ (deps stage.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets stage_t.ml stage_t.mli)
+ (deps stage.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets stage_v.ml stage_v.mli)
+ (deps stage.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -401,6 +485,9 @@
  (public_name gamedata.data)
  (name data)
  (modules
+  achievement_j
+  achievement_t
+  achievement_v
   affix_j
   affix_t
   affix_v
@@ -443,12 +530,21 @@
   quality_j
   quality_t
   quality_v
+  quest_j
+  quest_t
+  quest_v
   requirement_j
   requirement_t
   requirement_v
   skill_j
   skill_t
   skill_v
+  spawn_j
+  spawn_t
+  spawn_v
+  stage_j
+  stage_t
+  stage_v
   stat_j
   stat_t
   stat_v
