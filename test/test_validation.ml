@@ -460,6 +460,50 @@ let list_validation_tests =
   [ ("list_min_length", `Quick, ListValidationTests.test_list_min_length) ]
 ;;
 
+module SpawnSequenceValidationTests = struct
+  let make_step timing =
+    { Data.Spawn_t.timing;
+      spawns =
+        [ { Data.Spawn_t.spawn_count = 1;
+            character = make_entity_reference ~entity_type:`Character ();
+            target_adventurer_on_spawn = false
+          }
+        ]
+    }
+  ;;
+
+  let test_validate_spawn_sequence_steps () =
+    check
+      bool
+      "single step ending at 1.0 is valid"
+      true
+      (validate_spawn_sequence_steps [ make_step 1.0 ]);
+    check
+      bool
+      "increasing timings ending at 1.0 are valid"
+      true
+      (validate_spawn_sequence_steps [ make_step 0.0; make_step 0.5; make_step 1.0 ]);
+    check bool "empty steps are invalid" false (validate_spawn_sequence_steps []);
+    check
+      bool
+      "last step must be at 1.0"
+      false
+      (validate_spawn_sequence_steps [ make_step 0.0; make_step 0.5 ]);
+    check
+      bool
+      "timings must strictly increase"
+      false
+      (validate_spawn_sequence_steps [ make_step 0.5; make_step 0.5; make_step 1.0 ])
+  ;;
+end
+
+let spawn_sequence_validation_tests =
+  [ ( "validate_spawn_sequence_steps",
+      `Quick,
+      SpawnSequenceValidationTests.test_validate_spawn_sequence_steps )
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -492,6 +536,7 @@ let () =
       ("Geometry Validation", geometry_validation_tests);
       ("Range Validation", range_validation_tests);
       ("List Validation", list_validation_tests);
+      ("Spawn Sequence Validation", spawn_sequence_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]
