@@ -1,3 +1,8 @@
+type metadata <ocaml from="Common"> = abstract
+type color <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+(* Legacy enums; retired once stages are addressed by entity index everywhere *)
 type stage_type <cs name="Stage" namespace="Octoio.Fey.Data.Type"> =
   [ None
   | TheVillage
@@ -8,3 +13,13 @@ type stage_type <cs name="Stage" namespace="Octoio.Fey.Data.Type"> =
 type portal_type <cs name="Portal" namespace="Octoio.Fey.Data.Type"> =
   [ Primary
   ]
+
+(* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
+type stage <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic"> = {
+  metadata: metadata;
+  scene_name: string;
+  theme_color: color;
+  ?thumbnail_reference <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Image">;
+  anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Anchor">;
+  ?quest <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
+}

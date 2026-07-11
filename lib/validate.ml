@@ -51,6 +51,41 @@ let validate_entity_definition file_path dataset =
   |> add_error __LOC__ file_path e
 ;;
 
+(* Every anchor must be owned by exactly one stage: an orphan anchor is dead data,
+   and two stages sharing an anchor would fight over its transform/lifecycle *)
+let anchor_ownership_error_messages definitions =
+  let anchor_references =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor _ -> Some (Dataset.entity_reference_of_entity_definition definition)
+        | _ -> None)
+      definitions
+  in
+  let stage_anchor_references =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stage { entity; _ } -> entity.anchors
+        | _ -> [])
+      definitions
+  in
+  List.filter_map
+    (fun anchor_reference ->
+      let owner_count =
+        List.length (List.filter (fun r -> r = anchor_reference) stage_anchor_references)
+      in
+      if owner_count = 1
+      then None
+      else
+        Some
+          (Printf.sprintf
+             "Anchor must be owned by exactly one stage (owned by %d): %s"
+             owner_count
+             (Data.Common_j.string_of_entity_reference anchor_reference)))
+    anchor_references
+;;
+
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -78,6 +113,7 @@ let validate_entity_definitions dataset =
       (fun er -> "Entity reference not found: " ^ Data.Common_j.string_of_entity_reference er)
       entity_definition_reference_missing_errors
   in
+  let anchor_ownership_errors = anchor_ownership_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -85,7 +121,9 @@ let validate_entity_definitions dataset =
           file_path = "Unknown file path... post-processing error.";
           error = Some (Atdgen_runtime.Util.Validation.error ~msg:message [])
         })
-      (entity_reference_definitions_error_messages @ entity_reference_error_messages)
+      (entity_reference_definitions_error_messages
+       @ entity_reference_error_messages
+       @ anchor_ownership_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
