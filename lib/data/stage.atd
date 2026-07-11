@@ -1,0 +1,10 @@
+type stage_type <cs name="Stage" namespace="Octoio.Fey.Data.Type"> =
+  [ None
+  | TheVillage
+  | TheForest
+  | TheFarm
+  ]
+
+type portal_type <cs name="Portal" namespace="Octoio.Fey.Data.Type"> =
+  [ Primary
+  ]
