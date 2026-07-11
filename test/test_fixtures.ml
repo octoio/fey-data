@@ -810,4 +810,26 @@ let minimal_anchor_reference =
   }
 ;;
 
+(* Minimal valid stage owning the minimal anchor *)
+let minimal_stage =
+  { Data.Stage_t.metadata = minimal_metadata;
+    scene_name = "Scenes/Minimal/Minimal";
+    theme_color = minimal_color;
+    thumbnail_reference = None;
+    anchors = [ minimal_anchor_reference ];
+    quest = None
+  }
+;;
+
+let minimal_stage_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Stage
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Stage;
+      key = "MinimalStage";
+      version = 1;
+      id = "ownr:Stage:MinimalStage:1";
+      entity = minimal_stage
+    }
+;;
+
 (* Add similar minimal entity_definition_internal values for other entity types as needed for parity tests *)
