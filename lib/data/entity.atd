@@ -20,6 +20,7 @@ type projectile_internal <ocaml from="Projectile"> = abstract
 type quest <ocaml from="Quest"> = abstract
 type quest_difficulty <ocaml from="Quest"> = abstract
 type anchor_internal <ocaml from="Anchor"> = abstract
+type stage <ocaml from="Stage"> = abstract
 
 type entity_index <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
   { index <cs usetype="uint">: int <ocaml valid="Validation.int_min 0">;
@@ -247,6 +248,16 @@ type anchor_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[S
     entity <cs usetype="Anchor">: anchor_internal;
   }
 
+type stage_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Stage>" modifiers="partial"> =
+  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type"> <cs ignore="true">: entity_type;
+    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
+    id <cs ignore="true">: string;
+
+    entity: stage;
+  }
+
 type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EntityDefinition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EntityDefinition,enumname=Type.Entity)"> =
   [ Weapon of weapon_entity_definition
   | Skill of skill_entity_definition
@@ -268,4 +279,5 @@ type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Quest of quest_entity_definition
   | QuestDifficulty of quest_difficulty_entity_definition
   | Anchor of anchor_entity_definition
+  | Stage of stage_entity_definition
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml valid="Validation.validate_entity_definition_internal">

@@ -49,7 +49,8 @@ let entity_reference_of_entity_definition
   | `Projectile { id; owner; entity_type; key; version; _ }
   | `Quest { id; owner; entity_type; key; version; _ }
   | `QuestDifficulty { id; owner; entity_type; key; version; _ }
-  | `Anchor { id; owner; entity_type; key; version; _ } ->
+  | `Anchor { id; owner; entity_type; key; version; _ }
+  | `Stage { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -202,6 +203,10 @@ let extract_entity_reference_from_entity_definition
   | `Animation { entity; _ } -> entity.sources
   | `Projectile { entity; _ } -> extract_entity_reference_from_projectile_entity entity
   | `Quest { entity; _ } -> extract_entity_reference_from_quest_entity entity
+  | `Stage { entity; _ } ->
+    entity.anchors
+    @ extract_from_option_entity_reference entity.thumbnail_reference
+    @ extract_from_option_entity_reference entity.quest
   | `QuestDifficulty _
   | `Anchor _
   | `AnimationSource _

@@ -175,6 +175,71 @@ let test_extract_entity_reference_from_quest () =
   check bool "Quest contains spawn character references" true (List.length character_refs = 2)
 ;;
 
+let test_extract_entity_reference_from_stage () =
+  let stage_refs =
+    Dataset.extract_entity_reference_from_entity_definition minimal_stage_entity_definition
+  in
+  check int "Stage has expected reference count" 1 (List.length stage_refs);
+  check
+    bool
+    "Stage contains anchor entity reference"
+    true
+    (List.exists (fun ref -> ref.Data.Common_t.entity_type = `Anchor) stage_refs)
+;;
+
+(* Anchor ownership: exactly one stage must own each anchor *)
+let ownership_errors dataset =
+  let validated = Validate.validate_entity_definitions dataset in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"owned by exactly one stage"
+      | None -> false)
+    validated.errors
+;;
+
+let test_anchor_owned_by_one_stage_is_valid () =
+  let dataset =
+    TestFixtures.create_dataset_with_definitions
+      [ ("data/json/anchor_file.json", minimal_anchor_entity_definition);
+        ("data/json/stage_file.json", minimal_stage_entity_definition)
+      ]
+  in
+  check int "No ownership errors" 0 (List.length (ownership_errors dataset))
+;;
+
+let test_orphan_anchor_is_invalid () =
+  let dataset =
+    TestFixtures.create_dataset_with_definitions
+      [ ("data/json/anchor_file.json", minimal_anchor_entity_definition) ]
+  in
+  check int "Orphan anchor produces an error" 1 (List.length (ownership_errors dataset))
+;;
+
+let test_anchor_owned_twice_is_invalid () =
+  let second_stage : Data.Entity_t.entity_definition_internal =
+    `Stage
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Stage;
+        key = "SecondStage";
+        version = 1;
+        id = "ownr:Stage:SecondStage:1";
+        entity = minimal_stage
+      }
+  in
+  let dataset =
+    TestFixtures.create_dataset_with_definitions
+      [ ("data/json/anchor_file.json", minimal_anchor_entity_definition);
+        ("data/json/stage_file.json", minimal_stage_entity_definition);
+        ("data/json/second_stage_file.json", second_stage)
+      ]
+  in
+  check int "Doubly owned anchor produces an error" 1 (List.length (ownership_errors dataset))
+;;
+
 let test_extract_entity_reference_from_equipment () =
   let equipment_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -199,7 +264,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_projectile_entity_definition;
       minimal_quest_entity_definition;
       minimal_quest_difficulty_entity_definition;
-      minimal_anchor_entity_definition
+      minimal_anchor_entity_definition;
+      minimal_stage_entity_definition
     ]
   in
   List.iter
@@ -407,6 +473,16 @@ let dataset_tests =
       "Extract entity reference from quest"
       `Quick
       test_extract_entity_reference_from_quest;
+    test_case
+      "Extract entity reference from stage"
+      `Quick
+      test_extract_entity_reference_from_stage;
+    test_case
+      "Anchor owned by one stage is valid"
+      `Quick
+      test_anchor_owned_by_one_stage_is_valid;
+    test_case "Orphan anchor is invalid" `Quick test_orphan_anchor_is_invalid;
+    test_case "Anchor owned twice is invalid" `Quick test_anchor_owned_twice_is_invalid;
     test_case
       "Extract entity reference from equipment"
       `Quick
