@@ -158,6 +158,23 @@ let test_extract_entity_reference_from_skill_with_projectile () =
   check bool "Skill contains projectile entity reference" true has_projectile_ref
 ;;
 
+let test_extract_entity_reference_from_quest () =
+  let quest_refs =
+    Dataset.extract_entity_reference_from_entity_definition
+      quest_with_spawns_entity_definition
+  in
+  (* difficulty + spawn character (start result) + spawn sequence character = 3 *)
+  check int "Quest has expected reference count" 3 (List.length quest_refs);
+  let has_difficulty_ref =
+    List.exists (fun ref -> ref.Data.Common_t.entity_type = `QuestDifficulty) quest_refs
+  in
+  check bool "Quest contains difficulty entity reference" true has_difficulty_ref;
+  let character_refs =
+    List.filter (fun ref -> ref.Data.Common_t.entity_type = `Character) quest_refs
+  in
+  check bool "Quest contains spawn character references" true (List.length character_refs = 2)
+;;
+
 let test_extract_entity_reference_from_equipment () =
   let equipment_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -179,7 +196,9 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_character_entity_definition;
       minimal_equipment_entity_definition;
       minimal_status_entity_definition;
-      minimal_projectile_entity_definition
+      minimal_projectile_entity_definition;
+      minimal_quest_entity_definition;
+      minimal_quest_difficulty_entity_definition
     ]
   in
   List.iter
@@ -383,6 +402,10 @@ let dataset_tests =
       "Extract entity reference from skill with projectile"
       `Quick
       test_extract_entity_reference_from_skill_with_projectile;
+    test_case
+      "Extract entity reference from quest"
+      `Quick
+      test_extract_entity_reference_from_quest;
     test_case
       "Extract entity reference from equipment"
       `Quick

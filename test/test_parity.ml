@@ -56,7 +56,9 @@ let test_entity_parity_comprehensive () =
       ("character", minimal_character_entity_definition, `Character);
       ("animation_source", minimal_animation_source_entity_definition, `AnimationSource);
       ("animation", minimal_animation_entity_definition, `Animation);
-      ("projectile", minimal_projectile_entity_definition, `Projectile)
+      ("projectile", minimal_projectile_entity_definition, `Projectile);
+      ("quest", minimal_quest_entity_definition, `Quest);
+      ("quest_difficulty", minimal_quest_difficulty_entity_definition, `QuestDifficulty)
     ]
   in
   List.iter

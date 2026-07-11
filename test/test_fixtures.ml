@@ -642,4 +642,131 @@ let skill_with_projectile_entity_definition : Data.Entity_t.entity_definition_in
     }
 ;;
 
+(* Minimal valid quest difficulty *)
+let minimal_quest_difficulty =
+  { Data.Quest_t.metadata = minimal_metadata;
+    difficulty_type = `Easy;
+    color = minimal_color
+  }
+;;
+
+let minimal_quest_difficulty_entity_definition : Data.Entity_t.entity_definition_internal =
+  `QuestDifficulty
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `QuestDifficulty;
+      key = "Easy";
+      version = 1;
+      id = "ownr:QuestDifficulty:Easy:1";
+      entity = minimal_quest_difficulty
+    }
+;;
+
+let minimal_quest_difficulty_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `QuestDifficulty;
+    key = "Easy";
+    version = 1;
+    id = "ownr:QuestDifficulty:Easy:1"
+  }
+;;
+
+(* Minimal valid quest *)
+let minimal_quest_objective =
+  { Data.Quest_t.metadata = minimal_metadata;
+    is_optional = false;
+    requirements =
+      [ `Collect
+          { Data.Quest_t.requirement_type = `Collect;
+            metadata = minimal_metadata;
+            amount = 1.0
+          }
+      ]
+  }
+;;
+
+let minimal_quest_step =
+  { Data.Quest_t.objectives = [ minimal_quest_objective ]; completion_results = [] }
+;;
+
+let minimal_quest =
+  { Data.Quest_t.metadata = minimal_metadata;
+    origin = `QuestBoard;
+    assignee = `Team;
+    difficulty = minimal_quest_difficulty_reference;
+    steps = [ minimal_quest_step ];
+    stage_to_go_from_quest_board = `None;
+    is_repeatable = false;
+    achievement_on_complete = `None;
+    required_achievements = [ `None ];
+    start_results = []
+  }
+;;
+
+let minimal_quest_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Quest
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Quest;
+      key = "MinimalQuest";
+      version = 1;
+      id = "ownr:Quest:MinimalQuest:1";
+      entity = minimal_quest
+    }
+;;
+
+(* Quest exercising spawn results and spawn sequences - for reference extraction tests *)
+let minimal_character_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Character;
+    key = "MinimalCharacter";
+    version = 1;
+    id = "ownr:Character:MinimalCharacter:1"
+  }
+;;
+
+let quest_with_spawns =
+  let spawn_result =
+    `Spawn
+      { Data.Quest_t.result_type = `Spawn;
+        message = "";
+        characters = [ minimal_character_reference ]
+      }
+  in
+  let spawn_sequence_result =
+    `StartSpawnSequence
+      { Data.Quest_t.result_type = `StartSpawnSequence;
+        message = "";
+        spawn_sequence =
+          { Data.Spawn_t.duration = 10.0;
+            steps =
+              [ { Data.Spawn_t.timing = 1.0;
+                  spawns =
+                    [ { Data.Spawn_t.spawn_count = 2;
+                        character = minimal_character_reference;
+                        target_adventurer_on_spawn = true
+                      }
+                    ]
+                }
+              ]
+          }
+      }
+  in
+  let step =
+    { Data.Quest_t.objectives = [ minimal_quest_objective ];
+      completion_results = [ spawn_sequence_result ]
+    }
+  in
+  { minimal_quest with steps = [ step ]; start_results = [ spawn_result ] }
+;;
+
+let quest_with_spawns_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Quest
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Quest;
+      key = "SpawnQuest";
+      version = 1;
+      id = "ownr:Quest:SpawnQuest:1";
+      entity = quest_with_spawns
+    }
+;;
+
 (* Add similar minimal entity_definition_internal values for other entity types as needed for parity tests *)
