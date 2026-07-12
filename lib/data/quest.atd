@@ -1,11 +1,9 @@
 type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
-type zone_type <ocaml from="Common"> = abstract
 type character_type <ocaml from="Character"> = abstract
-type stage_type <ocaml from="Stage"> = abstract
-type portal_type <ocaml from="Stage"> = abstract
 type achievement_type <ocaml from="Achievement"> = abstract
+type spawn <ocaml from="Spawn"> = abstract
 type spawn_sequence <ocaml from="Spawn"> = abstract
 
 type quest_difficulty_type <cs name="QuestDifficulty" namespace="Octoio.Fey.Data.Type"> =
@@ -40,176 +38,213 @@ type quest_assignee <cs namespace="Octoio.Fey.Data.Type"> =
   | TeamHidden
   ]
 
-(* Objective requirements *)
+(* Conditions: single event-driven checks tracked by the server.
+   Combining conditions is the tree's job (Parallel/Any/Sequence). *)
 
-type quest_objective_requirement_type <cs name="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Type"> =
-  [ Collect
-  | KillSpecific
-  | Activate
-  | Charge
+type quest_condition_type <cs name="QuestCondition" namespace="Octoio.Fey.Data.Type"> =
+  [ KillSpecific
+  | EnterAnchor
+  | StayInAnchor
   | PickQuest
   | Teleport
-  | EnterZone
-  | StayInZone
   ]
 
-(* amount: how much of the requirement must be completed. Negative values mean ALL *)
-type quest_objective_requirement <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
-  requirement_type <json name="type"> <cs usetype="Type.QuestObjectiveRequirement">: quest_objective_requirement_type;
-  metadata: metadata;
+type quest_condition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+  condition_type <json name="type"> <cs usetype="Type.QuestCondition">: quest_condition_type;
+}
+
+type quest_condition_kill_specific <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  character_types <cs usetype="List<Type.Character>">: character_type list <ocaml valid="Validation.list_min_length 1">;
+  amount: int <ocaml valid="Validation.int_min 1">;
+}
+
+(* amount: characters required inside the anchor; negative means all players *)
+type quest_condition_enter_anchor <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
   amount: float;
 }
 
-type quest_objective_requirement_collect <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
+type quest_condition_stay_in_anchor <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+  duration: float <ocaml valid="Validation.float_min 0.1">;
 }
 
-type quest_objective_requirement_kill_specific <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-  character_types <cs usetype="List<Type.Character>">: character_type list <ocaml valid="Validation.list_min_length 1">;
+type quest_condition_pick_quest <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
 }
 
-type quest_objective_requirement_activate <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
+type quest_condition_teleport <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
 }
 
-type quest_objective_requirement_charge <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-}
-
-type quest_objective_requirement_pick_quest <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-}
-
-type quest_objective_requirement_teleport <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-}
-
-type quest_objective_requirement_enter_zone <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-  zone_types <cs usetype="List<Type.Zone>">: zone_type list <ocaml valid="Validation.list_min_length 1">;
-}
-
-type quest_objective_requirement_stay_in_zone <cs extends="QuestObjectiveRequirement" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
-  requirement_type <json name="type"> <cs ignore="true">: quest_objective_requirement_type;
-  metadata <cs ignore="true">: metadata;
-  amount <cs ignore="true">: float;
-  zone_types <cs usetype="List<Type.Zone>">: zone_type list <ocaml valid="Validation.list_min_length 1">;
-}
-
-type quest_objective_requirement_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestObjectiveRequirement),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestObjectiveRequirement,enumname=Type.QuestObjectiveRequirement)"> =
-  [ Collect of quest_objective_requirement_collect
-  | KillSpecific of quest_objective_requirement_kill_specific
-  | Activate of quest_objective_requirement_activate
-  | Charge of quest_objective_requirement_charge
-  | PickQuest of quest_objective_requirement_pick_quest
-  | Teleport of quest_objective_requirement_teleport
-  | EnterZone of quest_objective_requirement_enter_zone
-  | StayInZone of quest_objective_requirement_stay_in_zone
+type quest_condition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestCondition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestCondition,enumname=Type.QuestCondition)"> =
+  [ KillSpecific of quest_condition_kill_specific
+  | EnterAnchor of quest_condition_enter_anchor
+  | StayInAnchor of quest_condition_stay_in_anchor
+  | PickQuest of quest_condition_pick_quest
+  | Teleport of quest_condition_teleport
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-(* Completion results *)
+(* Actions: fire-and-forget world mutations (no rollback) *)
 
-type quest_completion_result_type <cs name="QuestCompletionResult" namespace="Octoio.Fey.Data.Type"> =
+type quest_action_type <cs name="QuestAction" namespace="Octoio.Fey.Data.Type"> =
   [ Spawn
-  | ActivatePortal
-  | EnableQuestBoardQuest
-  | ActivateZone
-  | DeactivateZone
   | StartSpawnSequence
+  | ActivateAnchor
+  | DeactivateAnchor
+  | ActivatePortalToStage
+  | ActivatePortalToQuestStage
+  | Message
+  | EnableQuestBoardQuest
   ]
 
-type quest_completion_result_activate_portal_type <cs name="QuestCompletionResultActivatePortal" namespace="Octoio.Fey.Data.Type"> =
-  [ BackToTheVillage
-  | QuestBoardQuestStage
-  ]
-
-type quest_completion_result <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
-  result_type <json name="type"> <cs usetype="Type.QuestCompletionResult">: quest_completion_result_type;
-  message: string;
+type quest_action <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+  action_type <json name="type"> <cs usetype="Type.QuestAction">: quest_action_type;
 }
 
-type quest_completion_result_spawn <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
-  characters: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `Character">;
+type quest_action_spawn <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  spawn: spawn;
 }
 
-type quest_completion_result_activate_portal <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
-  activate_portal_type <cs usetype="Type.QuestCompletionResultActivatePortal">: quest_completion_result_activate_portal_type;
-  portal_type <cs usetype="Type.Portal">: portal_type;
-}
-
-type quest_completion_result_enable_quest_board_quest <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
-}
-
-type quest_completion_result_activate_zone <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
-  zone_type <cs usetype="Type.Zone">: zone_type;
-}
-
-type quest_completion_result_deactivate_zone <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
-  zone_type <cs usetype="Type.Zone">: zone_type;
-}
-
-type quest_completion_result_start_spawn_sequence <cs extends="QuestCompletionResult" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  result_type <json name="type"> <cs ignore="true">: quest_completion_result_type;
-  message <cs ignore="true">: string;
+type quest_action_start_spawn_sequence <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
   spawn_sequence: spawn_sequence;
 }
 
-type quest_completion_result_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestCompletionResult),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestCompletionResult,enumname=Type.QuestCompletionResult)"> =
-  [ Spawn of quest_completion_result_spawn
-  | ActivatePortal of quest_completion_result_activate_portal
-  | EnableQuestBoardQuest of quest_completion_result_enable_quest_board_quest
-  | ActivateZone of quest_completion_result_activate_zone
-  | DeactivateZone of quest_completion_result_deactivate_zone
-  | StartSpawnSequence of quest_completion_result_start_spawn_sequence
+type quest_action_activate_anchor <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
+type quest_action_deactivate_anchor <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
+type quest_action_activate_portal_to_stage <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+  destination: entity_reference <ocaml valid="Validation.entity_reference_of_type `Stage">;
+}
+
+(* Destination resolved at runtime: the stage of the pending quest board quest *)
+type quest_action_activate_portal_to_quest_stage <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
+type quest_action_message <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+  message: string <ocaml valid="Validation.string_min_length 1">;
+}
+
+type quest_action_enable_quest_board_quest <cs extends="QuestAction" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  action_type <json name="type"> <cs ignore="true">: quest_action_type;
+}
+
+type quest_action_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestAction),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestAction,enumname=Type.QuestAction)"> =
+  [ Spawn of quest_action_spawn
+  | StartSpawnSequence of quest_action_start_spawn_sequence
+  | ActivateAnchor of quest_action_activate_anchor
+  | DeactivateAnchor of quest_action_deactivate_anchor
+  | ActivatePortalToStage of quest_action_activate_portal_to_stage
+  | ActivatePortalToQuestStage of quest_action_activate_portal_to_quest_stage
+  | Message of quest_action_message
+  | EnableQuestBoardQuest of quest_action_enable_quest_board_quest
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-(* Quest structure *)
+(* Execution tree — mirrors the skill action node pattern.
+   Node ids are explicit, unique within a quest, and name nodes in network records;
+   they survive data edits (future hot reload). The console auto-assigns them. *)
 
-type quest_objective <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic"> = {
+type quest_node_type <cs name="QuestNode" namespace="Octoio.Fey.Data.Type"> =
+  [ Sequence
+  | Parallel
+  | Any
+  | Timer
+  | Objective
+  | Action
+  ]
+
+type quest_timer_timeout_type <cs name="QuestTimerTimeout" namespace="Octoio.Fey.Data.Type"> =
+  [ Fail
+  | Complete
+  ]
+
+type quest_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+  node_type <json name="type"> <cs usetype="Type.QuestNode">: quest_node_type;
+  id <cs usetype="ushort">: int <ocaml valid="Validation.int_between 0 65535">;
+  name: string;
+}
+
+type quest_sequence_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
+  children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
+}
+
+type quest_parallel_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
+  children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
+}
+
+(* First child to complete wins; losing branches are cancelled without rollback *)
+type quest_any_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
+  children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
+}
+
+type quest_timer_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
+  duration: float <ocaml valid="Validation.float_min 0.1">;
+  child <cs usetype="QuestNode">: quest_node_internal;
+  on_timeout <cs usetype="Type.QuestTimerTimeout">: quest_timer_timeout_type;
+}
+
+type quest_objective_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
   metadata: metadata;
   is_optional: bool;
-  requirements <cs usetype="List<QuestObjectiveRequirement>">: quest_objective_requirement_internal list <ocaml valid="Validation.list_min_length 1">;
+  condition <cs usetype="QuestCondition">: quest_condition_internal;
 }
 
-type quest_step <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic"> = {
-  objectives: quest_objective list <ocaml valid="Validation.list_min_length 1">;
-  completion_results <cs usetype="List<QuestCompletionResult>">: quest_completion_result_internal list;
+type quest_action_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  node_type <json name="type"> <cs ignore="true">: quest_node_type;
+  id <cs ignore="true">: int;
+  name <cs ignore="true">: string;
+  action <cs usetype="QuestAction">: quest_action_internal;
 }
+
+type quest_node_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestNode),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestNode,enumname=Type.QuestNode)"> =
+  [ Sequence of quest_sequence_node
+  | Parallel of quest_parallel_node
+  | Any of quest_any_node
+  | Timer of quest_timer_node
+  | Objective of quest_objective_node
+  | Action of quest_action_node
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type quest <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic"> = {
   metadata: metadata;
   origin <cs usetype="Type.QuestOrigin">: quest_origin;
   assignee <cs usetype="Type.QuestAssignee">: quest_assignee;
   difficulty: entity_reference <ocaml valid="Validation.entity_reference_of_type `QuestDifficulty">;
-  steps: quest_step list <ocaml valid="Validation.list_min_length 1">;
-  stage_to_go_from_quest_board <cs usetype="Type.Stage">: stage_type;
+  stage: entity_reference <ocaml valid="Validation.entity_reference_of_type `Stage">;
+  root <cs usetype="QuestNode">: quest_node_internal;
   is_repeatable: bool;
   achievement_on_complete <cs usetype="Type.Achievement">: achievement_type;
   required_achievements <cs usetype="List<Type.Achievement>">: achievement_type list <ocaml valid="Validation.list_min_length 1">;
-  start_results <cs usetype="List<QuestCompletionResult>">: quest_completion_result_internal list;
-}
+} <ocaml valid="Validation.validate_quest_node_ids">

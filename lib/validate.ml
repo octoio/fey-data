@@ -86,6 +86,47 @@ let anchor_ownership_error_messages definitions =
     anchor_references
 ;;
 
+(* A quest may only use anchors owned by its bound stage *)
+let quest_anchor_subset_error_messages definitions =
+  let stage_anchors_by_reference =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stage { entity; _ } ->
+          Some (Dataset.entity_reference_of_entity_definition definition, entity.anchors)
+        | _ -> None)
+      definitions
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Quest { entity; _ } ->
+        let quest_reference = Dataset.entity_reference_of_entity_definition definition in
+        let quest_anchors =
+          Dataset.extract_entity_reference_from_quest_node entity.root
+          |> List.filter (fun (r : Data.Common_t.entity_reference) ->
+            r.entity_type = `Anchor)
+        in
+        (match List.assoc_opt entity.stage stage_anchors_by_reference with
+         | None -> []
+         (* missing stage definition is already reported by the generic reference check *)
+         | Some stage_anchors ->
+           List.filter_map
+             (fun anchor ->
+               if List.mem anchor stage_anchors
+               then None
+               else
+                 Some
+                   (Printf.sprintf
+                      "Quest %s uses anchor %s that is not owned by its stage %s"
+                      (Data.Common_j.string_of_entity_reference quest_reference)
+                      (Data.Common_j.string_of_entity_reference anchor)
+                      (Data.Common_j.string_of_entity_reference entity.stage)))
+             quest_anchors)
+      | _ -> [])
+    definitions
+;;
+
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -114,6 +155,9 @@ let validate_entity_definitions dataset =
       entity_definition_reference_missing_errors
   in
   let anchor_ownership_errors = anchor_ownership_error_messages (take_definitions dataset) in
+  let quest_anchor_subset_errors =
+    quest_anchor_subset_error_messages (take_definitions dataset)
+  in
   let errors =
     List.map
       (fun message ->
@@ -123,7 +167,8 @@ let validate_entity_definitions dataset =
         })
       (entity_reference_definitions_error_messages
        @ entity_reference_error_messages
-       @ anchor_ownership_errors)
+       @ anchor_ownership_errors
+       @ quest_anchor_subset_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

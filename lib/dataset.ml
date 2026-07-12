@@ -156,32 +156,56 @@ let extract_entity_reference_from_projectile_entity
     impact_refs @ end_refs
 ;;
 
-let extract_entity_reference_from_quest_completion_result
-  (result : Data.Quest_t.quest_completion_result_internal)
+let extract_entity_reference_from_spawn (spawn : Data.Spawn_t.spawn) =
+  [ spawn.character; spawn.anchor ]
+;;
+
+let extract_entity_reference_from_spawn_sequence
+  (spawn_sequence : Data.Spawn_t.spawn_sequence)
   =
-  match result with
-  | `Spawn { characters; _ } -> characters
+  List.concat_map
+    (fun (step : Data.Spawn_t.spawn_sequence_step) ->
+      List.concat_map extract_entity_reference_from_spawn step.spawns)
+    spawn_sequence.steps
+;;
+
+let extract_entity_reference_from_quest_condition
+  (condition : Data.Quest_t.quest_condition_internal)
+  =
+  match condition with
+  | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } -> [ anchor ]
+  | `KillSpecific _ | `PickQuest _ | `Teleport _ -> []
+;;
+
+let extract_entity_reference_from_quest_action
+  (action : Data.Quest_t.quest_action_internal)
+  =
+  match action with
+  | `Spawn { spawn; _ } -> extract_entity_reference_from_spawn spawn
   | `StartSpawnSequence { spawn_sequence; _ } ->
-    List.concat_map
-      (fun (step : Data.Spawn_t.spawn_sequence_step) ->
-        List.map (fun (spawn : Data.Spawn_t.spawn) -> spawn.character) step.spawns)
-      spawn_sequence.steps
-  | `ActivatePortal _ | `EnableQuestBoardQuest _ | `ActivateZone _ | `DeactivateZone _ ->
-    []
+    extract_entity_reference_from_spawn_sequence spawn_sequence
+  | `ActivateAnchor { anchor; _ }
+  | `DeactivateAnchor { anchor; _ }
+  | `ActivatePortalToQuestStage { anchor; _ } -> [ anchor ]
+  | `ActivatePortalToStage { anchor; destination; _ } -> [ anchor; destination ]
+  | `Message _ | `EnableQuestBoardQuest _ -> []
+;;
+
+let rec extract_entity_reference_from_quest_node
+  (node : Data.Quest_t.quest_node_internal)
+  =
+  match node with
+  | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+    List.concat_map extract_entity_reference_from_quest_node children
+  | `Timer { child; _ } -> extract_entity_reference_from_quest_node child
+  | `Objective { condition; _ } -> extract_entity_reference_from_quest_condition condition
+  | `Action { action; _ } -> extract_entity_reference_from_quest_action action
 ;;
 
 let extract_entity_reference_from_quest_entity
-  Data.Quest_t.{ difficulty; steps; start_results; _ }
+  Data.Quest_t.{ difficulty; stage; root; _ }
   =
-  let step_results =
-    List.concat_map
-      (fun (step : Data.Quest_t.quest_step) -> step.completion_results)
-      steps
-  in
-  difficulty
-  :: List.concat_map
-       extract_entity_reference_from_quest_completion_result
-       (start_results @ step_results)
+  difficulty :: stage :: extract_entity_reference_from_quest_node root
 ;;
 
 let extract_entity_reference_from_entity_definition

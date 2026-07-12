@@ -670,22 +670,24 @@ let minimal_quest_difficulty_reference =
   }
 ;;
 
-(* Minimal valid quest *)
-let minimal_quest_objective =
-  { Data.Quest_t.metadata = minimal_metadata;
-    is_optional = false;
-    requirements =
-      [ `Collect
-          { Data.Quest_t.requirement_type = `Collect;
-            metadata = minimal_metadata;
-            amount = 1.0
-          }
-      ]
+(* Minimal valid quest: a single teleport objective *)
+let minimal_stage_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Stage;
+    key = "MinimalStage";
+    version = 1;
+    id = "ownr:Stage:MinimalStage:1"
   }
 ;;
 
-let minimal_quest_step =
-  { Data.Quest_t.objectives = [ minimal_quest_objective ]; completion_results = [] }
+let minimal_quest_objective_node =
+  { Data.Quest_t.node_type = `Objective;
+    id = 0;
+    name = "teleport";
+    metadata = minimal_metadata;
+    is_optional = false;
+    condition = `Teleport { Data.Quest_t.condition_type = `Teleport }
+  }
 ;;
 
 let minimal_quest =
@@ -693,12 +695,11 @@ let minimal_quest =
     origin = `QuestBoard;
     assignee = `Team;
     difficulty = minimal_quest_difficulty_reference;
-    steps = [ minimal_quest_step ];
-    stage_to_go_from_quest_board = `None;
+    stage = minimal_stage_reference;
+    root = `Objective minimal_quest_objective_node;
     is_repeatable = false;
     achievement_on_complete = `None;
-    required_achievements = [ `None ];
-    start_results = []
+    required_achievements = [ `None ]
   }
 ;;
 
@@ -713,7 +714,7 @@ let minimal_quest_entity_definition : Data.Entity_t.entity_definition_internal =
     }
 ;;
 
-(* Quest exercising spawn results and spawn sequences - for reference extraction tests *)
+(* Quest exercising spawn actions and spawn sequences - for reference extraction tests *)
 let minimal_character_reference =
   { Data.Common_t.owner = "ownr";
     entity_type = `Character;
@@ -723,39 +724,57 @@ let minimal_character_reference =
   }
 ;;
 
+let minimal_spawn_anchor_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Anchor;
+    key = "MinimalSpawnAnchor";
+    version = 1;
+    id = "ownr:Anchor:MinimalSpawnAnchor:1"
+  }
+;;
+
+let minimal_spawn =
+  { Data.Spawn_t.spawn_count = 1;
+    character = minimal_character_reference;
+    anchor = minimal_spawn_anchor_reference;
+    target_adventurer_on_spawn = true
+  }
+;;
+
 let quest_with_spawns =
-  let spawn_result =
-    `Spawn
-      { Data.Quest_t.result_type = `Spawn;
-        message = "";
-        characters = [ minimal_character_reference ]
+  let spawn_action =
+    `Action
+      { Data.Quest_t.node_type = `Action;
+        id = 1;
+        name = "spawn_boss";
+        action = `Spawn { Data.Quest_t.action_type = `Spawn; spawn = minimal_spawn }
       }
   in
-  let spawn_sequence_result =
-    `StartSpawnSequence
-      { Data.Quest_t.result_type = `StartSpawnSequence;
-        message = "";
-        spawn_sequence =
-          { Data.Spawn_t.duration = 10.0;
-            steps =
-              [ { Data.Spawn_t.timing = 1.0;
-                  spawns =
-                    [ { Data.Spawn_t.spawn_count = 2;
-                        character = minimal_character_reference;
-                        target_adventurer_on_spawn = true
-                      }
-                    ]
+  let objective = `Objective { minimal_quest_objective_node with Data.Quest_t.id = 2 } in
+  let spawn_sequence_action =
+    `Action
+      { Data.Quest_t.node_type = `Action;
+        id = 3;
+        name = "wave";
+        action =
+          `StartSpawnSequence
+            { Data.Quest_t.action_type = `StartSpawnSequence;
+              spawn_sequence =
+                { Data.Spawn_t.duration = 10.0;
+                  steps = [ { Data.Spawn_t.timing = 1.0; spawns = [ minimal_spawn ] } ]
                 }
-              ]
-          }
+            }
       }
   in
-  let step =
-    { Data.Quest_t.objectives = [ minimal_quest_objective ];
-      completion_results = [ spawn_sequence_result ]
-    }
+  let root =
+    `Sequence
+      { Data.Quest_t.node_type = `Sequence;
+        id = 0;
+        name = "root";
+        children = [ spawn_action; objective; spawn_sequence_action ]
+      }
   in
-  { minimal_quest with steps = [ step ]; start_results = [ spawn_result ] }
+  { minimal_quest with root }
 ;;
 
 let quest_with_spawns_entity_definition : Data.Entity_t.entity_definition_internal =

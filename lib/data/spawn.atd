@@ -3,6 +3,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type spawn <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
   spawn_count: int <ocaml valid="Validation.int_min 1">;
   character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
   target_adventurer_on_spawn: bool;
 }
 

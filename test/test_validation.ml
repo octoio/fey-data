@@ -466,6 +466,7 @@ module SpawnSequenceValidationTests = struct
       spawns =
         [ { Data.Spawn_t.spawn_count = 1;
             character = make_entity_reference ~entity_type:`Character ();
+            anchor = make_entity_reference ~entity_type:`Anchor ();
             target_adventurer_on_spawn = false
           }
         ]
@@ -504,6 +505,63 @@ let spawn_sequence_validation_tests =
   ]
 ;;
 
+module QuestNodeIdValidationTests = struct
+  let objective id =
+    `Objective
+      { Data.Quest_t.node_type = `Objective;
+        id;
+        name = "objective";
+        metadata = { Data.Common_t.title = "t"; description = "d" };
+        is_optional = false;
+        condition = `Teleport { Data.Quest_t.condition_type = `Teleport }
+      }
+  ;;
+
+  let quest_with_root root =
+    { Data.Quest_t.metadata = { Data.Common_t.title = "t"; description = "d" };
+      origin = `QuestBoard;
+      assignee = `Team;
+      difficulty = make_entity_reference ~entity_type:`QuestDifficulty ();
+      stage = make_entity_reference ~entity_type:`Stage ();
+      root;
+      is_repeatable = false;
+      achievement_on_complete = `None;
+      required_achievements = [ `None ]
+    }
+  ;;
+
+  let sequence id children =
+    `Sequence { Data.Quest_t.node_type = `Sequence; id; name = "seq"; children }
+  ;;
+
+  let test_validate_quest_node_ids () =
+    check
+      bool
+      "unique ids are valid"
+      true
+      (validate_quest_node_ids
+         (quest_with_root (sequence 0 [ objective 1; objective 2 ])));
+    check
+      bool
+      "duplicate leaf ids are invalid"
+      false
+      (validate_quest_node_ids
+         (quest_with_root (sequence 0 [ objective 1; objective 1 ])));
+    check
+      bool
+      "root id colliding with child is invalid"
+      false
+      (validate_quest_node_ids (quest_with_root (sequence 1 [ objective 1 ])))
+  ;;
+end
+
+let quest_node_id_validation_tests =
+  [ ( "validate_quest_node_ids",
+      `Quick,
+      QuestNodeIdValidationTests.test_validate_quest_node_ids )
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -537,6 +595,7 @@ let () =
       ("Range Validation", range_validation_tests);
       ("List Validation", list_validation_tests);
       ("Spawn Sequence Validation", spawn_sequence_validation_tests);
+      ("Quest Node Id Validation", quest_node_id_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]

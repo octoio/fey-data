@@ -52,6 +52,20 @@ let int_range_between
 
 let list_min_length min l = List.length l >= min
 
+(* Node ids name tree nodes in network records and must be unique within a quest *)
+let rec collect_quest_node_ids (node : Quest_t.quest_node_internal) =
+  match node with
+  | `Sequence { id; children; _ } | `Parallel { id; children; _ } | `Any { id; children; _ }
+    -> id :: List.concat_map collect_quest_node_ids children
+  | `Timer { id; child; _ } -> id :: collect_quest_node_ids child
+  | `Objective { id; _ } | `Action { id; _ } -> [ id ]
+;;
+
+let validate_quest_node_ids (quest : Quest_t.quest) =
+  let ids = collect_quest_node_ids quest.root in
+  List.length ids = List.length (List.sort_uniq compare ids)
+;;
+
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
 let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
   let rec strictly_increasing = function
