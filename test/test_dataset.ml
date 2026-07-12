@@ -240,6 +240,126 @@ let test_anchor_owned_twice_is_invalid () =
   check int "Doubly owned anchor produces an error" 1 (List.length (ownership_errors dataset))
 ;;
 
+(* Quest completability: KillSpecific objectives need preceding spawns *)
+let completability_errors dataset =
+  let validated = Validate.validate_entity_definitions dataset in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"not completable"
+      | None -> false)
+    validated.errors
+;;
+
+let kill_objective_node ?(amount = 1) id =
+  { Data.Quest_t.node_type = `Objective;
+    id;
+    name = "kill";
+    metadata = minimal_metadata;
+    is_optional = false;
+    condition =
+      `KillSpecific
+        { Data.Quest_t.condition_type = `KillSpecific;
+          character_types = [ `Adventurer ];
+          amount
+        }
+  }
+;;
+
+let spawn_action_node id =
+  { Data.Quest_t.node_type = `Action;
+    id;
+    name = "spawn";
+    action = `Spawn { Data.Quest_t.action_type = `Spawn; spawn = minimal_spawn }
+  }
+;;
+
+let quest_definition_with_root root : Data.Entity_t.entity_definition_internal =
+  `Quest
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Quest;
+      key = "CompletabilityQuest";
+      version = 1;
+      id = "ownr:Quest:CompletabilityQuest:1";
+      entity = { minimal_quest with root }
+    }
+;;
+
+let completability_dataset root =
+  TestFixtures.create_dataset_with_definitions
+    [ ("data/json/character_file.json", minimal_character_entity_definition);
+      ("data/json/quest_file.json", quest_definition_with_root root)
+    ]
+;;
+
+let sequence_node id children =
+  `Sequence { Data.Quest_t.node_type = `Sequence; id; name = "seq"; children }
+;;
+
+let test_kill_objective_without_spawn_is_not_completable () =
+  let dataset = completability_dataset (`Objective (kill_objective_node 0)) in
+  check
+    int
+    "Kill objective without spawns produces an error"
+    1
+    (List.length (completability_errors dataset))
+;;
+
+let test_kill_objective_after_spawn_is_completable () =
+  let root =
+    sequence_node 0 [ `Action (spawn_action_node 1); `Objective (kill_objective_node 2) ]
+  in
+  check
+    int
+    "Kill objective preceded by a spawn is fine"
+    0
+    (List.length (completability_errors (completability_dataset root)))
+;;
+
+let test_kill_objective_before_spawn_is_not_completable () =
+  let root =
+    sequence_node 0 [ `Objective (kill_objective_node 1); `Action (spawn_action_node 2) ]
+  in
+  check
+    int
+    "Spawn after the kill objective does not count"
+    1
+    (List.length (completability_errors (completability_dataset root)))
+;;
+
+let test_kill_objective_concurrent_with_spawn_is_completable () =
+  let root =
+    `Parallel
+      ({ Data.Quest_t.node_type = `Parallel;
+         id = 0;
+         name = "par";
+         children = [ `Objective (kill_objective_node 1); `Action (spawn_action_node 2) ]
+       }
+       : Data.Quest_t.quest_parallel_node)
+  in
+  check
+    int
+    "Spawn concurrent with the kill objective counts"
+    0
+    (List.length (completability_errors (completability_dataset root)))
+;;
+
+let test_kill_objective_amount_exceeding_spawns_is_not_completable () =
+  let root =
+    sequence_node
+      0
+      [ `Action (spawn_action_node 1); `Objective (kill_objective_node ~amount:2 2) ]
+  in
+  check
+    int
+    "Kill amount above total spawn count produces an error"
+    1
+    (List.length (completability_errors (completability_dataset root)))
+;;
+
 let test_extract_entity_reference_from_equipment () =
   let equipment_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -483,6 +603,27 @@ let dataset_tests =
       test_anchor_owned_by_one_stage_is_valid;
     test_case "Orphan anchor is invalid" `Quick test_orphan_anchor_is_invalid;
     test_case "Anchor owned twice is invalid" `Quick test_anchor_owned_twice_is_invalid;
+    (* Quest Completability *)
+    test_case
+      "Kill objective without spawn is not completable"
+      `Quick
+      test_kill_objective_without_spawn_is_not_completable;
+    test_case
+      "Kill objective after spawn is completable"
+      `Quick
+      test_kill_objective_after_spawn_is_completable;
+    test_case
+      "Kill objective before spawn is not completable"
+      `Quick
+      test_kill_objective_before_spawn_is_not_completable;
+    test_case
+      "Kill objective concurrent with spawn is completable"
+      `Quick
+      test_kill_objective_concurrent_with_spawn_is_completable;
+    test_case
+      "Kill amount exceeding spawns is not completable"
+      `Quick
+      test_kill_objective_amount_exceeding_spawns_is_not_completable;
     test_case
       "Extract entity reference from equipment"
       `Quick
