@@ -163,16 +163,16 @@ let test_extract_entity_reference_from_quest () =
     Dataset.extract_entity_reference_from_entity_definition
       quest_with_spawns_entity_definition
   in
-  (* difficulty + spawn character (start result) + spawn sequence character = 3 *)
-  check int "Quest has expected reference count" 3 (List.length quest_refs);
-  let has_difficulty_ref =
-    List.exists (fun ref -> ref.Data.Common_t.entity_type = `QuestDifficulty) quest_refs
+  (* difficulty + stage + spawn action (character + anchor) + spawn sequence (character + anchor) *)
+  check int "Quest has expected reference count" 6 (List.length quest_refs);
+  let count entity_type =
+    List.length
+      (List.filter (fun ref -> ref.Data.Common_t.entity_type = entity_type) quest_refs)
   in
-  check bool "Quest contains difficulty entity reference" true has_difficulty_ref;
-  let character_refs =
-    List.filter (fun ref -> ref.Data.Common_t.entity_type = `Character) quest_refs
-  in
-  check bool "Quest contains spawn character references" true (List.length character_refs = 2)
+  check int "Quest contains difficulty entity reference" 1 (count `QuestDifficulty);
+  check int "Quest contains stage entity reference" 1 (count `Stage);
+  check int "Quest contains spawn character references" 2 (count `Character);
+  check int "Quest contains spawn anchor references" 2 (count `Anchor)
 ;;
 
 let test_extract_entity_reference_from_stage () =
