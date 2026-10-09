@@ -601,6 +601,52 @@ let summon_control_validation_tests =
   ]
 ;;
 
+module StatusDispelValidationTests = struct
+  let effect ?dispel ~durations ~scalers () : Data.Effect_t.status_effect =
+    { target_mechanic = `Self { mechanic_type = `Self };
+      target = `Any;
+      durations;
+      scalers;
+      status = make_entity_reference ~entity_type:`Status ();
+      dispel
+    }
+  ;;
+
+  let test_validate_status_effect () =
+    let timed : Data.Status_t.status_duration = { duration = `Chrono; value = 2. } in
+    let scaler : Data.Effect_t.effect_scaling =
+      { base = 1.; scaling = make_float_range 1. 1.; stat = `Armor }
+    in
+    check
+      bool
+      "plain status with duration and scaler"
+      true
+      (validate_status_effect (effect ~durations:[ timed ] ~scalers:[ scaler ] ()));
+    check
+      bool
+      "dispel with nothing else"
+      true
+      (validate_status_effect (effect ~dispel:true ~durations:[] ~scalers:[] ()));
+    check
+      bool
+      "dispel with a duration is invalid"
+      false
+      (validate_status_effect (effect ~dispel:true ~durations:[ timed ] ~scalers:[] ()));
+    check
+      bool
+      "dispel with a scaler is invalid"
+      false
+      (validate_status_effect (effect ~dispel:true ~durations:[] ~scalers:[ scaler ] ()))
+  ;;
+end
+
+let status_dispel_validation_tests =
+  [ ( "validate_status_effect",
+      `Quick,
+      StatusDispelValidationTests.test_validate_status_effect )
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -636,6 +682,7 @@ let () =
       ("Spawn Sequence Validation", spawn_sequence_validation_tests);
       ("Quest Node Id Validation", quest_node_id_validation_tests);
       ("Summon Control Validation", summon_control_validation_tests);
+      ("Status Dispel Validation", status_dispel_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]

@@ -73,6 +73,13 @@ let validate_summon_control (node : Skill_t.skill_action_summon_node) =
   | Some false | None -> true
 ;;
 
+(* A dispel removes a status; there is nothing to scale or time *)
+let validate_status_effect (effect : Effect_t.status_effect) =
+  match effect.dispel with
+  | Some true -> effect.scalers = [] && effect.durations = []
+  | Some false | None -> true
+;;
+
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
 let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
   let rec strictly_increasing = function

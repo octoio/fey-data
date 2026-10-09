@@ -19,6 +19,7 @@ type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octo
     [ StatChange
     | HitOverTime
     | Control
+    | CrowdControl
     ]
 
 type status_effect_mechanic <cs namespace="Octoio.Fey.Data.Dto" modifiers="abstract,partial"> = {
@@ -34,6 +35,7 @@ type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fe
     [ StatChange of status_effect_mechanic_stat_change
     | HitOverTime of status_effect_mechanic_hit_over_time
     | Control of status_effect_mechanic_control
+    | CrowdControl of status_effect_mechanic_crowd_control
     ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type status_effect_mechanic_hit_over_time <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
@@ -52,6 +54,18 @@ type status_control_mode <cs namespace="Octoio.Fey.Data.Type"> =
 type status_effect_mechanic_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
     mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
     mode <cs usetype="Type.StatusControlMode">: status_control_mode;
+}
+
+(* What a CrowdControl status takes away from the afflicted while it lasts. A slow is not one of these: it is a StatChange on MovementSpeedModifier (a percentage). *)
+type crowd_control_effect <cs namespace="Octoio.Fey.Data.Type"> =
+    [ Stun     (* cannot move or cast; a running cast is interrupted when it lands *)
+    | Root     (* cannot move; casting is unaffected *)
+    | Silence  (* cannot cast, a running cast is interrupted when it lands; movement is unaffected *)
+    ]
+
+type status_effect_mechanic_crowd_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
+    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+    effect <cs usetype="Type.CrowdControlEffect">: crowd_control_effect;
 }
 
 type status_stack_scaling_strategy <cs namespace="Octoio.Fey.Data.Type"> =

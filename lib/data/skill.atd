@@ -185,4 +185,6 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   cast_distance: float_range <cs validate="Validation.float_range_min {min=0.0; max=100.0}">;
   indicators: skill_indicator list;
   ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
+  (* true: the caster cannot walk from the start of the cast until it completes or is cancelled *)
+  ?root_while_casting <cs usetype="Optional<bool>">: bool option;
 }

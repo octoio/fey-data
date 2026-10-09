@@ -84,4 +84,6 @@ type status_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fe
   durations: status_duration list;
   scalers: effect_scaling list;
   status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
-}
+  (* true: remove the status from the targets instead of applying it (a dispel or cleanse); durations and scalers must then be empty *)
+  ?dispel <cs usetype="Optional<bool>">: bool option;
+} <ocaml valid="Validation.validate_status_effect">

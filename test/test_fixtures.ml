@@ -182,7 +182,8 @@ let minimal_skill =
     execution_root = minimal_execution_root;
     cast_distance = minimal_float_range;
     indicators = [];
-    experience = None
+    experience = None;
+    root_while_casting = None
   }
 ;;
 
@@ -630,7 +631,8 @@ let skill_with_projectile =
     execution_root;
     cast_distance = minimal_float_range;
     indicators = [];
-    experience = None
+    experience = None;
+    root_while_casting = None
   }
 ;;
 
