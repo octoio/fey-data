@@ -331,6 +331,7 @@ let minimal_character =
     enrage = None;
     hunts_healers = None;
     level = None;
+    level_growth = None;
     rank = None
   }
 ;;

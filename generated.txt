@@ -113,6 +113,7 @@
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariant.cs
 ../fey/Assets/Scripts/Data/Dto/Enrage.cs
+../fey/Assets/Scripts/Data/Dto/LevelGrowth.cs
 ../fey/Assets/Scripts/Data/Dto/Character.cs
 ../fey/Assets/Scripts/Data/Type/ProjectileModel.cs
 ../fey/Assets/Scripts/Data/Type/ProjectileImpact.cs

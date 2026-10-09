@@ -46,6 +46,22 @@ type enrage <cs namespace="Octoio.Fey.Data.Dto" imports="System"> = {
   effects: status_effect list <ocaml valid="Validation.validate_enrage_effects">;
 }
 
+(* What each level above 1 adds to the character's stats (so level n adds [n - 1] times these, a stat source of its
+   own). Every field is absent (0) by default. [max_level] caps the character level: XP stops accruing there.
+   Growth stays small on purpose: skills and gear should matter more than grinding. When a level-up raises the
+   maximum health or mana, current health and mana rise by the same amount (no full heal). *)
+type level_growth <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  ?max_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.validate_max_level">;
+  ?vit <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?str <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?_int <json name="int"> <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?dex <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?health <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?mana <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?armor <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+  ?magic_resist <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
+}
+
 type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"> =
   { metadata: metadata;
     character_type <json name="type"> <cs usetype="Type.Character">: character_type;
@@ -60,9 +76,11 @@ type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"
     hit_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
     (* Character level curve; absent = the game default *)
     ?xp_chart <cs usetype="Optional<XpChart>">: xp_chart option;
-    (* Starting level (absent = 1). Display only for stats (levels never change stats, backlog D3); a monster's
-       level scales the character XP its kill pays. *)
+    (* Starting level (absent = 1). Stats only change through [level_growth]; a monster's level scales the character
+       XP its kill pays and, against the level of its opponent, the damage it deals and takes. *)
     ?level <cs usetype="Optional<int>">: int option;
+    (* Per-level stat growth and level cap, see [level_growth]; absent = levels change no stats *)
+    ?level_growth <cs usetype="Optional<LevelGrowth>">: level_growth option;
     (* Normal (absent), Elite or Boss: drop tables gate and tilt their rewards by it *)
     ?rank <cs usetype="Optional<Type.MonsterRank>">: monster_rank option;
     (* Enrage timer, see [enrage] *)

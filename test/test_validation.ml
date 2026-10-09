@@ -711,6 +711,50 @@ module EnrageValidationTests = struct
   ;;
 end
 
+module LevelGrowthValidationTests = struct
+  let test_growth () =
+    check bool "absent" true (validate_growth None);
+    check bool "zero" true (validate_growth (Some 0.));
+    check bool "positive" true (validate_growth (Some 2.5));
+    check bool "negative" false (validate_growth (Some (-0.1)))
+  ;;
+
+  let test_cooldown_per_level () =
+    check bool "absent" true (validate_cooldown_per_level None);
+    check bool "small" true (validate_cooldown_per_level (Some 0.02));
+    check bool "too large" false (validate_cooldown_per_level (Some 0.2));
+    check bool "negative" false (validate_cooldown_per_level (Some (-0.01)))
+  ;;
+
+  let test_max_level () =
+    check bool "absent" true (validate_max_level None);
+    check bool "one" true (validate_max_level (Some 1));
+    check bool "zero" false (validate_max_level (Some 0))
+  ;;
+
+  (* The generated validators reject a negative growth inside a character's level_growth *)
+  let test_generated_level_growth () =
+    let g : Data.Character_t.level_growth =
+      { max_level = Some 10; vit = Some 1.; str = None; _int = None; dex = None;
+        health = Some 5.; mana = None; armor = None; magic_resist = None }
+    in
+    check bool "valid" true (Data.Character_v.validate_level_growth [] g = None);
+    check
+      bool
+      "negative vit"
+      false
+      (Data.Character_v.validate_level_growth [] { g with vit = Some (-1.) } = None)
+  ;;
+end
+
+let level_growth_validation_tests =
+  [ "growth", `Quick, LevelGrowthValidationTests.test_growth;
+    "cooldown_per_level", `Quick, LevelGrowthValidationTests.test_cooldown_per_level;
+    "max_level", `Quick, LevelGrowthValidationTests.test_max_level;
+    "generated level_growth", `Quick, LevelGrowthValidationTests.test_generated_level_growth
+  ]
+;;
+
 let enrage_validation_tests =
   [ ( "validate_enrage_effects",
       `Quick,
@@ -904,6 +948,7 @@ let () =
       ("Move Node Validation", move_node_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
+      ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);

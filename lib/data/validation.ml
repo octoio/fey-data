@@ -107,6 +107,14 @@ let validate_enrage_effects (effects : Effect_t.status_effect list) =
        effects
 ;;
 
+(* Per-level growth of a stat or of a skill's power: never negative (a level never weakens) *)
+let validate_growth (x : float option) = Option.fold ~none:true ~some:(float_min 0.) x
+let validate_cooldown_per_level (x : float option) =
+  Option.fold ~none:true ~some:(float_between 0. 0.1) x
+;;
+
+let validate_max_level (x : int option) = Option.fold ~none:true ~some:(int_min 1) x
+
 (* A trigger effect does exactly one thing *)
 let validate_trigger_effect (effect : Trigger_t.trigger_effect) =
   List.length
