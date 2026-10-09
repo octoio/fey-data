@@ -18,6 +18,7 @@ type status_duration <cs namespace="Octoio.Fey.Data.Dto"> = {
 type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octoio.Fey.Data.Type"> =
     [ StatChange
     | HitOverTime
+    | Control
     ]
 
 type status_effect_mechanic <cs namespace="Octoio.Fey.Data.Dto" modifiers="abstract,partial"> = {
@@ -32,12 +33,25 @@ type status_effect_mechanic_stat_change <cs namespace="Octoio.Fey.Data.Dto" exte
 type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=StatusEffectMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=StatusEffectMechanic)"> =
     [ StatChange of status_effect_mechanic_stat_change
     | HitOverTime of status_effect_mechanic_hit_over_time
+    | Control of status_effect_mechanic_control
     ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type status_effect_mechanic_hit_over_time <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
     mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
     hit <cs usetype="Type.Hit">: hit_type;
     tick_rate: float <ocaml valid="Validation.float_min 0.1">;
+}
+
+(* How a Control status moves controllers while it lasts (the Chrono duration of the status effect is the time) *)
+type status_control_mode <cs namespace="Octoio.Fey.Data.Type"> =
+    [ Shuffle         (* the controllers of the afflicted characters rotate among them *)
+    | SwapWithSource  (* the caster and the first afflicted character exchange controllers *)
+    | Dominate        (* the caster takes control of the afflicted character; a player caster's own body idles *)
+    ]
+
+type status_effect_mechanic_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
+    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+    mode <cs usetype="Type.StatusControlMode">: status_control_mode;
 }
 
 type status_stack_scaling_strategy <cs namespace="Octoio.Fey.Data.Type"> =

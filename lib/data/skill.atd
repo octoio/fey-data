@@ -121,6 +121,8 @@ type skill_action_summon_node <cs extends="SkillActionNode" namespace="Octoio.Fe
   ?lifetime <cs usetype="Optional<float>">: float option;
   (* How many summons of this entity one summoner may have alive; absent = unlimited *)
   ?max_alive <cs usetype="Optional<int>">: int option;
+  (* The summoner steers the summon for its `lifetime` (which is then required) while its own body stands idle and vulnerable *)
+  ?controlled <cs usetype="Optional<bool>">: bool option;
 }
 
 type skill_action_requirement_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {

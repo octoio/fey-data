@@ -85,6 +85,7 @@
 ../fey/Assets/Scripts/Data/Dto/DropTable.cs
 ../fey/Assets/Scripts/Data/Type/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Type/StatusEffectMechanic.cs
+../fey/Assets/Scripts/Data/Type/StatusControlMode.cs
 ../fey/Assets/Scripts/Data/Type/StatusStackScalingStrategy.cs
 ../fey/Assets/Scripts/Data/Dto/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanic.cs
@@ -93,6 +94,7 @@
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/StatusEffectMechanicConverter.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicHitOverTime.cs
+../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicControl.cs
 ../fey/Assets/Scripts/Data/Dto/StatusStack.cs
 ../fey/Assets/Scripts/Data/Dto/Status.cs
 ../fey/Assets/Scripts/Data/Type/Achievement.cs
