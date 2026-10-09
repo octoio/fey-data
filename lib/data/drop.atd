@@ -26,6 +26,8 @@ type drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" import
    a hard gate. *)
 type drop_gate <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
   { ?min_level <cs usetype="Optional<int>">: int option;
+    (* the quest tier (QuestTier order) the quest must be played at: a unique of the hardest tier *)
+    ?min_tier <cs usetype="Optional<int>">: int option;
     ?min_rank <cs usetype="Optional<Type.MonsterRank>">: monster_rank option;
     ?lower_rank_weight <cs usetype="Optional<int>">: int option;
   } <ocaml valid="Validation.validate_drop_gate">
@@ -108,6 +110,15 @@ type drop_guarantee <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializabl
     min_quality <cs usetype="Type.Quality">: quality_type <ocaml valid="Validation.validate_guarantee_quality">;
   }
 
+(* Gold grows with the killed monster: the rolled amount is multiplied by (1 + per_level * (level - 1)),
+   then by the factor of its rank (default 1), and by the quest tier's gold multiplier. Rounded to the
+   nearest whole number, at least 1. *)
+type gold_scaling <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { ?per_level <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+    ?elite <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+    ?boss <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+  }
+
 type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
   { metadata: metadata;
     gold_drops <cs usetype="WeightedList<GoldDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
@@ -118,4 +129,6 @@ type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
       (* Absent: items are picked by entry weight alone *)
     ?rarity_curve <cs usetype="Optional<RarityCurve>">: rarity_curve option;
     ?guarantees <cs usetype="Optional<DropGuarantee[]>">: drop_guarantee list option;
+    (* Absent: gold amounts are not scaled *)
+    ?gold_scaling <cs usetype="Optional<GoldScaling>">: gold_scaling option;
   }

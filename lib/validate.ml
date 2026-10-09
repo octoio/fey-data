@@ -308,6 +308,8 @@ let drop_table_error_messages definitions =
                     match gate with
                     | None -> true
                     | Some gate ->
+                      Option.is_none gate.min_tier
+                      &&
                       (match gate.min_rank with
                        | None -> true
                        | Some rank ->
@@ -330,6 +332,80 @@ let drop_table_error_messages definitions =
         curve_errors @ guarantee_errors
       | _ -> [])
     definitions
+;;
+
+(* Quest tiers: orders are unique, the base tier (lowest order) changes nothing, and a drop gate never asks
+   for a tier that does not exist *)
+let tier_error_messages definitions =
+  let tiers =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `QuestDifficulty { key; entity; _ } ->
+          Option.map (fun t -> key, t) entity.Data.Quest_t.tier
+        | _ -> None)
+      definitions
+  in
+  let order_of (_, (t : Data.Quest_t.quest_tier)) = t.order in
+  let duplicate_errors =
+    List.filter_map
+      (fun ((key, t) as tier) ->
+        if List.exists (fun other -> other != tier && order_of other = order_of tier) tiers
+        then
+          Some
+            (Printf.sprintf
+               "Quest tier %s has order %d, which another tier has too"
+               key
+               t.Data.Quest_t.order)
+        else None)
+      tiers
+  in
+  let is_identity (t : Data.Quest_t.quest_tier) =
+    Option.value t.level_bonus ~default:0 = 0
+    && Option.value t.extra_adds ~default:0. = 0.
+    && Option.value t.affixes ~default:[] = []
+    && Option.value t.rarity_tilt ~default:0. = 0.
+    && Option.is_none t.guarantee_min_quality
+    && Option.value t.gold_multiplier ~default:1. = 1.
+  in
+  let base_errors =
+    match List.sort (fun a b -> compare (order_of a) (order_of b)) tiers with
+    | (key, t) :: _ when not (is_identity t) ->
+      [ Printf.sprintf
+          "Quest tier %s has the lowest order, so it is the base tier and must change nothing"
+          key
+      ]
+    | _ -> []
+  in
+  let highest = List.fold_left (fun acc tier -> max acc (order_of tier)) 0 tiers in
+  let gate_errors =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `DropTable { entity; id; _ } ->
+          List.filter_map
+            (fun (d : Data.Drop_t.drop_internal) ->
+              let gate =
+                match d with
+                | `Equipment e -> e.gate
+                | `Weapon w -> w.gate
+                | `SkillStone s -> s.gate
+                | `Gold _ | `Skill _ -> None
+              in
+              match gate with
+              | Some { min_tier = Some m; _ } when m > highest ->
+                Some
+                  (Printf.sprintf
+                     "Quest tiers: drop table %s gates an entry on tier %d, but the highest tier is %d"
+                     id
+                     m
+                     highest)
+              | _ -> None)
+            (entity.equipment_drops @ entity.weapon_drops @ entity.skill_stone_drops)
+        | _ -> [])
+      definitions
+  in
+  duplicate_errors @ base_errors @ gate_errors
 ;;
 
 let validate_entity_definitions dataset =
@@ -367,6 +443,7 @@ let validate_entity_definitions dataset =
     quest_completability_error_messages (take_definitions dataset)
   in
   let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
+  let tier_errors = tier_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -379,7 +456,8 @@ let validate_entity_definitions dataset =
        @ anchor_ownership_errors
        @ quest_anchor_subset_errors
        @ quest_completability_errors
-       @ drop_table_errors)
+       @ drop_table_errors
+       @ tier_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

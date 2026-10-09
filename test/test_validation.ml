@@ -720,12 +720,14 @@ let enrage_validation_tests =
 
 module DropValidationTests = struct
   let test_gate () =
-    let gate ?min_level ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
-      { min_level; min_rank; lower_rank_weight }
+    let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
+      { min_level; min_tier; min_rank; lower_rank_weight }
     in
     check bool "empty gate" true (validate_drop_gate (gate ()));
     check bool "level 1" true (validate_drop_gate (gate ~min_level:1 ()));
     check bool "level 0" false (validate_drop_gate (gate ~min_level:0 ()));
+    check bool "tier 2" true (validate_drop_gate (gate ~min_tier:2 ()));
+    check bool "tier 0 is every quest" false (validate_drop_gate (gate ~min_tier:0 ()));
     check bool "boss" true (validate_drop_gate (gate ~min_rank:`Boss ()));
     check bool "rank Normal is a no-op" false (validate_drop_gate (gate ~min_rank:`Normal ()));
     check
@@ -761,7 +763,12 @@ module DropValidationTests = struct
     check bool "none" false (validate_guarantee_quality `None);
     check bool "tilt" true (float_min_if_some 0. (Some 0.5));
     check bool "negative tilt" false (float_min_if_some 0. (Some (-0.1)));
-    check bool "nan tilt" false (float_min_if_some 0. (Some Float.nan))
+    check bool "nan tilt" false (float_min_if_some 0. (Some Float.nan));
+    check bool "no tier guarantee" true (validate_guarantee_quality_if_some None);
+    check bool "epic tier guarantee" true (validate_guarantee_quality_if_some (Some `Epic));
+    check bool "bare tier guarantee" false (validate_guarantee_quality_if_some (Some `None));
+    check bool "no bonus" true (int_min_if_some 0 None);
+    check bool "negative bonus" false (int_min_if_some 0 (Some (-1)))
   ;;
 end
 
