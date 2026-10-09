@@ -76,6 +76,7 @@
 ../fey/Assets/Scripts/Data/Dto/Weapon.cs
 ../fey/Assets/Scripts/Data/Type/Drop.cs
 ../fey/Assets/Scripts/Data/Dto/Drop.cs
+../fey/Assets/Scripts/Data/Dto/DropGate.cs
 ../fey/Assets/Scripts/Data/Dto/GoldDrop.cs
 ../fey/Assets/Scripts/Data/Dto/EquipmentDrop.cs
 ../fey/Assets/Scripts/Data/Dto/WeaponDrop.cs
@@ -85,6 +86,9 @@
 ../fey/Assets/Scripts/Data/Dto/DropVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/DropConverter.cs
 ../fey/Assets/Scripts/Data/Dto/DropEvaluation.cs
+../fey/Assets/Scripts/Data/Dto/RarityWeights.cs
+../fey/Assets/Scripts/Data/Dto/RarityCurve.cs
+../fey/Assets/Scripts/Data/Dto/DropGuarantee.cs
 ../fey/Assets/Scripts/Data/Dto/DropTable.cs
 ../fey/Assets/Scripts/Data/Type/StatusEffectMechanic.cs
 ../fey/Assets/Scripts/Data/Type/StatusControlMode.cs
@@ -102,6 +106,7 @@
 ../fey/Assets/Scripts/Data/Dto/Status.cs
 ../fey/Assets/Scripts/Data/Type/Achievement.cs
 ../fey/Assets/Scripts/Data/Type/Character.cs
+../fey/Assets/Scripts/Data/Type/MonsterRank.cs
 ../fey/Assets/Scripts/Data/Type/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariant.cs
