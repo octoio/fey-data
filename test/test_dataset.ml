@@ -265,6 +265,148 @@ let test_anchor_owned_twice_is_invalid () =
   check int "Doubly owned anchor produces an error" 1 (List.length (ownership_errors dataset))
 ;;
 
+
+(* Drop tables: rarity curve and guarantees are checked against the item definitions *)
+let drop_errors dataset =
+  let validated = Validate.validate_entity_definitions dataset in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"Drop table"
+      | None -> false)
+    validated.errors
+;;
+
+let equipment_ref =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Equipment;
+    key = "MinimalEquipment";
+    version = 1;
+    id = "ownr:Equipment:MinimalEquipment:1"
+  }
+;;
+
+let equipment_entry ?gate () : Data.Drop_t.drop_internal =
+  `Equipment
+    { Data.Drop_t.drop_type = `Equipment; weight = 1; equipment = equipment_ref; gate }
+;;
+
+let curve : Data.Drop_t.rarity_curve =
+  { weights = { common = 10; uncommon = 5; rare = 2; epic = 1; legendary = 0 };
+    per_level = None;
+    elite_tilt = None;
+    boss_tilt = None
+  }
+;;
+
+let drop_table_dataset ?(equipment = minimal_equipment) ?curve:(rarity_curve = None) ?guarantees entries =
+  let table =
+    { minimal_drop_table with
+      equipment_drops = entries;
+      rarity_curve;
+      guarantees
+    }
+  in
+  let table_def : Data.Entity_t.entity_definition_internal =
+    `DropTable
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `DropTable;
+        key = "T";
+        version = 1;
+        id = "ownr:DropTable:T:1";
+        entity = table
+      }
+  in
+  let equipment_def : Data.Entity_t.entity_definition_internal =
+    `Equipment
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Equipment;
+        key = "MinimalEquipment";
+        version = 1;
+        id = "ownr:Equipment:MinimalEquipment:1";
+        entity = equipment
+      }
+  in
+  TestFixtures.create_dataset_with_definitions
+    [ ("data/json/t.json", table_def); ("data/json/e.json", equipment_def) ]
+;;
+
+let guarantee ?(min_quality = `Rare) () : Data.Drop_t.drop_guarantee =
+  { min_rank = `Boss; kind = `Equipment; min_quality }
+;;
+
+let test_drop_table_without_curve_is_valid () =
+  check
+    int
+    "no drop errors"
+    0
+    (List.length (drop_errors (drop_table_dataset [ equipment_entry () ])))
+;;
+
+let test_drop_curve_rejects_bare_items () =
+  let bare = { minimal_equipment with quality = `None } in
+  check
+    int
+    "a bare item has no rarity"
+    1
+    (List.length
+       (drop_errors
+          (drop_table_dataset ~equipment:bare ~curve:(Some curve) [ equipment_entry () ])));
+  check
+    int
+    "without a curve it is fine"
+    0
+    (List.length (drop_errors (drop_table_dataset ~equipment:bare [ equipment_entry () ])))
+;;
+
+let test_drop_guarantee_needs_a_matching_entry () =
+  let rare = { minimal_equipment with quality = `Rare } in
+  check
+    int
+    "common item cannot meet a Rare guarantee"
+    1
+    (List.length
+       (drop_errors
+          (drop_table_dataset ~guarantees:[ guarantee () ] [ equipment_entry () ])));
+  check
+    int
+    "rare item meets it"
+    0
+    (List.length
+       (drop_errors
+          (drop_table_dataset
+             ~equipment:rare
+             ~guarantees:[ guarantee () ]
+             [ equipment_entry () ])));
+  let elite_gate : Data.Drop_t.drop_gate =
+    { min_level = None; min_rank = Some `Boss; lower_rank_weight = None }
+  in
+  let elite_guarantee = { (guarantee ()) with min_rank = `Elite } in
+  check
+    int
+    "a boss-only entry cannot meet an Elite guarantee"
+    1
+    (List.length
+       (drop_errors
+          (drop_table_dataset
+             ~equipment:rare
+             ~guarantees:[ elite_guarantee ]
+             [ equipment_entry ~gate:elite_gate () ])));
+  check
+    int
+    "a boss-only entry meets a Boss guarantee"
+    0
+    (List.length
+       (drop_errors
+          (drop_table_dataset
+             ~equipment:rare
+             ~guarantees:[ guarantee () ]
+             [ equipment_entry ~gate:elite_gate () ])))
+;;
+
 (* Quest completability: KillSpecific objectives need preceding spawns *)
 let completability_errors dataset =
   let validated = Validate.validate_entity_definitions dataset in
@@ -634,6 +776,12 @@ let dataset_tests =
       test_anchor_owned_by_one_stage_is_valid;
     test_case "Orphan anchor is invalid" `Quick test_orphan_anchor_is_invalid;
     test_case "Anchor owned twice is invalid" `Quick test_anchor_owned_twice_is_invalid;
+    test_case "Drop table without curve is valid" `Quick test_drop_table_without_curve_is_valid;
+    test_case "Drop curve rejects bare items" `Quick test_drop_curve_rejects_bare_items;
+    test_case
+      "Drop guarantee needs a matching entry"
+      `Quick
+      test_drop_guarantee_needs_a_matching_entry;
     (* Quest Completability *)
     test_case
       "Kill objective without spawn is not completable"

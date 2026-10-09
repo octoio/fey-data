@@ -226,6 +226,112 @@ let quest_completability_error_messages definitions =
     definitions
 ;;
 
+(* Rarity order of a quality; None (a bare item) is below every tier *)
+let quality_rank (q : Data.Quality_t.quality_type) =
+  match q with
+  | `None -> 0
+  | `Common -> 1
+  | `Uncommon -> 2
+  | `Rare -> 3
+  | `Epic -> 4
+  | `Legendary -> 5
+;;
+
+let monster_rank_order (r : Data.Character_t.monster_rank) =
+  match r with
+  | `Normal -> 0
+  | `Elite -> 1
+  | `Boss -> 2
+;;
+
+(* Drop tables: every item entry of a table with a rarity curve has a rarity (not quality None), and
+   every guarantee can be met by some entry that a monster of that rank may drop *)
+let drop_table_error_messages definitions =
+  let qualities =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        let reference = Dataset.entity_reference_of_entity_definition definition in
+        match definition with
+        | `Equipment { entity; _ } -> Some (reference, entity.Data.Equipment_t.quality)
+        | `Weapon { entity; _ } -> Some (reference, entity.Data.Weapon_t.quality)
+        | `SkillStone { entity; _ } -> Some (reference, entity.Data.Skill_stone_t.quality)
+        | _ -> None)
+      definitions
+  in
+  (* kind, reference, gate of every item entry *)
+  let entries (t : Data.Drop_t.drop_table) =
+    List.filter_map
+      (fun (d : Data.Drop_t.drop_internal) ->
+        match d with
+        | `Equipment e -> Some (`Equipment, e.equipment, e.gate)
+        | `Weapon w -> Some (`Weapon, w.weapon, w.gate)
+        | `SkillStone s -> Some (`SkillStone, s.skill_stone, s.gate)
+        | `Gold _ | `Skill _ -> None)
+      (t.equipment_drops @ t.weapon_drops @ t.skill_stone_drops)
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `DropTable { entity; _ } ->
+        let name =
+          Data.Common_j.string_of_entity_reference
+            (Dataset.entity_reference_of_entity_definition definition)
+        in
+        let quality_of r = List.assoc_opt r qualities in
+        let curve_errors =
+          match entity.Data.Drop_t.rarity_curve with
+          | None -> []
+          | Some _ ->
+            List.filter_map
+              (fun (_, r, _) ->
+                match quality_of r with
+                | Some `None ->
+                  Some
+                    (Printf.sprintf
+                       "Drop table %s has a rarity curve but %s has quality None"
+                       name
+                       (Data.Common_j.string_of_entity_reference r))
+                | _ -> None)
+              (entries entity)
+        in
+        let guarantee_errors =
+          List.filter_map
+            (fun (g : Data.Drop_t.drop_guarantee) ->
+              let satisfiable =
+                List.exists
+                  (fun (kind, r, (gate : Data.Drop_t.drop_gate option)) ->
+                    kind = g.kind
+                    && (match quality_of r with
+                        | Some q -> quality_rank q >= quality_rank g.min_quality
+                        | None -> false)
+                    &&
+                    match gate with
+                    | None -> true
+                    | Some gate ->
+                      (match gate.min_rank with
+                       | None -> true
+                       | Some rank ->
+                         monster_rank_order rank <= monster_rank_order g.min_rank
+                         || Option.is_some gate.lower_rank_weight))
+                  (entries entity)
+              in
+              if satisfiable
+              then None
+              else
+                Some
+                  (Printf.sprintf
+                     "Drop table %s guarantees a %s of at least %s for a %s, but no entry can satisfy it"
+                     name
+                     (Data.Drop_j.string_of_drop_type g.kind)
+                     (Data.Quality_j.string_of_quality_type g.min_quality)
+                     (Data.Character_j.string_of_monster_rank g.min_rank)))
+            (Option.value entity.guarantees ~default:[])
+        in
+        curve_errors @ guarantee_errors
+      | _ -> [])
+    definitions
+;;
+
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -260,6 +366,7 @@ let validate_entity_definitions dataset =
   let quest_completability_errors =
     quest_completability_error_messages (take_definitions dataset)
   in
+  let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -271,7 +378,8 @@ let validate_entity_definitions dataset =
        @ entity_reference_error_messages
        @ anchor_ownership_errors
        @ quest_anchor_subset_errors
-       @ quest_completability_errors)
+       @ quest_completability_errors
+       @ drop_table_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

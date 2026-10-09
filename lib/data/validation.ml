@@ -249,3 +249,43 @@ let drop_list_of_type
   =
   list_min_length min_length drops && List.for_all (drop_of_type expected) drops
 ;;
+
+let float_min_if_some min (x : float option) =
+  match x with
+  | None -> true
+  | Some x -> Float.is_finite x && float_min min x
+;;
+
+(* A drop gate asks for something: a level from 1, and a rank of Elite or above (Normal is the default
+   and would be a no-op); the lower-rank weight needs a rank to be below and is at least 1 *)
+let validate_drop_gate (gate : Drop_t.drop_gate) =
+  (match gate.min_level with
+   | None -> true
+   | Some l -> int_min 1 l)
+  && (match gate.min_rank with
+      | None | Some `Elite | Some `Boss -> true
+      | Some `Normal -> false)
+  &&
+  match gate.lower_rank_weight with
+  | None -> true
+  | Some w -> int_min 1 w && Option.is_some gate.min_rank
+;;
+
+(* The rarity curve needs at least one tier to roll *)
+let validate_rarity_weights (w : Drop_t.rarity_weights) =
+  w.common + w.uncommon + w.rare + w.epic + w.legendary > 0
+;;
+
+(* A guarantee is about items *)
+let validate_guarantee_kind (kind : Drop_t.drop_type) =
+  match kind with
+  | `Equipment | `Weapon | `SkillStone -> true
+  | `Gold | `Skill -> false
+;;
+
+(* Quality None marks a bare item: it is never a rarity to demand *)
+let validate_guarantee_quality (quality : Quality_t.quality_type) =
+  match quality with
+  | `None -> false
+  | `Common | `Uncommon | `Rare | `Epic | `Legendary -> true
+;;

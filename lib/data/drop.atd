@@ -3,6 +3,8 @@ type metadata <ocaml from="Common"> = abstract
 type int_range <ocaml from="Common"> = abstract
 type skill_category <ocaml from="Skill"> = abstract
 type requirement_evaluation <ocaml from="Requirement"> = abstract
+type monster_rank <ocaml from="Character"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
 
 type drop_type <cs name="Drop" namespace="Octoio.Fey.Data.Type"> = 
   [ Gold
@@ -17,6 +19,17 @@ type drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" import
     weight: int <ocaml valid="Validation.int_min 1">;
   }
 
+(* Restricts an item entry to stronger monsters. [min_level] / [min_rank] are hard requirements on the
+   killed monster (its character level, default 1; its rank, default Normal). A monster below [min_rank]
+   (but not below [min_level]) can still drop the entry at weight [lower_rank_weight] instead of its
+   own: the low odds a unique has from level-appropriate trash. Without [lower_rank_weight] the rank is
+   a hard gate. *)
+type drop_gate <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { ?min_level <cs usetype="Optional<int>">: int option;
+    ?min_rank <cs usetype="Optional<Type.MonsterRank>">: monster_rank option;
+    ?lower_rank_weight <cs usetype="Optional<int>">: int option;
+  } <ocaml valid="Validation.validate_drop_gate">
+
 type gold_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
   { drop_type <json name="type"> <cs ignore="true">: drop_type;
     weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
@@ -27,12 +40,16 @@ type equipment_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializabl
   { drop_type <json name="type"> <cs ignore="true">: drop_type;
     weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
     equipment: entity_reference <ocaml valid="Validation.entity_reference_of_type `Equipment">;
+    (* Who can drop it: absent = every monster *)
+    ?gate <cs usetype="Optional<DropGate>">: drop_gate option;
   }
 
 type weapon_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
   { drop_type <json name="type"> <cs ignore="true">: drop_type;
     weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
     weapon: entity_reference <ocaml valid="Validation.entity_reference_of_type `Weapon">;
+    (* Who can drop it: absent = every monster *)
+    ?gate <cs usetype="Optional<DropGate>">: drop_gate option;
   }
 
 type skill_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
@@ -46,6 +63,8 @@ type skill_stone_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializa
   { drop_type <json name="type"> <cs ignore="true">: drop_type;
     weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
     skill_stone: entity_reference <ocaml valid="Validation.entity_reference_of_type `SkillStone">;
+    (* Who can drop it: absent = every monster *)
+    ?gate <cs usetype="Optional<DropGate>">: drop_gate option;
   }
 
 type drop_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Drop),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Drop)"> =
@@ -61,6 +80,34 @@ type drop_evaluation <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializab
     drops <cs usetype="Drop[]">: drop_internal list;
   }
 
+(* Relative weights of the rarity tiers (Common..Legendary) for the item drops of a table. A tier
+   with no eligible entry is skipped; weights are not percentages, only the sum must be positive. *)
+type rarity_weights <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { common: int <ocaml valid="Validation.int_min 0">;
+    uncommon: int <ocaml valid="Validation.int_min 0">;
+    rare: int <ocaml valid="Validation.int_min 0">;
+    epic: int <ocaml valid="Validation.int_min 0">;
+    legendary: int <ocaml valid="Validation.int_min 0">;
+  } <ocaml valid="Validation.validate_rarity_weights">
+
+(* The rarity of an item drop is rolled from [weights], tilted towards the rarer tiers: the weight of
+   tier i (Common = 0 ... Legendary = 4) is multiplied by (1 + tilt)^i, where
+   tilt = per_level * (monster level - 1) + the monster rank's tilt (all default 0). *)
+type rarity_curve <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { weights: rarity_weights;
+    ?per_level <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+    ?elite_tilt <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+    ?boss_tilt <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+  }
+
+(* A monster of at least [min_rank] always drops one item of [kind] (Equipment, Weapon or SkillStone)
+   whose rarity is at least [min_quality]. *)
+type drop_guarantee <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+  { min_rank <cs usetype="Type.MonsterRank">: monster_rank;
+    kind <cs usetype="Type.Drop">: drop_type <ocaml valid="Validation.validate_guarantee_kind">;
+    min_quality <cs usetype="Type.Quality">: quality_type <ocaml valid="Validation.validate_guarantee_quality">;
+  }
+
 type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
   { metadata: metadata;
     gold_drops <cs usetype="WeightedList<GoldDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
@@ -68,4 +115,7 @@ type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
     weapon_drops <cs usetype="WeightedList<WeaponDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Weapon">;
     skill_drops <cs usetype="WeightedList<SkillDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Skill">;
     skill_stone_drops <cs usetype="WeightedList<SkillStoneDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `SkillStone">;
+      (* Absent: items are picked by entry weight alone *)
+    ?rarity_curve <cs usetype="Optional<RarityCurve>">: rarity_curve option;
+    ?guarantees <cs usetype="Optional<DropGuarantee[]>">: drop_guarantee list option;
   }

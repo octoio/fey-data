@@ -328,7 +328,8 @@ let minimal_character =
     xp_chart = None;
     enrage = None;
     hunts_healers = None;
-    level = None
+    level = None;
+    rank = None
   }
 ;;
 
@@ -515,7 +516,9 @@ let minimal_drop_table =
     equipment_drops = [];
     weapon_drops = [];
     skill_drops = [];
-    skill_stone_drops = []
+    skill_stone_drops = [];
+    rarity_curve = None;
+    guarantees = None
   }
 ;;
 

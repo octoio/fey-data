@@ -689,6 +689,60 @@ let enrage_validation_tests =
   ]
 ;;
 
+module DropValidationTests = struct
+  let test_gate () =
+    let gate ?min_level ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
+      { min_level; min_rank; lower_rank_weight }
+    in
+    check bool "empty gate" true (validate_drop_gate (gate ()));
+    check bool "level 1" true (validate_drop_gate (gate ~min_level:1 ()));
+    check bool "level 0" false (validate_drop_gate (gate ~min_level:0 ()));
+    check bool "boss" true (validate_drop_gate (gate ~min_rank:`Boss ()));
+    check bool "rank Normal is a no-op" false (validate_drop_gate (gate ~min_rank:`Normal ()));
+    check
+      bool
+      "lower weight with a rank"
+      true
+      (validate_drop_gate (gate ~min_rank:`Elite ~lower_rank_weight:1 ()));
+    check
+      bool
+      "lower weight without a rank"
+      false
+      (validate_drop_gate (gate ~lower_rank_weight:1 ()));
+    check
+      bool
+      "lower weight 0"
+      false
+      (validate_drop_gate (gate ~min_rank:`Elite ~lower_rank_weight:0 ()))
+  ;;
+
+  let test_weights () =
+    let w common uncommon rare epic legendary : Data.Drop_t.rarity_weights =
+      { common; uncommon; rare; epic; legendary }
+    in
+    check bool "positive sum" true (validate_rarity_weights (w 0 0 0 0 1));
+    check bool "all zero" false (validate_rarity_weights (w 0 0 0 0 0))
+  ;;
+
+  let test_guarantee () =
+    check bool "equipment" true (validate_guarantee_kind `Equipment);
+    check bool "stone" true (validate_guarantee_kind `SkillStone);
+    check bool "gold" false (validate_guarantee_kind `Gold);
+    check bool "rare" true (validate_guarantee_quality `Rare);
+    check bool "none" false (validate_guarantee_quality `None);
+    check bool "tilt" true (float_min_if_some 0. (Some 0.5));
+    check bool "negative tilt" false (float_min_if_some 0. (Some (-0.1)));
+    check bool "nan tilt" false (float_min_if_some 0. (Some Float.nan))
+  ;;
+end
+
+let drop_validation_tests =
+  [ ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
+    ("validate_rarity_weights", `Quick, DropValidationTests.test_weights);
+    ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee)
+  ]
+;;
+
 module TriggerValidationTests = struct
   let hit_effect : Data.Effect_t.hit_effect =
     { hit_type = `Damage;
@@ -813,6 +867,7 @@ let () =
       ("Summon Control Validation", summon_control_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
+      ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
