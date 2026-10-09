@@ -3,6 +3,9 @@ type color <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type character_type <ocaml from="Character"> = abstract
 type achievement_type <ocaml from="Achievement"> = abstract
+type stat_type <ocaml from="Stat"> = abstract
+type monster_rank <ocaml from="Character"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
 type spawn <ocaml from="Spawn"> = abstract
 type spawn_sequence <ocaml from="Spawn"> = abstract
 
@@ -12,12 +15,46 @@ type quest_difficulty_type <cs name="QuestDifficulty" namespace="Octoio.Fey.Data
   | Hard
   | Insane
   | Impossible
+  | Nightmare
   ]
+
+(* A monster modifier of a tier: the final value of [stat] is multiplied by [multiplier] (1.3 = +30%,
+   0.8 = -20%) for every hostile spawned while the tier is active. [min_rank] limits it to monsters
+   of that rank or above (a boss-only affix). Affixes on the same stat add their deltas. *)
+type tier_affix <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+  name: string <ocaml valid="Validation.string_min_length 1">;
+  stat <cs usetype="Type.Stat">: stat_type;
+  multiplier: float <ocaml valid="Validation.float_min 0.05">;
+  ?min_rank <cs usetype="Optional<Type.MonsterRank>">: monster_rank option;
+}
+
+(* What a difficulty entity changes when it is offered as a tier of the quest board (a quest is offered
+   once per difficulty that has a tier, in [order]). The tier with the lowest order is the base: it
+   must change nothing (no bonus, affix, extra adds, tilt or multiplier). Semantics: fey-rs
+   docs/systems/tiers.md. *)
+type quest_tier <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+  (* position on the board, unique among tiers; the board offers a quest once per tier *)
+  order: int <ocaml valid="Validation.int_min 0">;
+  (* added to the level of every hostile spawned (default 0): raises the rarity tilt and the gates *)
+  ?level_bonus <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+  (* extra Normal-rank adds: scripted spawns of normal monsters count (1 + extra_adds) times, rounded
+     to the nearest whole number (default 0) *)
+  ?extra_adds <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+  ?affixes <cs usetype="Optional<TierAffix[]>">: tier_affix list option;
+  (* added to the rarity tilt of every drop roll (default 0) *)
+  ?rarity_tilt <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+  (* raises the rarity every drop guarantee demands to at least this *)
+  ?guarantee_min_quality <cs usetype="Optional<Type.Quality>">: quality_type option <ocaml valid="Validation.validate_guarantee_quality_if_some">;
+  (* multiplies the gold of every drop (default 1) *)
+  ?gold_multiplier <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+}
 
 type quest_difficulty <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine;Octoio.Fey.Data.Type"> = {
   metadata: metadata;
   difficulty_type <json name="type"> <cs usetype="Type.QuestDifficulty">: quest_difficulty_type;
   color: color;
+  (* absent: the quest board never offers this difficulty *)
+  ?tier <cs usetype="Optional<QuestTier>">: quest_tier option;
 }
 
 type quest_origin <cs namespace="Octoio.Fey.Data.Type"> =

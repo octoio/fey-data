@@ -89,6 +89,7 @@
 ../fey/Assets/Scripts/Data/Dto/RarityWeights.cs
 ../fey/Assets/Scripts/Data/Dto/RarityCurve.cs
 ../fey/Assets/Scripts/Data/Dto/DropGuarantee.cs
+../fey/Assets/Scripts/Data/Dto/GoldScaling.cs
 ../fey/Assets/Scripts/Data/Dto/DropTable.cs
 ../fey/Assets/Scripts/Data/Type/StatusEffectMechanic.cs
 ../fey/Assets/Scripts/Data/Type/StatusControlMode.cs
@@ -215,6 +216,8 @@
 ../fey/Assets/Scripts/Data/Type/QuestAction.cs
 ../fey/Assets/Scripts/Data/Type/QuestNode.cs
 ../fey/Assets/Scripts/Data/Type/QuestTimerTimeout.cs
+../fey/Assets/Scripts/Data/Dto/TierAffix.cs
+../fey/Assets/Scripts/Data/Dto/QuestTier.cs
 ../fey/Assets/Scripts/Data/Dto/QuestDifficulty.cs
 ../fey/Assets/Scripts/Data/Dto/QuestCondition.cs
 ../fey/Assets/Scripts/Data/Dto/QuestConditionKillSpecific.cs

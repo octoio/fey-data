@@ -256,12 +256,20 @@ let float_min_if_some min (x : float option) =
   | Some x -> Float.is_finite x && float_min min x
 ;;
 
-(* A drop gate asks for something: a level from 1, and a rank of Elite or above (Normal is the default
-   and would be a no-op); the lower-rank weight needs a rank to be below and is at least 1 *)
+let int_min_if_some min (x : int option) =
+  match x with
+  | None -> true
+  | Some x -> int_min min x
+;;
+
+(* A drop gate asks for something: a level from 1, a tier from 1 (tier 0 is every quest), and a rank of
+   Elite or above (Normal is the default and would be a no-op); the lower-rank weight needs a rank to be
+   below and is at least 1 *)
 let validate_drop_gate (gate : Drop_t.drop_gate) =
   (match gate.min_level with
    | None -> true
    | Some l -> int_min 1 l)
+  && int_min_if_some 1 gate.min_tier
   && (match gate.min_rank with
       | None | Some `Elite | Some `Boss -> true
       | Some `Normal -> false)
@@ -288,4 +296,10 @@ let validate_guarantee_quality (quality : Quality_t.quality_type) =
   match quality with
   | `None -> false
   | `Common | `Uncommon | `Rare | `Epic | `Legendary -> true
+;;
+
+let validate_guarantee_quality_if_some (quality : Quality_t.quality_type option) =
+  match quality with
+  | None -> true
+  | Some q -> validate_guarantee_quality q
 ;;

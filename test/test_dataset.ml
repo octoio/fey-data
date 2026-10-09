@@ -382,7 +382,7 @@ let test_drop_guarantee_needs_a_matching_entry () =
              ~guarantees:[ guarantee () ]
              [ equipment_entry () ])));
   let elite_gate : Data.Drop_t.drop_gate =
-    { min_level = None; min_rank = Some `Boss; lower_rank_weight = None }
+    { min_level = None; min_tier = None; min_rank = Some `Boss; lower_rank_weight = None }
   in
   let elite_guarantee = { (guarantee ()) with min_rank = `Elite } in
   check
@@ -405,6 +405,95 @@ let test_drop_guarantee_needs_a_matching_entry () =
              ~equipment:rare
              ~guarantees:[ guarantee () ]
              [ equipment_entry ~gate:elite_gate () ])))
+;;
+
+(* Quest tiers: unique orders, an identity base tier, gates on tiers that exist *)
+let tier_errors definitions =
+  let dataset =
+    TestFixtures.create_dataset_with_definitions
+      (List.mapi (fun i d -> Printf.sprintf "data/json/tier%d.json" i, d) definitions)
+  in
+  let validated = Validate.validate_entity_definitions dataset in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"Quest tier"
+      | None -> false)
+    validated.errors
+;;
+
+let tier_definition key difficulty_type tier : Data.Entity_t.entity_definition_internal =
+  `QuestDifficulty
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `QuestDifficulty;
+      key;
+      version = 1;
+      id = "ownr:QuestDifficulty:" ^ key ^ ":1";
+      entity =
+        { minimal_quest_difficulty with Data.Quest_t.difficulty_type; tier = Some tier }
+    }
+;;
+
+let plain_tier order : Data.Quest_t.quest_tier =
+  { order;
+    level_bonus = None;
+    extra_adds = None;
+    affixes = None;
+    rarity_tilt = None;
+    guarantee_min_quality = None;
+    gold_multiplier = None
+  }
+;;
+
+let test_quest_tiers () =
+  let normal = tier_definition "Normal" `Normal (plain_tier 0) in
+  let hard tier = tier_definition "Hard" `Hard tier in
+  check
+    int
+    "an identity base tier and a harder one are valid"
+    0
+    (List.length
+       (tier_errors [ normal; hard { (plain_tier 1) with level_bonus = Some 2 } ]));
+  check
+    int
+    "two tiers with one order are both reported"
+    2
+    (List.length (tier_errors [ normal; hard (plain_tier 0) ]));
+  check
+    int
+    "the base tier must change nothing"
+    1
+    (List.length
+       (tier_errors
+          [ tier_definition "Normal" `Normal { (plain_tier 0) with rarity_tilt = Some 0.5 };
+            hard (plain_tier 1)
+          ]));
+  let gated : Data.Drop_t.drop_gate =
+    { min_level = None; min_tier = Some 2; min_rank = Some `Boss; lower_rank_weight = None }
+  in
+  let table : Data.Entity_t.entity_definition_internal =
+    `DropTable
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `DropTable;
+        key = "T";
+        version = 1;
+        id = "ownr:DropTable:T:1";
+        entity = { minimal_drop_table with equipment_drops = [ equipment_entry ~gate:gated () ] }
+      }
+  in
+  check
+    int
+    "a gate on a tier above the hardest is reported"
+    1
+    (List.length (tier_errors [ normal; hard (plain_tier 1); table ]));
+  check
+    int
+    "a gate on an existing tier is fine"
+    0
+    (List.length (tier_errors [ normal; hard (plain_tier 1); tier_definition "Insane" `Insane (plain_tier 2); table ]))
 ;;
 
 (* Quest completability: KillSpecific objectives need preceding spawns *)
@@ -782,6 +871,7 @@ let dataset_tests =
       "Drop guarantee needs a matching entry"
       `Quick
       test_drop_guarantee_needs_a_matching_entry;
+    test_case "Quest tiers" `Quick test_quest_tiers;
     (* Quest Completability *)
     test_case
       "Kill objective without spawn is not completable"

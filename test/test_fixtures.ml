@@ -518,7 +518,8 @@ let minimal_drop_table =
     skill_drops = [];
     skill_stone_drops = [];
     rarity_curve = None;
-    guarantees = None
+    guarantees = None;
+    gold_scaling = None
   }
 ;;
 
@@ -682,7 +683,8 @@ let skill_with_projectile_entity_definition : Data.Entity_t.entity_definition_in
 let minimal_quest_difficulty =
   { Data.Quest_t.metadata = minimal_metadata;
     difficulty_type = `Easy;
-    color = minimal_color
+    color = minimal_color;
+    tier = None
   }
 ;;
 
