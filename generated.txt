@@ -127,6 +127,9 @@
 ../fey/Assets/Scripts/Data/Mapper/ProjectileImpactConverter.cs
 ../fey/Assets/Scripts/Data/Dto/Projectile.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileHoming.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileStraight.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileArc.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileBeam.cs
 ../fey/Assets/Scripts/Data/Dto/IProjectileVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/ProjectileConverter.cs
