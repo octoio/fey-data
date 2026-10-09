@@ -562,6 +562,45 @@ let quest_node_id_validation_tests =
   ]
 ;;
 
+module SummonControlValidationTests = struct
+  let summon ?lifetime ?controlled () : Data.Skill_t.skill_action_summon_node =
+    { skill_action_node_type = `Summon;
+      name = "summon";
+      summon_entity = make_entity_reference ~entity_type:`Character ();
+      position_offset = make_vector3 0. 0. 0.;
+      lifetime;
+      max_alive = None;
+      controlled
+    }
+  ;;
+
+  let test_validate_summon_control () =
+    check bool "plain summon" true (validate_summon_control (summon ()));
+    check
+      bool
+      "controlled with a lifetime"
+      true
+      (validate_summon_control (summon ~lifetime:15. ~controlled:true ()));
+    check
+      bool
+      "controlled without a lifetime is invalid"
+      false
+      (validate_summon_control (summon ~controlled:true ()));
+    check
+      bool
+      "uncontrolled without a lifetime"
+      true
+      (validate_summon_control (summon ~controlled:false ()))
+  ;;
+end
+
+let summon_control_validation_tests =
+  [ ( "validate_summon_control",
+      `Quick,
+      SummonControlValidationTests.test_validate_summon_control )
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -596,6 +635,7 @@ let () =
       ("List Validation", list_validation_tests);
       ("Spawn Sequence Validation", spawn_sequence_validation_tests);
       ("Quest Node Id Validation", quest_node_id_validation_tests);
+      ("Summon Control Validation", summon_control_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]

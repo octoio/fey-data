@@ -66,6 +66,13 @@ let validate_quest_node_ids (quest : Quest_t.quest) =
   List.length ids = List.length (List.sort_uniq compare ids)
 ;;
 
+(* A controlled summon is steered for its lifetime, so it needs one *)
+let validate_summon_control (node : Skill_t.skill_action_summon_node) =
+  match node.controlled with
+  | Some true -> Option.is_some node.lifetime
+  | Some false | None -> true
+;;
+
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
 let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
   let rec strictly_increasing = function
