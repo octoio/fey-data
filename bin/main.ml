@@ -50,6 +50,22 @@ let create_generated_files_reference (file_paths : string list) : unit =
   Gamedata.Io.write_file Config.Constants.generated_file @@ String.concat "\n" file_paths
 ;;
 
+(* The Rust crate is optional: skip when fey-rs is not checked out next to fey-data *)
+let generate_rust_types atd_files =
+  let out_dir = Config.Constants.rust_output_path in
+  if not (Sys.file_exists (Filename.dirname out_dir))
+  then
+    Gamedata.Io.print_warning
+    @@ Printf.sprintf "Skipping Rust generation: %s does not exist" (Filename.dirname out_dir)
+  else (
+    Gamedata.Io.print_info "Generating Rust files...";
+    let modules =
+      List.map (fun file -> (file, snd (Rust.Utils.parse_atd_file file))) atd_files
+    in
+    Rust.Main.generate_rust modules |> Rust.Output.write_rs_files out_dir |> ignore;
+    Gamedata.Io.print_success "Rust files written.")
+;;
+
 let () =
   Gamedata.Io.print_info "Starting validation...";
   match Gamedata.Processing.generate_dataset Config.Constants.json_folder with
@@ -70,5 +86,6 @@ let () =
     Csharp.Main.generate_csharp module_bodies
     |> List.map write_cs_file
     |> create_generated_files_reference;
+    generate_rust_types atd_files;
     Gamedata.Io.print_success "Process completed successfully."
 ;;

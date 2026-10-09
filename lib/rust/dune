@@ -1,0 +1,13 @@
+(library
+ (public_name gamedata.rust)
+ (name rust)
+ (modules
+  types
+  utils
+  annotations
+  runtime
+  generator_types
+  generator_serde
+  output
+  main)
+ (libraries atd gamedata))

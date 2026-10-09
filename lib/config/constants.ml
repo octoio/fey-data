@@ -30,6 +30,9 @@ let streaming_assets_path = read_config_value "streaming_assets_path" "Assets/St
 let json_path = read_config_value "json_path" "json"
 let scripts_path = read_config_value "scripts_path" "Assets/Scripts/Octoio/Fey/Data/Dto"
 
+let rust_output_path =
+  read_config_value "rust_output_path" "../fey-rs/crates/fey_data/src/generated"
+
 (* Derived paths *)
 let base_asset_folder = Filename.concat game_root "Assets"
 let streaming_assets_folder = Filename.concat game_root streaming_assets_path
