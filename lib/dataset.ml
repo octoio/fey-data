@@ -50,7 +50,8 @@ let entity_reference_of_entity_definition
   | `Quest { id; owner; entity_type; key; version; _ }
   | `QuestDifficulty { id; owner; entity_type; key; version; _ }
   | `Anchor { id; owner; entity_type; key; version; _ }
-  | `Stage { id; owner; entity_type; key; version; _ } ->
+  | `Stage { id; owner; entity_type; key; version; _ }
+  | `SkillStone { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -114,7 +115,7 @@ let extract_entity_reference_from_sound_bank_entity
 ;;
 
 let extract_entity_reference_from_drop_table_entity
-  Data.Drop_t.{ skill_drops; equipment_drops; weapon_drops; _ }
+  Data.Drop_t.{ skill_drops; skill_stone_drops; equipment_drops; weapon_drops; _ }
   =
   let extract_entity_from_drop acc (drop : Data.Drop_t.drop_internal) =
     match drop with
@@ -122,11 +123,13 @@ let extract_entity_reference_from_drop_table_entity
     | `Equipment { equipment; _ } -> equipment :: acc
     | `Weapon { weapon; _ } -> weapon :: acc
     | `Skill { skill; _ } -> skill :: acc
+    | `SkillStone { skill_stone; _ } -> skill_stone :: acc
   in
   let extract_entity_from_drops (drops : Data.Drop_t.drop_internal list) =
     List.fold_left extract_entity_from_drop [] drops
   in
   extract_entity_from_drops skill_drops
+  @ extract_entity_from_drops skill_stone_drops
   @ extract_entity_from_drops equipment_drops
   @ extract_entity_from_drops weapon_drops
 ;;
@@ -218,6 +221,7 @@ let extract_entity_reference_from_entity_definition
     @ extract_from_option_entity_reference entity.basic_attack
   | `Skill { entity; _ } -> extract_entity_reference_from_skill_entity entity
   | `Equipment { entity; _ } -> [ entity.icon_reference ]
+  | `SkillStone { entity; _ } -> [ entity.icon_reference ]
   | `Cursor { entity; _ } -> [ entity.icon_reference ]
   | `Sound { entity; _ } -> entity.audio_references
   | `SoundBank { entity; _ } -> extract_entity_reference_from_sound_bank_entity entity

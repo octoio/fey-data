@@ -406,6 +406,7 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_skill_entity_definition;
       minimal_character_entity_definition;
       minimal_equipment_entity_definition;
+      minimal_skill_stone_entity_definition;
       minimal_status_entity_definition;
       minimal_projectile_entity_definition;
       minimal_quest_entity_definition;

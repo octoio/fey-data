@@ -22,6 +22,7 @@ type skill_category <cs namespace="Octoio.Fey.Data.Type"> =
   | Defense
   | Utility
   | Healing
+  | Control
   ]
 
 type skill_cost <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {

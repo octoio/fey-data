@@ -24,6 +24,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `QuestDifficulty _ -> `QuestDifficulty
   | `Anchor _ -> `Anchor
   | `Stage _ -> `Stage
+  | `SkillStone _ -> `SkillStone
 ;;
 
 let test_stat_sheet_parity

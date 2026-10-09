@@ -9,6 +9,7 @@ type drop_type <cs name="Drop" namespace="Octoio.Fey.Data.Type"> =
   | Equipment
   | Weapon
   | Skill
+  | SkillStone
   ]
 
 type drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" modifiers="abstract,partial"> =
@@ -40,11 +41,19 @@ type skill_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
     skill: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;
   }
 
+(* A skill stone item (the way skills drop in fey-rs; the plain [skill_drop] is the old direct offer, unused there) *)
+type skill_stone_drop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine" extends="Drop" modifiers="partial"> =
+  { drop_type <json name="type"> <cs ignore="true">: drop_type;
+    weight <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+    skill_stone: entity_reference <ocaml valid="Validation.entity_reference_of_type `SkillStone">;
+  }
+
 type drop_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Drop),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Drop)"> =
   [ Gold of gold_drop
   | Equipment of equipment_drop
   | Weapon of weapon_drop
   | Skill of skill_drop
+  | SkillStone of skill_stone_drop
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type drop_evaluation <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
@@ -58,4 +67,5 @@ type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
     equipment_drops <cs usetype="WeightedList<EquipmentDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Equipment">;
     weapon_drops <cs usetype="WeightedList<WeaponDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Weapon">;
     skill_drops <cs usetype="WeightedList<SkillDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Skill">;
+    skill_stone_drops <cs usetype="WeightedList<SkillStoneDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `SkillStone">;
   }

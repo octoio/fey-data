@@ -181,7 +181,8 @@ let validate_entity_definition_internal
   | `Projectile { owner; id; entity_type; key; version; _ }
   | `Quest { owner; id; entity_type; key; version; _ }
   | `Anchor { owner; id; entity_type; key; version; _ }
-  | `Stage { owner; id; entity_type; key; version; _ } ->
+  | `Stage { owner; id; entity_type; key; version; _ }
+  | `SkillStone { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -203,6 +204,7 @@ let drop_of_type (expected : Drop_t.drop_type) (drop : Drop_t.drop_internal) =
   | `Equipment _, `Equipment -> true
   | `Weapon _, `Weapon -> true
   | `Skill _, `Skill -> true
+  | `SkillStone _, `SkillStone -> true
   | _ -> false
 ;;
 

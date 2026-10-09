@@ -24,6 +24,7 @@
 ../fey/Assets/Scripts/Data/Dto/IAnchorVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/AnchorVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/AnchorConverter.cs
+../fey/Assets/Scripts/Data/Dto/SkillStone.cs
 ../fey/Assets/Scripts/Data/Type/Stage.cs
 ../fey/Assets/Scripts/Data/Type/Portal.cs
 ../fey/Assets/Scripts/Data/Dto/Stage.cs
@@ -51,6 +52,7 @@
 ../fey/Assets/Scripts/Data/Dto/QuestDifficultyEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/AnchorEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/StageEntityDefinition.cs
+../fey/Assets/Scripts/Data/Dto/SkillStoneEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/IEntityDefinitionVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/EntityDefinitionVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/EntityDefinitionConverter.cs
@@ -78,6 +80,7 @@
 ../fey/Assets/Scripts/Data/Dto/EquipmentDrop.cs
 ../fey/Assets/Scripts/Data/Dto/WeaponDrop.cs
 ../fey/Assets/Scripts/Data/Dto/SkillDrop.cs
+../fey/Assets/Scripts/Data/Dto/SkillStoneDrop.cs
 ../fey/Assets/Scripts/Data/Dto/IDropVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/DropVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/DropConverter.cs

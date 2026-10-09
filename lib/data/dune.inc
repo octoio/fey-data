@@ -398,6 +398,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets skill_stone_j.ml skill_stone_j.mli)
+ (deps skill_stone.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets skill_stone_t.ml skill_stone_t.mli)
+ (deps skill_stone.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets skill_stone_v.ml skill_stone_v.mli)
+ (deps skill_stone.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets spawn_j.ml spawn_j.mli)
  (deps spawn.atd)
  (mode fallback)
@@ -561,6 +582,9 @@
   requirement_t
   requirement_v
   skill_j
+  skill_stone_j
+  skill_stone_t
+  skill_stone_v
   skill_t
   skill_v
   spawn_j

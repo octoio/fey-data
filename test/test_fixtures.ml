@@ -216,6 +216,26 @@ let minimal_equipment_entity_definition : Data.Entity_t.entity_definition_intern
     }
 ;;
 
+(* Minimal valid skill stone *)
+let minimal_skill_stone =
+  { Data.Skill_stone_t.metadata = minimal_metadata;
+    quality = `Common;
+    icon_reference = minimal_entity_reference;
+    category = Some `Healing
+  }
+;;
+
+let minimal_skill_stone_entity_definition : Data.Entity_t.entity_definition_internal =
+  `SkillStone
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `SkillStone;
+      key = "MinimalSkillStone";
+      version = 1;
+      id = "ownr:SkillStone:MinimalSkillStone:1";
+      entity = minimal_skill_stone
+    }
+;;
+
 (* Minimal valid status *)
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
@@ -490,7 +510,8 @@ let minimal_drop_table =
     gold_drops = [ minimal_drop_internal ];
     equipment_drops = [];
     weapon_drops = [];
-    skill_drops = []
+    skill_drops = [];
+    skill_stone_drops = []
   }
 ;;
 

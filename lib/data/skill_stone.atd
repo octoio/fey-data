@@ -1,0 +1,15 @@
+type metadata <ocaml from="Common"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+type skill_category <ocaml from="Skill"> = abstract
+
+(* A skill stone is an item: the party rolls for it like any loot and its owner uses it later to
+   pick one of three skills (drawn on use, never owned already). [category] restricts the offer to
+   skills tagged with it; absent = any skill. [quality] is the rarity: the stone offers skills up
+   to that quality and always tries to include one of the highest quality available. *)
+type skill_stone <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  metadata: metadata;
+  quality <cs usetype="Type.Quality">: quality_type;
+  icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
+  ?category <cs usetype="Optional<SkillCategory>">: skill_category option;
+}
