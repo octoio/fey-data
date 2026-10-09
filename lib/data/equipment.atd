@@ -32,4 +32,6 @@ type equipment <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" i
     random_stat_affixes: stat_affix list;
     (* effects that fire on something happening to the wearer while the item is worn (see trigger.atd) *)
     ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+    (* character level needed to equip it; absent = any *)
+    ?min_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 2">;
 }

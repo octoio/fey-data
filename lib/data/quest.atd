@@ -84,6 +84,7 @@ type quest_condition_type <cs name="QuestCondition" namespace="Octoio.Fey.Data.T
   | StayInAnchor
   | PickQuest
   | Teleport
+  | Interact
   ]
 
 type quest_condition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
@@ -111,12 +112,24 @@ type quest_condition_stay_in_anchor <cs extends="QuestCondition" namespace="Octo
   duration: float <ocaml valid="Validation.float_min 0.1">;
 }
 
+(* [quest]: only picking that quest completes the objective; absent = any pick *)
 type quest_condition_pick_quest <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  ?quest <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
 }
 
+(* [stage]: only arriving on that stage completes the objective; absent = arriving on any stage other
+   than the one the objective started on *)
 type quest_condition_teleport <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  ?stage <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Stage">;
+}
+
+(* A living party player standing in the anchor's zone uses it (the Interact input): a lever, a chest,
+   an NPC. The anchor must be an active Zone of the quest's stage; the interaction counts once. *)
+type quest_condition_interact <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
 }
 
 type quest_condition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=QuestCondition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=QuestCondition,enumname=Type.QuestCondition)"> =
@@ -125,6 +138,7 @@ type quest_condition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.
   | StayInAnchor of quest_condition_stay_in_anchor
   | PickQuest of quest_condition_pick_quest
   | Teleport of quest_condition_teleport
+  | Interact of quest_condition_interact
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Actions: fire-and-forget world mutations (no rollback) *)
@@ -209,9 +223,11 @@ type quest_node_type <cs name="QuestNode" namespace="Octoio.Fey.Data.Type"> =
   | Action
   ]
 
+(* Restart cancels the child subtree and starts it and the timer again: a wave that repeats until beaten *)
 type quest_timer_timeout_type <cs name="QuestTimerTimeout" namespace="Octoio.Fey.Data.Type"> =
   [ Fail
   | Complete
+  | Restart
   ]
 
 type quest_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {

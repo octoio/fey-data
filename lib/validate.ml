@@ -127,6 +127,45 @@ let quest_anchor_subset_error_messages definitions =
     definitions
 ;;
 
+(* An Interact objective uses a Zone anchor (the place a player stands in to interact) *)
+let interact_error_messages definitions =
+  let is_zone reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity = `Zone _; _ } ->
+          Dataset.entity_reference_of_entity_definition definition = reference
+        | _ -> false)
+      definitions
+  in
+  let rec interact_anchors (node : Data.Quest_t.quest_node_internal) =
+    match node with
+    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+      List.concat_map interact_anchors children
+    | `Timer { child; _ } -> interact_anchors child
+    | `Objective { condition = `Interact { anchor; _ }; _ } -> [ anchor ]
+    | `Objective _ | `Action _ -> []
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Quest { entity; _ } ->
+        List.filter_map
+          (fun anchor ->
+            if is_zone anchor
+            then None
+            else
+              Some
+                (Printf.sprintf
+                   "Quest %s interacts with anchor %s, which is not a Zone"
+                   (Data.Common_j.string_of_entity_reference
+                      (Dataset.entity_reference_of_entity_definition definition))
+                   (Data.Common_j.string_of_entity_reference anchor)))
+          (interact_anchors entity.root)
+      | _ -> [])
+    definitions
+;;
+
 (* A KillSpecific objective is only completable if enough characters of the
    required types are spawned by actions that are not strictly after it in
    execution order. Sequence children run in order; Parallel/Any/Timer branches
@@ -442,6 +481,7 @@ let validate_entity_definitions dataset =
   let quest_completability_errors =
     quest_completability_error_messages (take_definitions dataset)
   in
+  let interact_errors = interact_error_messages (take_definitions dataset) in
   let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let errors =
@@ -456,6 +496,7 @@ let validate_entity_definitions dataset =
        @ anchor_ownership_errors
        @ quest_anchor_subset_errors
        @ quest_completability_errors
+       @ interact_errors
        @ drop_table_errors
        @ tier_errors)
   in

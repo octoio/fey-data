@@ -216,6 +216,15 @@ let entity_reference_list_of_type
   && List.for_all (entity_reference_of_type expected) entity_references
 ;;
 
+let entity_reference_list_of_type_if_some
+  (expected : Common_t.entity_type)
+  (entity_references : entity_reference list option)
+  =
+  match entity_references with
+  | None -> true
+  | Some l -> List.for_all (entity_reference_of_type expected) l
+;;
+
 let validate_entity_definition_internal
   (entity_definition : Entity_t.entity_definition_internal)
   =

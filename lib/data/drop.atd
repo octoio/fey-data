@@ -119,6 +119,16 @@ type gold_scaling <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]
     ?boss <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
   }
 
+(* Who gets a drop. Poll (default): every eligible player rolls Need / Greed / Pass for each item.
+   Everyone: each eligible player receives their own copy at once. Individual: one eligible player
+   (drawn per item, with a pity bonus for those who have won less) receives it at once. Gold is always
+   split. *)
+type loot_distribution <cs name="LootDistribution" namespace="Octoio.Fey.Data.Type"> =
+  [ Poll
+  | Everyone
+  | Individual
+  ]
+
 type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
   { metadata: metadata;
     gold_drops <cs usetype="WeightedList<GoldDrop>">: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
@@ -131,4 +141,9 @@ type drop_table <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
     ?guarantees <cs usetype="Optional<DropGuarantee[]>">: drop_guarantee list option;
     (* Absent: gold amounts are not scaled *)
     ?gold_scaling <cs usetype="Optional<GoldScaling>">: gold_scaling option;
+    (* Absent: Poll *)
+    ?distribution <cs usetype="Optional<Type.LootDistribution>">: loot_distribution option;
+    (* Each eligible player beyond the first multiplies the chance of every item category by
+       (1 + party_scaling), capped at 1; absent = drops do not depend on the party size *)
+    ?party_scaling <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
   }

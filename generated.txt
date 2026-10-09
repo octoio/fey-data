@@ -75,6 +75,7 @@
 ../fey/Assets/Scripts/Data/Type/WeaponSheatheLocation.cs
 ../fey/Assets/Scripts/Data/Dto/Weapon.cs
 ../fey/Assets/Scripts/Data/Type/Drop.cs
+../fey/Assets/Scripts/Data/Type/LootDistribution.cs
 ../fey/Assets/Scripts/Data/Dto/Drop.cs
 ../fey/Assets/Scripts/Data/Dto/DropGate.cs
 ../fey/Assets/Scripts/Data/Dto/GoldDrop.cs
@@ -229,6 +230,7 @@
 ../fey/Assets/Scripts/Data/Dto/QuestConditionStayInAnchor.cs
 ../fey/Assets/Scripts/Data/Dto/QuestConditionPickQuest.cs
 ../fey/Assets/Scripts/Data/Dto/QuestConditionTeleport.cs
+../fey/Assets/Scripts/Data/Dto/QuestConditionInteract.cs
 ../fey/Assets/Scripts/Data/Dto/IQuestConditionVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/QuestConditionVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/QuestConditionConverter.cs

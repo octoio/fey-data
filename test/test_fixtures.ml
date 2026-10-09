@@ -145,7 +145,8 @@ let minimal_weapon =
     random_stat_affix_count = minimal_int_range;
     random_stat_affixes = [];
     basic_attack = None;
-    model_anchor_set = minimal_model_anchor_set
+    model_anchor_set = minimal_model_anchor_set;
+    min_level = None
   }
 ;;
 
@@ -205,7 +206,8 @@ let minimal_equipment =
     base_stat_affixes = [];
     random_stat_affix_count = minimal_int_range;
     random_stat_affixes = [];
-    triggers = None
+    triggers = None;
+    min_level = None
   }
 ;;
 
@@ -330,6 +332,8 @@ let minimal_character =
     xp_chart = None;
     enrage = None;
     hunts_healers = None;
+    starting_equipment = None;
+    starting_weapons = None;
     level = None;
     level_growth = None;
     rank = None
@@ -522,7 +526,9 @@ let minimal_drop_table =
     skill_stone_drops = [];
     rarity_curve = None;
     guarantees = None;
-    gold_scaling = None
+    gold_scaling = None;
+    distribution = None;
+    party_scaling = None
   }
 ;;
 
@@ -729,7 +735,7 @@ let minimal_quest_objective_node =
     name = "teleport";
     metadata = minimal_metadata;
     is_optional = false;
-    condition = `Teleport { Data.Quest_t.condition_type = `Teleport }
+    condition = `Teleport { Data.Quest_t.condition_type = `Teleport; stage = None }
   }
 ;;
 

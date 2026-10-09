@@ -513,7 +513,7 @@ module QuestNodeIdValidationTests = struct
         name = "objective";
         metadata = { Data.Common_t.title = "t"; description = "d" };
         is_optional = false;
-        condition = `Teleport { Data.Quest_t.condition_type = `Teleport }
+        condition = `Teleport { Data.Quest_t.condition_type = `Teleport; stage = None }
       }
   ;;
 

@@ -43,4 +43,6 @@ type weapon <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impo
     random_stat_affixes: stat_affix list;
     ?basic_attack <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Skill">;
     model_anchor_set: model_anchor_set;
+    (* character level needed to equip it; absent = any *)
+    ?min_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 2">;
 }

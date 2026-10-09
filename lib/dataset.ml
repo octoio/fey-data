@@ -201,7 +201,9 @@ let extract_entity_reference_from_quest_condition
   match condition with
   | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } -> [ anchor ]
   | `KillSpecific { character; _ } -> Option.fold ~none:[] ~some:(fun x -> [ x ]) character
-  | `PickQuest _ | `Teleport _ -> []
+  | `PickQuest { quest; _ } -> Option.to_list quest
+  | `Teleport { stage; _ } -> Option.to_list stage
+  | `Interact { anchor; _ } -> [ anchor ]
 ;;
 
 let extract_entity_reference_from_quest_action
@@ -255,6 +257,8 @@ let extract_entity_reference_from_entity_definition
   | `Character { entity; _ } ->
     [ entity.hit_sound; entity.foot_step_sound; entity.auto_attack; entity.drop_table ]
     @ entity.skills
+    @ Option.value entity.starting_equipment ~default:[]
+    @ Option.value entity.starting_weapons ~default:[]
     @ (match entity.enrage with
        | None -> []
        | Some { effects; _ } ->
