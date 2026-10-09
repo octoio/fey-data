@@ -53,6 +53,9 @@ type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"
     hit_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
     (* Character level curve; absent = the game default *)
     ?xp_chart <cs usetype="Optional<XpChart>">: xp_chart option;
+    (* Starting level (absent = 1). Display only for stats (levels never change stats, backlog D3); a monster's
+       level scales the character XP its kill pays. *)
+    ?level <cs usetype="Optional<int>">: int option;
     (* Enrage timer, see [enrage] *)
     ?enrage <cs usetype="Optional<Enrage>">: enrage option;
     (* true: the monster goes for whoever in reach carries a healing skill instead of the threat holder

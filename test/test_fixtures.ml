@@ -324,7 +324,8 @@ let minimal_character =
     hit_sound = minimal_entity_reference;
     xp_chart = None;
     enrage = None;
-    hunts_healers = None
+    hunts_healers = None;
+    level = None
   }
 ;;
 
