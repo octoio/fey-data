@@ -6,7 +6,8 @@ type hit_type <ocaml from="Common"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
-type status_duration <ocaml from="Status"> = abstract
+type trigger <ocaml from="Trigger"> = abstract
+type status_duration <ocaml from="Effect"> = abstract
 type requirement_evaluation <ocaml from="Requirement"> = abstract
 type hit_effect <ocaml from="Effect"> = abstract
 type status_effect <ocaml from="Effect"> = abstract
@@ -188,4 +189,6 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
   (* true: the caster cannot walk from the start of the cast until it completes or is cancelled *)
   ?root_while_casting <cs usetype="Optional<bool>">: bool option;
+  (* effects that fire on something happening to a character that knows the skill (see trigger.atd) *)
+  ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
 }

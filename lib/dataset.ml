@@ -136,6 +136,28 @@ let extract_entity_reference_from_drop_table_entity
 
 let extract_from_option_entity_reference o = Option.fold ~none:[] ~some:(fun x -> [ x ]) o
 
+let extract_entity_reference_from_triggers
+  (triggers : Data.Trigger_t.trigger list option)
+  : Data.Common_t.entity_reference list
+  =
+  List.concat_map
+    (fun (t : Data.Trigger_t.trigger) ->
+       extract_from_option_entity_reference t.status
+       @ List.concat_map
+           (fun (e : Data.Trigger_t.trigger_effect) ->
+              Option.fold
+                ~none:[]
+                ~some:(fun (h : Data.Effect_t.hit_effect) -> [ h.hit_sound ])
+                e.hit
+              @ Option.fold
+                  ~none:[]
+                  ~some:(fun (s : Data.Effect_t.status_effect) -> [ s.status ])
+                  e.status
+              @ extract_from_option_entity_reference e.skill)
+           t.effects)
+    (Option.value ~default:[] triggers)
+;;
+
 let extract_entity_reference_from_projectile_impact
   (impact : Data.Projectile_t.projectile_impact_internal)
   =
@@ -219,8 +241,11 @@ let extract_entity_reference_from_entity_definition
   | `Weapon { entity; _ } ->
     [ entity.model_anchor_set.model_reference; entity.icon_reference ]
     @ extract_from_option_entity_reference entity.basic_attack
-  | `Skill { entity; _ } -> extract_entity_reference_from_skill_entity entity
-  | `Equipment { entity; _ } -> [ entity.icon_reference ]
+  | `Skill { entity; _ } ->
+    extract_entity_reference_from_skill_entity entity
+    @ extract_entity_reference_from_triggers entity.triggers
+  | `Equipment { entity; _ } ->
+    [ entity.icon_reference ] @ extract_entity_reference_from_triggers entity.triggers
   | `SkillStone { entity; _ } -> [ entity.icon_reference ]
   | `Cursor { entity; _ } -> [ entity.icon_reference ]
   | `Sound { entity; _ } -> entity.audio_references
@@ -247,8 +272,8 @@ let extract_entity_reference_from_entity_definition
   | `Quality _
   | `Stat _
   | `Image _
-  | `Status _
   | `Model _ -> []
+  | `Status { entity; _ } -> extract_entity_reference_from_triggers entity.triggers
 ;;
 
 let extract_entity_reference dataset : Data.Common_t.entity_reference list =

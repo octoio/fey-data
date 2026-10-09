@@ -3,6 +3,7 @@ type metadata <ocaml from="Common"> = abstract
 type stat_affix <ocaml from="Affix"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
+type trigger <ocaml from="Trigger"> = abstract
 
 type equipment_category <cs namespace="Octoio.Fey.Data.Type"> = 
     [ Head
@@ -29,4 +30,6 @@ type equipment <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" i
     base_stat_affixes: stat_affix list;
     random_stat_affix_count: int_range <ocaml valid="Validation.int_range_between {min=0; max=100}">;
     random_stat_affixes: stat_affix list;
+    (* effects that fire on something happening to the wearer while the item is worn (see trigger.atd) *)
+    ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
 }

@@ -1,0 +1,61 @@
+type entity_reference <ocaml from="Common"> = abstract
+type hit_effect <ocaml from="Effect"> = abstract
+type status_effect <ocaml from="Effect"> = abstract
+
+(* Triggers: effects that fire on something happening to their owner. Owned by an equipment
+   (while worn), a status (while the character has it) or a skill (while the character knows it).
+   Semantics and limits: fey-rs docs/systems/triggers.md. *)
+
+(* What raises the trigger. The owner is the subject of the event; "other" is its counterpart. *)
+type trigger_on <cs namespace="Octoio.Fey.Data.Type"> =
+  [ Hit            (* the owner dealt damage that was not dodged; other = the victim *)
+  | Crit           (* the owner dealt a critical hit or heal; other = the target *)
+  | Kill           (* the owner dealt the last damage to a character that died; other = the dead *)
+  | Heal           (* the owner healed; other = the receiver. Raised at full health too (amount 0) *)
+  | Dodge          (* the owner dodged a hit; other = the attacker *)
+  | StatusApplied  (* the owner applied a status; other = the afflicted *)
+  | DamageTaken    (* the owner took damage that was not dodged; other = the attacker *)
+  ]
+
+(* How "other" must relate to the owner for the trigger to be considered *)
+type trigger_relation <cs namespace="Octoio.Fey.Data.Type"> =
+  [ Any
+  | Enemy
+  | Ally   (* same team, the owner included *)
+  | Owner  (* the owner itself *)
+  ]
+
+(* One effect of a firing trigger: exactly one of hit, status, skill. Targets come from the effect's own
+   target mechanic with the caster = the owner and the selected target = "other" (use Self for the owner,
+   Selected for the other party). *)
+type trigger_effect <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  (* damage, heal or mana, resolved like a skill's Hit node (crit, mitigation, modifiers), drawing from the Trigger stream *)
+  ?hit <cs usetype="Optional<HitEffect>">: hit_effect option;
+  (* a status application (or a dispel) like a skill's Status node *)
+  ?status <cs usetype="Optional<StatusEffect>">: status_effect option;
+  (* the instant Hit and Status nodes of this skill run as if cast for free by the owner; delays, animations,
+     projectiles and summons are ignored *)
+  ?skill <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Skill">;
+  (* leave "other" out of the targets (a chain jump to a different character) *)
+  ?exclude_other <cs usetype="Optional<bool>">: bool option;
+} <ocaml valid="Validation.validate_trigger_effect">
+
+type trigger <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  (* unique among the triggers of one owner; shows up in the balance metrics *)
+  key: string;
+  on <cs usetype="Type.TriggerOn">: trigger_on;
+  ?relation <cs usetype="Optional<Type.TriggerRelation>">: trigger_relation option;
+  (* probability in [0, 1] that a trigger that passed every check fires; drawn from the Trigger stream *)
+  chance: float;
+  (* internal cooldown in seconds, per owner and trigger, starting when it fires *)
+  cooldown: float;
+  (* the event amount (effective damage or healing) must be at least this *)
+  ?min_amount <cs usetype="Optional<float>">: float option;
+  (* only for StatusApplied: the status that was applied *)
+  ?status <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Status">;
+  (* only events raised by effects of chain depth up to this one (0: direct effects only) *)
+  ?max_chain <cs usetype="Optional<int>">: int option;
+  (* true: the effects raise no further triggers *)
+  ?terminal <cs usetype="Optional<bool>">: bool option;
+  effects: trigger_effect list;
+} <ocaml valid="Validation.validate_trigger">

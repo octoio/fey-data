@@ -94,6 +94,40 @@ let validate_enrage_effects (effects : Effect_t.status_effect list) =
        effects
 ;;
 
+(* A trigger effect does exactly one thing *)
+let validate_trigger_effect (effect : Trigger_t.trigger_effect) =
+  List.length
+    (List.filter
+       Fun.id
+       [ Option.is_some effect.hit
+       ; Option.is_some effect.status
+       ; Option.is_some effect.skill
+       ])
+  = 1
+;;
+
+let trigger_key_regex = Re.Perl.compile_pat "^[a-zA-Z0-9_-]{3,64}$"
+
+(* Probability and cooldown in range, a key, at least one effect; the status filter only makes sense for StatusApplied *)
+let validate_trigger (trigger : Trigger_t.trigger) =
+  Re.execp trigger_key_regex trigger.key
+  && float_between 0. 1. trigger.chance
+  && float_min 0. trigger.cooldown
+  && Option.fold ~none:true ~some:(float_min 0.) trigger.min_amount
+  && Option.fold ~none:true ~some:(int_min 0) trigger.max_chain
+  && trigger.effects <> []
+  && (Option.is_none trigger.status || trigger.on = `StatusApplied)
+;;
+
+(* The keys of the triggers of one owner are unique *)
+let validate_triggers (triggers : Trigger_t.trigger list option) =
+  match triggers with
+  | None -> true
+  | Some triggers ->
+    let keys = List.map (fun (t : Trigger_t.trigger) -> t.key) triggers in
+    List.length keys = List.length (List.sort_uniq compare keys)
+;;
+
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
 let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
   let rec strictly_increasing = function

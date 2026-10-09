@@ -2,18 +2,7 @@ type metadata <ocaml from="Common"> = abstract
 type hit_type <ocaml from="Common"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
-
-type status_duration_type <cs name="StatusDuration" namespace="Octoio.Fey.Data.Type"> =
-    [ Chrono
-    | Logical
-    | Room
-    | Dungeon
-    ]
-
-type status_duration <cs namespace="Octoio.Fey.Data.Dto"> = {
-    duration <json name="type"> <cs usetype="Type.StatusDuration">: status_duration_type;
-    value: float <ocaml valid="Validation.float_min 0.">;
-}
+type trigger <ocaml from="Trigger"> = abstract
 
 type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octoio.Fey.Data.Type"> =
     [ StatChange
@@ -82,5 +71,7 @@ type status_stack <cs namespace="Octoio.Fey.Data.Dto"> = {
 type status <cs namespace="Octoio.Fey.Data.Dto"> = {
     metadata: metadata;
     mechanic <cs usetype="StatusEffectMechanic">: status_effect_mechanic_internal;
-    stack: status_stack
+    stack: status_stack;
+    (* effects that fire on something happening to the afflicted character while it has the status (see trigger.atd) *)
+    ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
 }

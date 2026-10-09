@@ -86,12 +86,10 @@
 ../fey/Assets/Scripts/Data/Mapper/DropConverter.cs
 ../fey/Assets/Scripts/Data/Dto/DropEvaluation.cs
 ../fey/Assets/Scripts/Data/Dto/DropTable.cs
-../fey/Assets/Scripts/Data/Type/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Type/StatusEffectMechanic.cs
 ../fey/Assets/Scripts/Data/Type/StatusControlMode.cs
 ../fey/Assets/Scripts/Data/Type/CrowdControlEffect.cs
 ../fey/Assets/Scripts/Data/Type/StatusStackScalingStrategy.cs
-../fey/Assets/Scripts/Data/Dto/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanic.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicStatChange.cs
 ../fey/Assets/Scripts/Data/Dto/IStatusEffectMechanicVisitor.cs
@@ -155,6 +153,7 @@
 ../fey/Assets/Scripts/Data/Type/CharacterTeam.cs
 ../fey/Assets/Scripts/Data/Type/EffectTargetMechanicType.cs
 ../fey/Assets/Scripts/Data/Type/EffectTarget.cs
+../fey/Assets/Scripts/Data/Type/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanic.cs
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanicSelf.cs
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanicTeam.cs
@@ -166,6 +165,7 @@
 ../fey/Assets/Scripts/Data/Mapper/EffectTargetMechanicConverter.cs
 ../fey/Assets/Scripts/Data/Dto/EffectScaling.cs
 ../fey/Assets/Scripts/Data/Dto/HitEffect.cs
+../fey/Assets/Scripts/Data/Dto/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffect.cs
 ../fey/Assets/Scripts/Data/Type/SkillCategory.cs
 ../fey/Assets/Scripts/Data/Type/SkillTarget.cs
@@ -197,6 +197,10 @@
 ../fey/Assets/Scripts/Data/Dto/ModelAnchor.cs
 ../fey/Assets/Scripts/Data/Dto/ModelAnchorSet.cs
 ../fey/Assets/Scripts/Data/Dto/StatAffix.cs
+../fey/Assets/Scripts/Data/Type/TriggerOn.cs
+../fey/Assets/Scripts/Data/Type/TriggerRelation.cs
+../fey/Assets/Scripts/Data/Dto/TriggerEffect.cs
+../fey/Assets/Scripts/Data/Dto/Trigger.cs
 ../fey/Assets/Scripts/Data/Type/EquipmentCategory.cs
 ../fey/Assets/Scripts/Data/Dto/Equipment.cs
 ../fey/Assets/Scripts/Data/Type/QuestDifficulty.cs

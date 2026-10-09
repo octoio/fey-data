@@ -183,7 +183,8 @@ let minimal_skill =
     cast_distance = minimal_float_range;
     indicators = [];
     experience = None;
-    root_while_casting = None
+    root_while_casting = None;
+    triggers = None
   }
 ;;
 
@@ -201,7 +202,8 @@ let minimal_equipment =
     icon_reference = minimal_entity_reference;
     base_stat_affixes = [];
     random_stat_affix_count = minimal_int_range;
-    random_stat_affixes = []
+    random_stat_affixes = [];
+    triggers = None
   }
 ;;
 
@@ -240,7 +242,8 @@ let minimal_skill_stone_entity_definition : Data.Entity_t.entity_definition_inte
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
     mechanic = `StatChange { Data.Status_t.mechanic_type = `StatChange; stat = `Vit };
-    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive }
+    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive };
+    triggers = None
   }
 ;;
 
@@ -656,7 +659,8 @@ let skill_with_projectile =
     cast_distance = minimal_float_range;
     indicators = [];
     experience = None;
-    root_while_casting = None
+    root_while_casting = None;
+    triggers = None
   }
 ;;
 

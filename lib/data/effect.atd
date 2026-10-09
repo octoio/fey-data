@@ -2,7 +2,6 @@ type entity_reference <ocaml from="Common"> = abstract
 type hit_type <ocaml from="Common"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type float_range <ocaml from="Common"> = abstract
-type status_duration <ocaml from="Status"> = abstract
 
 type character_team <cs namespace="Octoio.Fey.Data.Type"> = 
   [ Ally
@@ -77,6 +76,19 @@ type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.D
   can_crit: bool;
   can_miss: bool;
 } 
+
+(* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
+type status_duration_type <cs name="StatusDuration" namespace="Octoio.Fey.Data.Type"> =
+    [ Chrono
+    | Logical
+    | Room
+    | Dungeon
+    ]
+
+type status_duration <cs namespace="Octoio.Fey.Data.Dto"> = {
+    duration <json name="type"> <cs usetype="Type.StatusDuration">: status_duration_type;
+    value: float <ocaml valid="Validation.float_min 0.">;
+}
 
 type status_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
   target_mechanic <cs usetype="EffectTargetMechanic">: effect_target_mechanic_internal;

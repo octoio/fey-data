@@ -503,6 +503,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets trigger_j.ml trigger_j.mli)
+ (deps trigger.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets trigger_t.ml trigger_t.mli)
+ (deps trigger.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets trigger_v.ml trigger_v.mli)
+ (deps trigger.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets weapon_j.ml weapon_j.mli)
  (deps weapon.atd)
  (mode fallback)
@@ -599,6 +620,9 @@
   status_j
   status_t
   status_v
+  trigger_j
+  trigger_t
+  trigger_v
   weapon_j
   weapon_t
   weapon_v

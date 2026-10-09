@@ -613,7 +613,7 @@ module StatusDispelValidationTests = struct
   ;;
 
   let test_validate_status_effect () =
-    let timed : Data.Status_t.status_duration = { duration = `Chrono; value = 2. } in
+    let timed : Data.Effect_t.status_duration = { duration = `Chrono; value = 2. } in
     let scaler : Data.Effect_t.effect_scaling =
       { base = 1.; scaling = make_float_range 1. 1.; stat = `Armor }
     in
@@ -689,6 +689,93 @@ let enrage_validation_tests =
   ]
 ;;
 
+module TriggerValidationTests = struct
+  let hit_effect : Data.Effect_t.hit_effect =
+    { hit_type = `Damage;
+      scalers = [];
+      target_mechanic = `Selected { mechanic_type = `Selected };
+      target = `Enemy;
+      hit_sound = make_entity_reference ~entity_type:`Sound ();
+      can_crit = true;
+      can_miss = true
+    }
+  ;;
+
+  let hit_only : Data.Trigger_t.trigger_effect =
+    { hit = Some hit_effect; status = None; skill = None; exclude_other = None }
+  ;;
+
+  let trigger ?(key = "crit-bleed") ?(chance = 1.) ?(cooldown = 0.) ?min_amount
+    ?status ?max_chain ?(effects = [ hit_only ]) on
+    : Data.Trigger_t.trigger
+    =
+    { key; on; relation = None; chance; cooldown; min_amount; status; max_chain;
+      terminal = None; effects }
+  ;;
+
+  let test_validate_trigger_effect () =
+    check bool "one hit" true (validate_trigger_effect hit_only);
+    check
+      bool
+      "nothing"
+      false
+      (validate_trigger_effect { hit_only with hit = None });
+    check
+      bool
+      "a hit and a skill"
+      false
+      (validate_trigger_effect
+         { hit_only with skill = Some (make_entity_reference ~entity_type:`Skill ()) })
+  ;;
+
+  let test_validate_trigger () =
+    check bool "plain trigger" true (validate_trigger (trigger `Crit));
+    check bool "chance above one" false (validate_trigger (trigger ~chance:1.5 `Crit));
+    check bool "negative chance" false (validate_trigger (trigger ~chance:(-0.1) `Crit));
+    check bool "negative cooldown" false (validate_trigger (trigger ~cooldown:(-1.) `Hit));
+    check bool "negative min amount" false (validate_trigger (trigger ~min_amount:(-1.) `Hit));
+    check bool "negative max chain" false (validate_trigger (trigger ~max_chain:(-1) `Hit));
+    check bool "no effects" false (validate_trigger (trigger ~effects:[] `Hit));
+    check bool "key too short" false (validate_trigger (trigger ~key:"ab" `Hit));
+    check bool "key with a space" false (validate_trigger (trigger ~key:"on hit" `Hit));
+    let status = make_entity_reference ~entity_type:`Status () in
+    check
+      bool
+      "status filter on StatusApplied"
+      true
+      (validate_trigger (trigger ~status `StatusApplied));
+    check
+      bool
+      "status filter on another event"
+      false
+      (validate_trigger (trigger ~status `Hit))
+  ;;
+
+  let test_validate_triggers () =
+    check bool "none" true (validate_triggers None);
+    check bool "empty" true (validate_triggers (Some []));
+    check
+      bool
+      "distinct keys"
+      true
+      (validate_triggers (Some [ trigger ~key:"first" `Hit; trigger ~key:"second" `Crit ]));
+    check
+      bool
+      "duplicate keys"
+      false
+      (validate_triggers (Some [ trigger ~key:"same" `Hit; trigger ~key:"same" `Crit ]))
+  ;;
+end
+
+let trigger_validation_tests =
+  [ ( "validate_trigger_effect",
+      `Quick,
+      TriggerValidationTests.test_validate_trigger_effect );
+    ("validate_trigger", `Quick, TriggerValidationTests.test_validate_trigger);
+    ("validate_triggers", `Quick, TriggerValidationTests.test_validate_triggers)
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -726,6 +813,7 @@ let () =
       ("Summon Control Validation", summon_control_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
+      ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]
