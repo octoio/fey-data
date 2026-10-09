@@ -174,7 +174,8 @@ let extract_entity_reference_from_quest_condition
   =
   match condition with
   | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } -> [ anchor ]
-  | `KillSpecific _ | `PickQuest _ | `Teleport _ -> []
+  | `KillSpecific { character; _ } -> Option.fold ~none:[] ~some:(fun x -> [ x ]) character
+  | `PickQuest _ | `Teleport _ -> []
 ;;
 
 let extract_entity_reference_from_quest_action

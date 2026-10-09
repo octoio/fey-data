@@ -1,4 +1,5 @@
 type achievement_type <cs name="Achievement" namespace="Octoio.Fey.Data.Type"> =
   [ None
   | SlimeExterminator
+  | BoarDefender
   ]

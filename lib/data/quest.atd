@@ -56,6 +56,8 @@ type quest_condition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializab
 type quest_condition_kill_specific <cs extends="QuestCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic" modifiers="partial"> = {
   condition_type <json name="type"> <cs ignore="true">: quest_condition_type;
   character_types <cs usetype="List<Type.Character>">: character_type list <ocaml valid="Validation.list_min_length 1">;
+  (* when set, only kills of this character definition count (the type must still match) *)
+  ?character <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Character">;
   amount: int <ocaml valid="Validation.int_min 1">;
 }
 

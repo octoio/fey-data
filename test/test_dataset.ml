@@ -187,6 +187,31 @@ let test_extract_entity_reference_from_stage () =
     (List.exists (fun ref -> ref.Data.Common_t.entity_type = `Anchor) stage_refs)
 ;;
 
+let test_kill_condition_character_is_a_reference () =
+  let reference =
+    { minimal_entity_reference with Data.Common_t.entity_type = `Character }
+  in
+  let condition character =
+    `KillSpecific
+      { Data.Quest_t.condition_type = `KillSpecific;
+        character_types = [ `Slime ];
+        character;
+        amount = 1
+      }
+  in
+  check
+    int
+    "A kill condition without a character names no entity"
+    0
+    (List.length (Dataset.extract_entity_reference_from_quest_condition (condition None)));
+  check
+    int
+    "A kill condition with a character names it"
+    1
+    (List.length
+       (Dataset.extract_entity_reference_from_quest_condition (condition (Some reference))))
+;;
+
 (* Anchor ownership: exactly one stage must own each anchor *)
 let ownership_errors dataset =
   let validated = Validate.validate_entity_definitions dataset in
@@ -264,6 +289,7 @@ let kill_objective_node ?(amount = 1) id =
       `KillSpecific
         { Data.Quest_t.condition_type = `KillSpecific;
           character_types = [ `Adventurer ];
+          character = None;
           amount
         }
   }
@@ -593,6 +619,10 @@ let dataset_tests =
       "Extract entity reference from quest"
       `Quick
       test_extract_entity_reference_from_quest;
+    test_case
+      "Kill condition character is a reference"
+      `Quick
+      test_kill_condition_character_is_a_reference;
     test_case
       "Extract entity reference from stage"
       `Quick
