@@ -73,6 +73,19 @@ let validate_summon_control (node : Skill_t.skill_action_summon_node) =
   | Some false | None -> true
 ;;
 
+(* A dash needs a length and a duration; the instant moves take none *)
+let validate_move_node (node : Skill_t.skill_action_move_node) =
+  match node.mode with
+  | `Dash -> node.distance > 0. && node.duration > 0.
+  | `Blink | `ShadowStep -> node.distance > 0. && node.duration = 0.
+  | `Swap -> node.distance = 0. && node.duration = 0.
+;;
+
+let validate_charges = function
+  | Some n -> n >= 1
+  | None -> true
+;;
+
 (* A dispel removes a status; there is nothing to scale or time *)
 let validate_status_effect (effect : Effect_t.status_effect) =
   match effect.dispel with

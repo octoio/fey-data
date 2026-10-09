@@ -24,6 +24,7 @@ type skill_category <cs namespace="Octoio.Fey.Data.Type"> =
   | Utility
   | Healing
   | Control
+  | Mobility
   ]
 
 type skill_cost <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
@@ -61,6 +62,7 @@ type skill_action_node_type <cs name="SkillActionNode" namespace="Octoio.Fey.Dat
   | Summon
   | Requirement
   | Projectile
+  | Move
   ]
 
 type skill_action_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
@@ -142,6 +144,26 @@ type skill_action_projectile_node <cs extends="SkillActionNode" namespace="Octoi
   direction: vector3;
 }
 
+(* Movement of the caster (docs/systems/movement.md in fey-rs). [Dash] runs [distance] units towards the aimed
+   ground point over [duration] seconds, through bodies, and ends outside them. [Blink] appears at the aimed ground
+   point, at most [distance] units away. [ShadowStep] appears [distance] units behind the selected target (on the
+   far side from the caster). [Swap] trades places with the selected character. The instant modes take no duration;
+   Swap takes no distance *)
+type skill_move_mode <cs name="SkillMoveMode" namespace="Octoio.Fey.Data.Type"> =
+  [ Dash
+  | Blink
+  | ShadowStep
+  | Swap
+  ]
+
+type skill_action_move_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
+  name <cs ignore="true">: string;
+  mode <cs usetype="Type.SkillMoveMode">: skill_move_mode;
+  distance: float <ocaml valid="Validation.float_min 0.">;
+  duration: float <ocaml valid="Validation.float_min 0.">;
+} <ocaml valid="Validation.validate_move_node">
+
 type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=SkillActionNode),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=SkillActionNode)"> = 
   [ Sequence of skill_action_sequence_node
   | Parallel of skill_action_parallel_node
@@ -153,6 +175,7 @@ type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Summon of skill_action_summon_node
   | Requirement of skill_action_requirement_node
   | Projectile of skill_action_projectile_node
+  | Move of skill_action_move_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type skill_indicator_position <cs namespace="Octoio.Fey.Data.Type"> = 
@@ -189,6 +212,11 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
   (* true: the caster cannot walk from the start of the cast until it completes or is cancelled *)
   ?root_while_casting <cs usetype="Optional<bool>">: bool option;
+  (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
+  ?cancels_cast <cs usetype="Optional<bool>">: bool option;
+  (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
+     be cast twice in a row and then every [cooldown] seconds *)
+  ?charges <cs usetype="Optional<int>">: int option <ocaml valid="Validation.validate_charges">;
   (* effects that fire on something happening to a character that knows the skill (see trigger.atd) *)
   ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
 }

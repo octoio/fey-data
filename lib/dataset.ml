@@ -83,6 +83,7 @@ let extract_entity_reference_from_skill_entity
     | `Status { status_effect; _ } -> [ status_effect.status ]
     | `Summon { summon_entity; _ } -> [ summon_entity ]
     | `Projectile { projectile; _ } -> [ projectile ]
+    | `Move _ -> []
   in
   [ icon_reference ]
   @ List.map

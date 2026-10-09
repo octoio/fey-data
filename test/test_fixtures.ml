@@ -184,6 +184,8 @@ let minimal_skill =
     indicators = [];
     experience = None;
     root_while_casting = None;
+    cancels_cast = None;
+    charges = None;
     triggers = None
   }
 ;;
@@ -663,6 +665,8 @@ let skill_with_projectile =
     indicators = [];
     experience = None;
     root_while_casting = None;
+    cancels_cast = None;
+    charges = None;
     triggers = None
   }
 ;;

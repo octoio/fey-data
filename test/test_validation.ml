@@ -601,6 +601,35 @@ let summon_control_validation_tests =
   ]
 ;;
 
+module MoveNodeValidationTests = struct
+  let move mode distance duration : Data.Skill_t.skill_action_move_node =
+    { skill_action_node_type = `Move; name = "move"; mode; distance; duration }
+  ;;
+
+  let test_validate_move_node () =
+    check bool "dash" true (validate_move_node (move `Dash 4. 0.25));
+    check bool "dash needs a duration" false (validate_move_node (move `Dash 4. 0.));
+    check bool "dash needs a length" false (validate_move_node (move `Dash 0. 0.25));
+    check bool "blink" true (validate_move_node (move `Blink 8. 0.));
+    check bool "blink is instant" false (validate_move_node (move `Blink 8. 0.2));
+    check bool "shadow step" true (validate_move_node (move `ShadowStep 1.5 0.));
+    check bool "swap" true (validate_move_node (move `Swap 0. 0.));
+    check bool "swap takes no distance" false (validate_move_node (move `Swap 2. 0.))
+  ;;
+
+  let test_validate_charges () =
+    check bool "absent" true (validate_charges None);
+    check bool "two" true (validate_charges (Some 2));
+    check bool "zero" false (validate_charges (Some 0))
+  ;;
+end
+
+let move_node_validation_tests =
+  [ "validate_move_node", `Quick, MoveNodeValidationTests.test_validate_move_node;
+    "validate_charges", `Quick, MoveNodeValidationTests.test_validate_charges
+  ]
+;;
+
 module StatusDispelValidationTests = struct
   let effect ?dispel ~durations ~scalers () : Data.Effect_t.status_effect =
     { target_mechanic = `Self { mechanic_type = `Self };
@@ -865,6 +894,7 @@ let () =
       ("Spawn Sequence Validation", spawn_sequence_validation_tests);
       ("Quest Node Id Validation", quest_node_id_validation_tests);
       ("Summon Control Validation", summon_control_validation_tests);
+      ("Move Node Validation", move_node_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Drop Validation", drop_validation_tests);
