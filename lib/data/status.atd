@@ -9,6 +9,7 @@ type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octo
     | HitOverTime
     | Control
     | CrowdControl
+    | Shield
     ]
 
 type status_effect_mechanic <cs namespace="Octoio.Fey.Data.Dto" modifiers="abstract,partial"> = {
@@ -25,7 +26,14 @@ type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fe
     | HitOverTime of status_effect_mechanic_hit_over_time
     | Control of status_effect_mechanic_control
     | CrowdControl of status_effect_mechanic_crowd_control
+    | Shield of status_effect_mechanic_shield
     ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+(* A damage-absorbing pool: the status effect's scaler is the pool size; damage is soaked before health,
+   oldest application first, and a drained shield ends (EndReason Consumed) *)
+type status_effect_mechanic_shield <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
+    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+}
 
 type status_effect_mechanic_hit_over_time <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
     mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
