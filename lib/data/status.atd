@@ -61,6 +61,7 @@ type crowd_control_effect <cs namespace="Octoio.Fey.Data.Type"> =
     [ Stun     (* cannot move or cast; a running cast is interrupted when it lands *)
     | Root     (* cannot move; casting is unaffected *)
     | Silence  (* cannot cast, a running cast is interrupted when it lands; movement is unaffected *)
+    | Taunt    (* an AI-controlled afflicted character must attack the source of the status; it can still do everything *)
     ]
 
 type status_effect_mechanic_crowd_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {

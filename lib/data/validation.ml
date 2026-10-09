@@ -80,6 +80,20 @@ let validate_status_effect (effect : Effect_t.status_effect) =
   | Some false | None -> true
 ;;
 
+(* An enrage applies its effects to the monster itself: at least one, each applying (not dispelling) a
+   status to Self *)
+let validate_enrage_effects (effects : Effect_t.status_effect list) =
+  effects <> []
+  && List.for_all
+       (fun (e : Effect_t.status_effect) ->
+         e.dispel <> Some true
+         &&
+         match e.target_mechanic with
+         | `Self _ -> true
+         | _ -> false)
+       effects
+;;
+
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)
 let validate_spawn_sequence_steps (steps : Spawn_t.spawn_sequence_step list) =
   let rec strictly_increasing = function

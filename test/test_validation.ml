@@ -647,6 +647,48 @@ let status_dispel_validation_tests =
   ]
 ;;
 
+module EnrageValidationTests = struct
+  let self_mechanic : Data.Effect_t.effect_target_mechanic_internal =
+    `Self { mechanic_type = `Self }
+  ;;
+
+  let effect ?dispel ?(mechanic = self_mechanic) () : Data.Effect_t.status_effect =
+    { target_mechanic = mechanic;
+      target = `Any;
+      durations = [];
+      scalers = [];
+      status = make_entity_reference ~entity_type:`Status ();
+      dispel
+    }
+  ;;
+
+  let test_validate_enrage_effects () =
+    check bool "empty list" false (validate_enrage_effects []);
+    check bool "one self effect" true (validate_enrage_effects [ effect () ]);
+    check
+      bool
+      "dispel is invalid"
+      false
+      (validate_enrage_effects [ effect ~dispel:true () ]);
+    check
+      bool
+      "a circle is invalid"
+      false
+      (validate_enrage_effects
+         [ effect
+             ~mechanic:(`Circle { mechanic_type = `Circle; hit_count = 1; radius = 1. })
+             ()
+         ])
+  ;;
+end
+
+let enrage_validation_tests =
+  [ ( "validate_enrage_effects",
+      `Quick,
+      EnrageValidationTests.test_validate_enrage_effects )
+  ]
+;;
+
 let entity_validation_tests =
   [ ("create_id_from", `Quick, EntityValidationTests.test_create_id_from);
     ( "validate_entity_definition",
@@ -683,6 +725,7 @@ let () =
       ("Quest Node Id Validation", quest_node_id_validation_tests);
       ("Summon Control Validation", summon_control_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
+      ("Enrage Validation", enrage_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests)
     ]

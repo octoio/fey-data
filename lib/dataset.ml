@@ -225,6 +225,10 @@ let extract_entity_reference_from_entity_definition
   | `Character { entity; _ } ->
     [ entity.hit_sound; entity.foot_step_sound; entity.auto_attack; entity.drop_table ]
     @ entity.skills
+    @ (match entity.enrage with
+       | None -> []
+       | Some { effects; _ } ->
+         List.map (fun (e : Data.Effect_t.status_effect) -> e.status) effects)
   | `Animation { entity; _ } -> entity.sources
   | `Projectile { entity; _ } -> extract_entity_reference_from_projectile_entity entity
   | `Quest { entity; _ } -> extract_entity_reference_from_quest_entity entity

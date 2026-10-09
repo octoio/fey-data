@@ -302,7 +302,9 @@ let minimal_character =
     drop_table = minimal_entity_reference;
     foot_step_sound = minimal_entity_reference;
     hit_sound = minimal_entity_reference;
-    xp_chart = None
+    xp_chart = None;
+    enrage = None;
+    hunts_healers = None
   }
 ;;
 
