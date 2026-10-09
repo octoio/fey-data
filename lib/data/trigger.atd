@@ -15,6 +15,11 @@ type trigger_on <cs namespace="Octoio.Fey.Data.Type"> =
   | Dodge          (* the owner dodged a hit; other = the attacker *)
   | StatusApplied  (* the owner applied a status; other = the afflicted *)
   | DamageTaken    (* the owner took damage that was not dodged; other = the attacker *)
+  | Death          (* the owner died; other = the killer (equipment and skill triggers only: statuses are gone) *)
+  | AllyDeath      (* a living teammate of the owner died; other = the dead *)
+  | CastStart      (* the owner started a cast; other = its target (the owner when untargeted) *)
+  | CastFinish     (* the owner finished a cast; other = the owner *)
+  | Overheal       (* the owner healed past max health; amount = the overheal; other = the receiver *)
   ]
 
 (* How "other" must relate to the owner for the trigger to be considered *)

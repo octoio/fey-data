@@ -100,6 +100,7 @@
 ../fey/Assets/Scripts/Data/Dto/IStatusEffectMechanicVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/StatusEffectMechanicConverter.cs
+../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicShield.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicHitOverTime.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicControl.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicCrowdControl.cs
