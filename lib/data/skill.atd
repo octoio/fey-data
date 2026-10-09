@@ -1,6 +1,7 @@
 type metadata <ocaml from="Common"> = abstract
 type vector3 <ocaml from="Common"> = abstract
 type float_range <ocaml from="Common"> = abstract
+type xp_chart <ocaml from="Common"> = abstract
 type hit_type <ocaml from="Common"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
@@ -116,6 +117,10 @@ type skill_action_summon_node <cs extends="SkillActionNode" namespace="Octoio.Fe
   name <cs ignore="true">: string;
   summon_entity: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   position_offset: vector3;
+  (* Seconds the summon lives; absent = until it dies, its summoner dies or the stage changes *)
+  ?lifetime <cs usetype="Optional<float>">: float option;
+  (* How many summons of this entity one summoner may have alive; absent = unlimited *)
+  ?max_alive <cs usetype="Optional<int>">: int option;
 }
 
 type skill_action_requirement_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
@@ -158,6 +163,14 @@ type skill_indicator <ocaml attr="deriving eq,show"> <cs namespace="Octoio.Fey.D
   scale: vector3;
 }
 
+(* Skill progression: a skill earns [xp_per_use] XP for its caster each time a cast of it completes;
+   levels follow [chart]. A skill without this table earns no XP. *)
+type skill_experience <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  xp_per_use: float <ocaml valid="Validation.float_min 0.">;
+  chart: xp_chart;
+  ?max_level <cs usetype="Optional<int>">: int option;
+}
+
 type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
   metadata: metadata;
   quality <cs usetype="Type.Quality">: quality_type;
@@ -169,4 +182,5 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   execution_root <cs usetype="SkillActionRequirementNode">: skill_action_requirement_node;
   cast_distance: float_range <cs validate="Validation.float_range_min {min=0.0; max=100.0}">;
   indicators: skill_indicator list;
+  ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
 }

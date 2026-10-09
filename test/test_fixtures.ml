@@ -181,7 +181,8 @@ let minimal_skill =
     target_type = `Enemy;
     execution_root = minimal_execution_root;
     cast_distance = minimal_float_range;
-    indicators = []
+    indicators = [];
+    experience = None
   }
 ;;
 
@@ -299,7 +300,8 @@ let minimal_character =
     stat_sheet = minimal_stat_sheet;
     drop_table = minimal_entity_reference;
     foot_step_sound = minimal_entity_reference;
-    hit_sound = minimal_entity_reference
+    hit_sound = minimal_entity_reference;
+    xp_chart = None
   }
 ;;
 
@@ -627,7 +629,8 @@ let skill_with_projectile =
     target_type = `Enemy;
     execution_root;
     cast_distance = minimal_float_range;
-    indicators = []
+    indicators = [];
+    experience = None
   }
 ;;
 

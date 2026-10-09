@@ -14,6 +14,14 @@ type float_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]"
     max : float
   }
 
+(* An experience curve: XP to leave level 1 is [base]; leaving level n costs
+   base + sum_{k=0}^{n-2} floor(increment * growth^k). *)
+type xp_chart <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+  { base: int <ocaml valid="Validation.int_min 1">;
+    increment: float <ocaml valid="Validation.float_min 0.">;
+    growth: float <ocaml valid="Validation.float_min 0.">
+  }
+
 type int_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
   { min : int;
     max : int
