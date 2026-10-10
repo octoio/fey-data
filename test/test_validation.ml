@@ -748,6 +748,56 @@ let status_dispel_validation_tests =
   ]
 ;;
 
+module ReviveHitValidationTests = struct
+  let scaler base : Data.Effect_t.effect_scaling =
+    { base; scaling = make_float_range 0. 0.; stat = `AbilityPower }
+  ;;
+
+  let selected : Data.Effect_t.effect_target_mechanic_internal =
+    `Selected { mechanic_type = `Selected }
+  ;;
+
+  let effect ?(hit_type = `Revive) ?(target = `Ally) ?(mechanic = selected) scalers
+    : Data.Effect_t.hit_effect
+    =
+    { hit_type;
+      scalers;
+      target_mechanic = mechanic;
+      target;
+      hit_sound = make_entity_reference ~entity_type:`Sound ();
+      can_crit = false;
+      can_miss = false
+    }
+  ;;
+
+  let test_validate_hit_effect () =
+    check bool "a revive of the selected ally" true (validate_hit_effect (effect [ scaler 50. ]));
+    check bool "a full revive" true (validate_hit_effect (effect [ scaler 100. ]));
+    check bool "no scaler" false (validate_hit_effect (effect []));
+    check bool "zero percent" false (validate_hit_effect (effect [ scaler 0. ]));
+    check bool "over a hundred percent" false (validate_hit_effect (effect [ scaler 120. ]));
+    check bool "two scalers" false (validate_hit_effect (effect [ scaler 20.; scaler 20. ]));
+    check bool "an enemy target" false (validate_hit_effect (effect ~target:`Enemy [ scaler 50. ]));
+    check
+      bool
+      "an area"
+      false
+      (validate_hit_effect
+         (effect
+            ~mechanic:(`Circle { mechanic_type = `Circle; hit_count = 1; radius = 1. })
+            [ scaler 50. ]));
+    check
+      bool
+      "other hits are not restricted"
+      true
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Any []))
+  ;;
+end
+
+let revive_hit_validation_tests =
+  [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect ]
+;;
+
 module EnrageValidationTests = struct
   let self_mechanic : Data.Effect_t.effect_target_mechanic_internal =
     `Self { mechanic_type = `Self }
@@ -1019,6 +1069,7 @@ let () =
       ("Summon Control Validation", summon_control_validation_tests);
       ("Projectile Kind Validation", projectile_kind_validation_tests);
       ("Move Node Validation", move_node_validation_tests);
+      ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);

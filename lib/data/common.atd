@@ -88,6 +88,7 @@ type hit_type <cs name="Hit" namespace="Octoio.Fey.Data.Type"> =
   | Heal
   | Threat
   | Mana
+  | Revive  (* stands a dead ally up; the first scaler's base is the percent of its maximum health and mana it returns with *)
   ]
 
   (* TODO: remove this from the weapon file *)

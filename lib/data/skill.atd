@@ -38,6 +38,7 @@ type skill_target_type <cs name="SkillTarget" namespace="Octoio.Fey.Data.Type"> 
   | Any
   | Position
   | None
+  | DeadAlly  (* a dead teammate of the caster: the only skills that target a corpse, and they target nothing else *)
   ]
 
 type projectile_spawn_position_type <cs name="ProjectileSpawnPosition" namespace="Octoio.Fey.Data.Type"> = 

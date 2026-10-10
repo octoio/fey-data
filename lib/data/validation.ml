@@ -97,6 +97,17 @@ let validate_charges = function
   | None -> true
 ;;
 
+(* A revive stands up the selected dead ally: one scaler whose base is the percent (above 0, at most 100) of its
+   maximum health and mana it returns with *)
+let validate_hit_effect (effect : Effect_t.hit_effect) =
+  match effect.hit_type with
+  | `Revive ->
+    (match effect.target_mechanic, effect.target, effect.scalers with
+     | `Selected _, `Ally, [ { base; _ } ] -> base > 0. && base <= 100.
+     | _ -> false)
+  | `Damage | `Heal | `Threat | `Mana -> true
+;;
+
 (* A dispel removes a status; there is nothing to scale or time *)
 let validate_status_effect (effect : Effect_t.status_effect) =
   match effect.dispel with

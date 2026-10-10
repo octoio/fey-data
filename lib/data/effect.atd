@@ -75,7 +75,7 @@ type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.D
   hit_sound: entity_reference;
   can_crit: bool;
   can_miss: bool;
-} 
+} <ocaml valid="Validation.validate_hit_effect">
 
 (* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
 type status_duration_type <cs name="StatusDuration" namespace="Octoio.Fey.Data.Type"> =
