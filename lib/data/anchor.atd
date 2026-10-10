@@ -34,7 +34,7 @@ type anchor_zone <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes
 
 (* [team] = Ally marks the place the party appears when it enters the stage; absent = a monster
    spawn point (the quest says who spawns there). [radius] is the monsters' area: they appear
-   spread inside this disc around the anchor and roam in it until they aggro (absent = 6) *)
+   spread inside this disc around the anchor and roam in it until they aggro (absent = a point, no area) *)
 type anchor_spawn_point <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   anchor_type <json name="type"> <cs ignore="true">: anchor_type;
   metadata <cs ignore="true">: metadata;
