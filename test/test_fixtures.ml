@@ -138,6 +138,7 @@ let minimal_model_anchor_set =
 let minimal_weapon =
   { Data.Weapon_t.metadata = minimal_metadata;
     category = `OneHandSword;
+    hand = `MainHand;
     quality = `Common;
     sheathe_location = `Hips;
     icon_reference = minimal_entity_reference;
@@ -543,18 +544,15 @@ let minimal_drop_table_entity_definition : Data.Entity_t.entity_definition_inter
     }
 ;;
 
-(* Minimal valid animation_source_internal *)
-let minimal_generic_animation_source =
-  { Data.Animation_t.requires_sheath_weapon = false;
+(* Minimal valid animation_source *)
+let minimal_animation_source_internal =
+  { Data.Animation_t.cue = `AttackGeneric;
+    variant = 0;
     original_duration = 0.0;
     looping = false;
-    animation_type = `Generic;
-    generic_animation_type = `Attack;
-    variant = 0
+    requires_sheath_weapon = false
   }
 ;;
-
-let minimal_animation_source_internal = `Generic minimal_generic_animation_source
 
 let minimal_animation_source_entity_definition : Data.Entity_t.entity_definition_internal =
   `AnimationSource

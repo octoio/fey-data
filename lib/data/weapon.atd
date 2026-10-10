@@ -35,6 +35,8 @@ type weapon_sheathe_location <cs namespace="Octoio.Fey.Data.Type"> =
 type weapon <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
     metadata: metadata;
     category: weapon_category;
+    (* which equip slot the weapon occupies; explicit data, not derived from the category *)
+    hand: weapon_equip_index;
     quality <cs usetype="Data.Type.Quality">: quality_type;
     sheathe_location: weapon_sheathe_location;
     icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;

@@ -84,24 +84,8 @@ let test_stat_sheet_parity
   | `LifeSteal -> Int.of_float life_steal
 ;;
 
-let test_animation_parity (animation_source : Data.Animation_t.animation_source_internal)
-  : Data.Animation_t.animation_type
+let test_animation_parity (animation_source : Data.Animation_t.animation_source)
+  : Data.Animation_t.animation_cue
   =
-  match animation_source with
-  | `Generic _ -> `Generic
-  | `HumanoidDaggerAttack _ -> `HumanoidDaggerAttack
-  | `HumanoidSwordAttack _ -> `HumanoidSwordAttack
-  | `HumanoidSpearAttack _ -> `HumanoidSpearAttack
-  | `HumanoidMaceAttack _ -> `HumanoidMaceAttack
-  | `HumanoidTwoHandedStaffAttack _ -> `HumanoidTwoHandedStaffAttack
-  | `HumanoidTwoHandedAxeAttack _ -> `HumanoidTwoHandedAxeAttack
-  | `HumanoidItemAttack _ -> `HumanoidItemAttack
-  | `HumanoidShieldAttack _ -> `HumanoidShieldAttack
-  | `HumanoidTwoHandedSpearAttack _ -> `HumanoidTwoHandedSpearAttack
-  | `HumanoidTwoHandedSwordAttack _ -> `HumanoidTwoHandedSwordAttack
-  | `HumanoidUnarmedAttack _ -> `HumanoidUnarmedAttack
-  | `HumanoidCast _ -> `HumanoidCast
-  | `HumanoidAttackCast _ -> `HumanoidAttackCast
-  | `HumanoidDualAttack _ -> `HumanoidDualAttack
-  | `HumanoidBlockedHit _ -> `HumanoidBlockedHit
+  animation_source.cue
 ;;

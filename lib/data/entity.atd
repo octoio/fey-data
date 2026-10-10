@@ -14,7 +14,7 @@ type sound <ocaml from="Audio"> = abstract
 type sound_bank <ocaml from="Audio"> = abstract
 type drop_table <ocaml from="Drop"> = abstract
 type character <ocaml from="Character"> = abstract
-type animation_source_internal <ocaml from="Animation"> = abstract
+type animation_source <ocaml from="Animation"> = abstract
 type animation <ocaml from="Animation"> = abstract
 type projectile_internal <ocaml from="Projectile"> = abstract
 type quest <ocaml from="Quest"> = abstract
@@ -196,7 +196,7 @@ type animation_source_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attr
     version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
     id <cs ignore="true">: string;
     
-    entity <cs usetype="AnimationSource">: animation_source_internal;
+    entity <cs usetype="AnimationSource">: animation_source;
   }
 
 type animation_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Animation>" modifiers="partial"> =

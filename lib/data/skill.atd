@@ -90,6 +90,10 @@ type skill_action_delay_node <cs extends="SkillActionNode" namespace="Octoio.Fey
   delay: float;
 }
 
+(* Gameplay timing vs presentation: [duration] and [show_progress] are GAMEPLAY timing (how long
+   the action blocks the caster and whether a cast bar is shown). [animations] are PRESENTATION
+   cues only (Fey-owned AnimationSource entities); the sim passes the refs through unchanged and
+   each engine adapter decides what, if anything, to play. *)
 type skill_action_animation_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
   name <cs ignore="true">: string;

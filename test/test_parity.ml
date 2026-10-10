@@ -143,15 +143,13 @@ let test_stat_sheet_parity_edge_cases () =
   check int "attack power should convert 25.0 to 25" 25 attack_power_result
 ;;
 
-(* Test animation parity with available animation sources *)
+(* Test animation parity: the cue round-trips through the single animation source *)
 let test_animation_parity_comprehensive () =
-  (* Only test with available fixtures from test_fixtures.ml *)
-  let generic_animation_source_internal = `Generic minimal_generic_animation_source in
-  let result = test_animation_parity generic_animation_source_internal in
+  let result = test_animation_parity minimal_animation_source_internal in
   check
-    (of_pp Data.Animation_t.pp_animation_type)
-    "animation parity: generic"
-    `Generic
+    (of_pp Data.Animation_t.pp_animation_cue)
+    "animation parity: cue"
+    `AttackGeneric
     result
 ;;
 
