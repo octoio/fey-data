@@ -99,6 +99,7 @@
 ../fey/Assets/Scripts/Data/Type/StatusControlMode.cs
 ../fey/Assets/Scripts/Data/Type/CrowdControlEffect.cs
 ../fey/Assets/Scripts/Data/Type/StatusStackScalingStrategy.cs
+../fey/Assets/Scripts/Data/Type/StatusFullStackRule.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanic.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffectMechanicStatChange.cs
 ../fey/Assets/Scripts/Data/Dto/IStatusEffectMechanicVisitor.cs

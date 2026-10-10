@@ -269,6 +269,24 @@ let test_timer_restart_and_new_fields_round_trip_through_json () =
      = node)
 ;;
 
+let test_status_full_stack_rule_round_trips_and_defaults_to_absent () =
+  let stack rule =
+    Printf.sprintf {|{"size":3,"scaling_strategy":"Additive"%s}|} rule
+  in
+  let absent = Data.Status_j.status_stack_of_string (stack "") in
+  check bool "absent rule stays None" true (absent.full_stack = None);
+  let weakest =
+    Data.Status_j.status_stack_of_string (stack {|,"full_stack":"ReplaceWeakest"|})
+  in
+  check bool "rule parsed" true (weakest.full_stack = Some `ReplaceWeakest);
+  check
+    bool
+    "rule survives a round trip"
+    true
+    (Data.Status_j.status_stack_of_string (Data.Status_j.string_of_status_stack weakest)
+     = weakest)
+;;
+
 (* Anchor ownership: exactly one stage must own each anchor *)
 let ownership_errors dataset =
   let validated = Validate.validate_entity_definitions dataset in
@@ -1029,6 +1047,10 @@ let dataset_tests =
       test_generate_indices_creates_valid_indices;
     test_case "Index uniqueness" `Quick test_index_uniqueness;
     test_case "Hash generation consistency" `Quick test_hash_generation_consistency;
+    test_case
+      "Status full_stack rule round trip"
+      `Quick
+      test_status_full_stack_rule_round_trips_and_defaults_to_absent;
     test_case "Index deterministic generation" `Quick test_index_deterministic_generation;
     (* Error Detection *)
     test_case "Contains error with errors" `Quick test_contains_error_with_errors;

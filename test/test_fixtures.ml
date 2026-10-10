@@ -247,7 +247,7 @@ let minimal_skill_stone_entity_definition : Data.Entity_t.entity_definition_inte
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
     mechanic = `StatChange { Data.Status_t.mechanic_type = `StatChange; stat = `Vit };
-    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive };
+    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None };
     triggers = None
   }
 ;;

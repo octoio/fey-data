@@ -71,10 +71,19 @@ type status_stack_scaling_strategy <cs namespace="Octoio.Fey.Data.Type"> =
     | Multiplicative
     ]
 
+(* What happens when a status already at its maximum stack size is applied again. *)
+type status_full_stack_rule <cs namespace="Octoio.Fey.Data.Type"> =
+    [ RefreshAll       (* no stack is replaced; the duration of the whole stack is reset (the default) *)
+    | ReplaceOldest    (* the oldest application drops and the new one is added *)
+    | ReplaceWeakest   (* the weakest stack is swapped for the new one, only if the new one is stronger *)
+    ]
+
 type status_stack <cs namespace="Octoio.Fey.Data.Dto"> = {
     size <cs usetype="uint">: int <ocaml valid="Validation.int_min 1">;
     scaling_strategy <cs usetype="Type.StatusStackScalingStrategy">: status_stack_scaling_strategy;
-} 
+    (* absent means RefreshAll *)
+    ?full_stack <cs usetype="Optional<Type.StatusFullStackRule>">: status_full_stack_rule option;
+}
 
 type status <cs namespace="Octoio.Fey.Data.Dto"> = {
     metadata: metadata;
