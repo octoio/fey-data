@@ -112,6 +112,7 @@
 ../fey/Assets/Scripts/Data/Dto/Status.cs
 ../fey/Assets/Scripts/Data/Type/Achievement.cs
 ../fey/Assets/Scripts/Data/Type/Character.cs
+../fey/Assets/Scripts/Data/Type/Faction.cs
 ../fey/Assets/Scripts/Data/Type/MonsterRank.cs
 ../fey/Assets/Scripts/Data/Type/CharacterVariantColor.cs
 ../fey/Assets/Scripts/Data/Dto/CharacterVariantColor.cs

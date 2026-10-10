@@ -13,6 +13,17 @@ type character_type <cs name="Character" namespace="Octoio.Fey.Data.Type"> =
   | Boar
   ]
 
+(* Whom a character sides with. Factions are separate from the controller: who steers a character (an AI brain or
+   any client) can change at runtime, its faction does not. Whether two factions fight is a relation between them
+   (hostile, neutral or friendly), decided by the game rules, not per character. Players are Adventurers. *)
+type faction <cs name="Faction" namespace="Octoio.Fey.Data.Type"> =
+  [ Adventurers
+  | Wilds
+  | Slimes
+  | Crypt
+  | Neutral
+  ]
+
 (* How dangerous a monster is: scales the rarity of its drops and unlocks gated drops (see drop.atd) *)
 type monster_rank <cs name="MonsterRank" namespace="Octoio.Fey.Data.Type"> =
   [ Normal
@@ -66,6 +77,8 @@ type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"
   { metadata: metadata;
     character_type <json name="type"> <cs usetype="Type.Character">: character_type;
     ?variant <cs usetype="Optional<CharacterVariant>">: character_variant option;
+    (* The side the character fights for; absent = Neutral (attacked by nobody, attacks nobody) *)
+    ?faction <cs usetype="Optional<Type.Faction>">: faction option;
     pivot_offset: vector3;
     vision_range: float;
     auto_attack: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;

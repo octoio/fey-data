@@ -322,6 +322,7 @@ let minimal_character =
   { Data.Character_t.metadata = minimal_metadata;
     character_type = `Adventurer;
     variant = None;
+    faction = None;
     pivot_offset = minimal_vector3;
     vision_range = 1.0;
     auto_attack = minimal_entity_reference;
