@@ -81,6 +81,17 @@ let validate_move_node (node : Skill_t.skill_action_move_node) =
   | `Swap -> node.distance = 0. && node.duration = 0.
 ;;
 
+(* A skillshot must be able to cover its range within its lifetime *)
+let validate_projectile_straight (p : Projectile_t.projectile_straight) =
+  p.max_range /. p.speed <= p.lifetime +. 1e-9
+;;
+
+(* A lob must land before its lifetime runs out *)
+let validate_projectile_arc (p : Projectile_t.projectile_arc) = p.flight_time <= p.lifetime
+
+(* A beam ticks at least once while it lasts *)
+let validate_projectile_beam (p : Projectile_t.projectile_beam) = p.tick_interval <= p.lifetime
+
 let validate_charges = function
   | Some n -> n >= 1
   | None -> true

@@ -630,6 +630,78 @@ let move_node_validation_tests =
   ]
 ;;
 
+module ProjectileKindValidationTests = struct
+  let model : Data.Projectile_t.projectile_model =
+    { model_type = `Pebble; model_scale = make_vector3 1. 1. 1. }
+  ;;
+
+  let straight ~lifetime ~speed ~max_range : Data.Projectile_t.projectile_straight =
+    { metadata = { Data.Common_t.title = "t"; description = "d" };
+      projectile_type = `Straight;
+      model;
+      lifetime;
+      spawn_offset = make_vector3 0. 0. 0.;
+      max_hit_count = 1;
+      on_impact = [];
+      on_end = [];
+      speed;
+      max_range;
+      radius = 0.3
+    }
+  ;;
+
+  let arc ~lifetime ~flight_time : Data.Projectile_t.projectile_arc =
+    { metadata = { Data.Common_t.title = "t"; description = "d" };
+      projectile_type = `Arc;
+      model;
+      lifetime;
+      spawn_offset = make_vector3 0. 0. 0.;
+      max_hit_count = 4;
+      on_impact = [];
+      on_end = [];
+      flight_time;
+      max_range = 12.;
+      radius = 2.;
+      arc_height = 3.
+    }
+  ;;
+
+  let beam ~lifetime ~tick_interval : Data.Projectile_t.projectile_beam =
+    { metadata = { Data.Common_t.title = "t"; description = "d" };
+      projectile_type = `Beam;
+      model;
+      lifetime;
+      spawn_offset = make_vector3 0. 0. 0.;
+      max_hit_count = 1;
+      on_impact = [];
+      on_end = [];
+      range = 10.;
+      width = 0.8;
+      tick_interval;
+      rotation_speed = 90.
+    }
+  ;;
+
+  let test_kinds () =
+    check bool "skillshot covers its range in time" true
+      (validate_projectile_straight (straight ~lifetime:1.5 ~speed:20. ~max_range:18.));
+    check bool "skillshot too slow for its range" false
+      (validate_projectile_straight (straight ~lifetime:0.5 ~speed:20. ~max_range:18.));
+    check bool "lob lands in time" true
+      (validate_projectile_arc (arc ~lifetime:2. ~flight_time:1.));
+    check bool "lob outlives its lifetime" false
+      (validate_projectile_arc (arc ~lifetime:1. ~flight_time:1.5));
+    check bool "beam ticks while it lasts" true
+      (validate_projectile_beam (beam ~lifetime:3. ~tick_interval:0.5));
+    check bool "beam never ticks" false
+      (validate_projectile_beam (beam ~lifetime:0.3 ~tick_interval:0.5))
+  ;;
+end
+
+let projectile_kind_validation_tests =
+  [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds ]
+;;
+
 module StatusDispelValidationTests = struct
   let effect ?dispel ~durations ~scalers () : Data.Effect_t.status_effect =
     { target_mechanic = `Self { mechanic_type = `Self };
@@ -945,6 +1017,7 @@ let () =
       ("Spawn Sequence Validation", spawn_sequence_validation_tests);
       ("Quest Node Id Validation", quest_node_id_validation_tests);
       ("Summon Control Validation", summon_control_validation_tests);
+      ("Projectile Kind Validation", projectile_kind_validation_tests);
       ("Move Node Validation", move_node_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);

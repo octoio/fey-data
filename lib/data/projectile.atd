@@ -39,8 +39,16 @@ type projectile_impact_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Status of projectile_impact_status
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
+(* How a projectile flies (docs/systems/projectiles.md in fey-rs).
+   [Homing] turns towards its target. [Straight] is a skillshot: it flies the aimed line, collides with the first hostile
+   body and ends at [max_range]. [Arc] is lobbed to the aimed ground point and lands there after [flight_time]; the
+   area is [radius] and every character in it takes the impacts. [Beam] is a channelled line from the caster: it ticks
+   while the cast is held and ends when the caster moves or is interrupted *)
 type projectile_type <cs name="Projectile" namespace="Octoio.Fey.Data.Type"> = 
   [ Homing
+  | Straight
+  | Arc
+  | Beam
   ]
 
 type projectile <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic" modifiers="abstract,partial"> = {
@@ -67,6 +75,62 @@ type projectile_homing <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" 
   rotation_speed: float <ocaml valid="Validation.float_min 0.1">;
 }
 
+(* Flies the aimed line at [speed] until it meets a hostile body (the first [max_hit_count] of them) or has covered
+   [max_range]; [radius] is the size of the shot for collisions *)
+type projectile_straight <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  metadata <cs ignore="true">: metadata;
+  projectile_type <json name="type"> <cs ignore="true">: projectile_type;
+  model <cs ignore="true">: projectile_model;
+  lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
+  spawn_offset <cs ignore="true">: vector3;
+  max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+  on_impact <cs ignore="true">: projectile_impact_internal list;
+  on_end <cs ignore="true">: projectile_impact_internal list;
+  speed: float <ocaml valid="Validation.float_min 0.1">;
+  max_range: float <ocaml valid="Validation.float_min 0.5">;
+  radius: float <ocaml valid="Validation.float_min 0.05">;
+} <ocaml valid="Validation.validate_projectile_straight">
+
+(* Lobbed to the aimed ground point (at most [max_range] from the caster); lands after [flight_time] seconds and then
+   applies [on_impact] to every character within [radius] of the landing point (the first [max_hit_count], nearest
+   first); [arc_height] is only for presentation *)
+type projectile_arc <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  metadata <cs ignore="true">: metadata;
+  projectile_type <json name="type"> <cs ignore="true">: projectile_type;
+  model <cs ignore="true">: projectile_model;
+  lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
+  spawn_offset <cs ignore="true">: vector3;
+  max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+  on_impact <cs ignore="true">: projectile_impact_internal list;
+  on_end <cs ignore="true">: projectile_impact_internal list;
+  flight_time: float <ocaml valid="Validation.float_min 0.2">;
+  max_range: float <ocaml valid="Validation.float_min 0.5">;
+  radius: float <ocaml valid="Validation.float_min 0.2">;
+  arc_height: float <ocaml valid="Validation.float_min 0.">;
+} <ocaml valid="Validation.validate_projectile_arc">
+
+(* A line of [range] units and [width] from the caster towards the aim, for [lifetime] seconds at most; every
+   [tick_interval] seconds [on_impact] is applied to the first [max_hit_count] characters on the line. It follows the
+   selected target at [rotation_speed] degrees per second (0: it keeps its direction) and ends when the cast it belongs
+   to is no longer running or the caster moves *)
+type projectile_beam <cs extends="Projectile" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
+  metadata <cs ignore="true">: metadata;
+  projectile_type <json name="type"> <cs ignore="true">: projectile_type;
+  model <cs ignore="true">: projectile_model;
+  lifetime <cs ignore="true">: float <ocaml valid="Validation.float_min 0.1">;
+  spawn_offset <cs ignore="true">: vector3;
+  max_hit_count <cs ignore="true">: int <ocaml valid="Validation.int_min 1">;
+  on_impact <cs ignore="true">: projectile_impact_internal list;
+  on_end <cs ignore="true">: projectile_impact_internal list;
+  range: float <ocaml valid="Validation.float_min 0.5">;
+  width: float <ocaml valid="Validation.float_min 0.1">;
+  tick_interval: float <ocaml valid="Validation.float_min 0.1">;
+  rotation_speed: float <ocaml valid="Validation.float_min 0.">;
+} <ocaml valid="Validation.validate_projectile_beam">
+
 type projectile_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Projectile),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Projectile,enumname=Type.Projectile)"> = 
   [ Homing of projectile_homing
+  | Straight of projectile_straight
+  | Arc of projectile_arc
+  | Beam of projectile_beam
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
