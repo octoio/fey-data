@@ -170,8 +170,14 @@ let extract_entity_reference_from_projectile_impact
 let extract_entity_reference_from_projectile_entity
   (projectile : Data.Projectile_t.projectile_internal)
   =
-  match projectile with
-  | `Homing { on_impact; on_end; _ } ->
+  let on_impact, on_end =
+    match projectile with
+    | `Homing { on_impact; on_end; _ }
+    | `Straight { on_impact; on_end; _ }
+    | `Arc { on_impact; on_end; _ }
+    | `Beam { on_impact; on_end; _ } -> on_impact, on_end
+  in
+  begin
     let impact_refs =
       List.concat_map extract_entity_reference_from_projectile_impact on_impact
     in
@@ -180,6 +186,7 @@ let extract_entity_reference_from_projectile_entity
     in
     (* model_type is now an enum, not an entity reference *)
     impact_refs @ end_refs
+  end
 ;;
 
 let extract_entity_reference_from_spawn (spawn : Data.Spawn_t.spawn) =
