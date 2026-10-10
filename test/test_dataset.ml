@@ -591,6 +591,7 @@ let kill_objective_node ?(amount = 1) id =
     name = "kill";
     metadata = minimal_metadata;
     is_optional = false;
+    bonus_achievement = None;
     condition =
       `KillSpecific
         { Data.Quest_t.condition_type = `KillSpecific;
@@ -628,7 +629,7 @@ let completability_dataset root =
 ;;
 
 let sequence_node id children =
-  `Sequence { Data.Quest_t.node_type = `Sequence; id; name = "seq"; children }
+  `Sequence { Data.Quest_t.node_type = `Sequence; id; name = "seq"; optional = None; bonus_achievement = None; children }
 ;;
 
 let interact_errors dataset =
@@ -655,6 +656,7 @@ let test_interact_needs_a_zone_anchor () =
         name = "use";
         metadata = minimal_metadata;
         is_optional = false;
+        bonus_achievement = None;
         condition =
           `Interact { Data.Quest_t.condition_type = `Interact; anchor = anchor_ref }
       }
@@ -719,6 +721,8 @@ let test_kill_objective_concurrent_with_spawn_is_completable () =
       ({ Data.Quest_t.node_type = `Parallel;
          id = 0;
          name = "par";
+         optional = None;
+         bonus_achievement = None;
          children = [ `Objective (kill_objective_node 1); `Action (spawn_action_node 2) ]
        }
        : Data.Quest_t.quest_parallel_node)

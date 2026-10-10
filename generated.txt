@@ -150,6 +150,7 @@
 ../fey/Assets/Scripts/Data/Type/CharacterTeam.cs
 ../fey/Assets/Scripts/Data/Type/EffectTargetMechanicType.cs
 ../fey/Assets/Scripts/Data/Type/EffectTarget.cs
+../fey/Assets/Scripts/Data/Type/DamageSchool.cs
 ../fey/Assets/Scripts/Data/Type/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanic.cs
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanicSelf.cs

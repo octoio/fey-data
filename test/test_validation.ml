@@ -513,6 +513,7 @@ module QuestNodeIdValidationTests = struct
         name = "objective";
         metadata = { Data.Common_t.title = "t"; description = "d" };
         is_optional = false;
+        bonus_achievement = None;
         condition = `Teleport { Data.Quest_t.condition_type = `Teleport; stage = None }
       }
   ;;
@@ -530,8 +531,53 @@ module QuestNodeIdValidationTests = struct
     }
   ;;
 
-  let sequence id children =
-    `Sequence { Data.Quest_t.node_type = `Sequence; id; name = "seq"; children }
+  let sequence ?optional ?bonus_achievement id children =
+    `Sequence
+      ({ Data.Quest_t.node_type = `Sequence;
+        id;
+        name = "seq";
+        optional;
+        bonus_achievement;
+        children
+      } : Data.Quest_t.quest_sequence_node)
+  ;;
+
+  let parallel id children =
+    `Parallel
+      ({ Data.Quest_t.node_type = `Parallel;
+        id;
+        name = "par";
+        optional = None;
+        bonus_achievement = None;
+        children
+      } : Data.Quest_t.quest_parallel_node)
+  ;;
+
+  let optional_objective ?bonus_achievement id =
+    match objective id with
+    | `Objective o -> `Objective { o with Data.Quest_t.is_optional = true; bonus_achievement }
+    | other -> other
+  ;;
+
+  let test_validate_quest_optional () =
+    let ok root = validate_quest (quest_with_root root) in
+    check bool "an optional sequence in a parallel" true
+      (ok (parallel 0 [ objective 1; sequence ~optional:true 2 [ objective 3 ] ]));
+    check bool "an optional objective in a parallel" true
+      (ok (parallel 0 [ objective 1; optional_objective 2 ]));
+    check bool "a bonus on an optional sequence" true
+      (ok (parallel 0 [ objective 1; sequence ~optional:true ~bonus_achievement:`None 2 [ objective 3 ] ]));
+    check bool "an optional sequence under a sequence" false
+      (ok (sequence 0 [ sequence ~optional:true 1 [ objective 2 ] ]));
+    check bool "an optional root" false (ok (sequence ~optional:true 0 [ objective 1 ]));
+    check bool "an optional objective under a sequence" false
+      (ok (sequence 0 [ optional_objective 1 ]));
+    check bool "an optional grandchild of a parallel" false
+      (ok (parallel 0 [ sequence 1 [ optional_objective 2 ] ]));
+    check bool "a bonus on a required node" false
+      (ok (parallel 0 [ objective 1; sequence ~bonus_achievement:`None 2 [ objective 3 ] ]));
+    check bool "a bonus on an optional objective" true
+      (ok (parallel 0 [ objective 1; optional_objective ~bonus_achievement:`None 2 ]))
   ;;
 
   let test_validate_quest_node_ids () =
@@ -558,7 +604,10 @@ end
 let quest_node_id_validation_tests =
   [ ( "validate_quest_node_ids",
       `Quick,
-      QuestNodeIdValidationTests.test_validate_quest_node_ids )
+      QuestNodeIdValidationTests.test_validate_quest_node_ids );
+    ( "validate_quest optional placement",
+      `Quick,
+      QuestNodeIdValidationTests.test_validate_quest_optional )
   ]
 ;;
 
@@ -777,7 +826,7 @@ module ReviveHitValidationTests = struct
     `Selected { mechanic_type = `Selected }
   ;;
 
-  let effect ?(hit_type = `Revive) ?(target = `Ally) ?(mechanic = selected) scalers
+  let effect ?(hit_type = `Revive) ?(target = `Ally) ?(mechanic = selected) ?school scalers
     : Data.Effect_t.hit_effect
     =
     { hit_type;
@@ -786,7 +835,8 @@ module ReviveHitValidationTests = struct
       target;
       hit_sound = make_entity_reference ~entity_type:`Sound ();
       can_crit = false;
-      can_miss = false
+      can_miss = false;
+      school
     }
   ;;
 
@@ -810,7 +860,27 @@ module ReviveHitValidationTests = struct
       bool
       "other hits are not restricted"
       true
-      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Any []))
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Any []));
+    check
+      bool
+      "a damage school"
+      true
+      (validate_hit_effect (effect ~hit_type:`Damage ~target:`Enemy ~school:`Magical []));
+    check
+      bool
+      "a heal school"
+      true
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Any ~school:`Physical []));
+    check
+      bool
+      "a threat school is an error"
+      false
+      (validate_hit_effect (effect ~hit_type:`Threat ~target:`Enemy ~school:`Physical []));
+    check
+      bool
+      "a revive school is an error"
+      false
+      (validate_hit_effect (effect ~school:`Magical [ scaler 50. ]))
   ;;
 end
 
@@ -973,7 +1043,8 @@ module TriggerValidationTests = struct
       target = `Enemy;
       hit_sound = make_entity_reference ~entity_type:`Sound ();
       can_crit = true;
-      can_miss = true
+      can_miss = true;
+      school = None
     }
   ;;
 

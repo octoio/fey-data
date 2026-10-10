@@ -66,6 +66,37 @@ let validate_quest_node_ids (quest : Quest_t.quest) =
   List.length ids = List.length (List.sort_uniq compare ids)
 ;;
 
+(* Optional means "not needed for the Parallel above to complete", so a node may be optional only as a direct child
+   of a Parallel (never the root, never under a Sequence, Any or Timer), and a bonus achievement needs an optional
+   node to hang on. [optional] on an Objective is its [is_optional]. *)
+let quest_node_flags (node : Quest_t.quest_node_internal) =
+  match node with
+  | `Sequence { optional; bonus_achievement; _ }
+  | `Parallel { optional; bonus_achievement; _ }
+  | `Any { optional; bonus_achievement; _ }
+  | `Timer { optional; bonus_achievement; _ } -> optional = Some true, bonus_achievement <> None
+  | `Objective { is_optional; bonus_achievement; _ } -> is_optional, bonus_achievement <> None
+  | `Action _ -> false, false
+;;
+
+let rec quest_optional_placement_ok ~in_parallel (node : Quest_t.quest_node_internal) =
+  let optional, bonus = quest_node_flags node in
+  ((not optional) || in_parallel)
+  && ((not bonus) || optional)
+  &&
+  match node with
+  | `Parallel { children; _ } ->
+    List.for_all (quest_optional_placement_ok ~in_parallel:true) children
+  | `Sequence { children; _ } | `Any { children; _ } ->
+    List.for_all (quest_optional_placement_ok ~in_parallel:false) children
+  | `Timer { child; _ } -> quest_optional_placement_ok ~in_parallel:false child
+  | `Objective _ | `Action _ -> true
+;;
+
+let validate_quest (quest : Quest_t.quest) =
+  validate_quest_node_ids quest && quest_optional_placement_ok ~in_parallel:false quest.root
+;;
+
 (* A controlled summon is steered for its lifetime, so it needs one *)
 let validate_summon_control (node : Skill_t.skill_action_summon_node) =
   match node.controlled with
@@ -102,10 +133,13 @@ let validate_charges = function
 let validate_hit_effect (effect : Effect_t.hit_effect) =
   match effect.hit_type with
   | `Revive ->
+    effect.school = None
+    &&
     (match effect.target_mechanic, effect.target, effect.scalers with
      | `Selected _, `Ally, [ { base; _ } ] -> base > 0. && base <= 100.
      | _ -> false)
-  | `Damage | `Heal | `Threat | `Mana -> true
+  | `Damage | `Heal -> true
+  | `Threat | `Mana -> effect.school = None
 ;;
 
 (* A dispel removes a status; there is nothing to scale or time *)

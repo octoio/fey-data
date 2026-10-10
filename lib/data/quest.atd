@@ -236,10 +236,16 @@ type quest_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" 
   name: string;
 }
 
+(* Optional (any Parallel child): [optional] marks a child the Parallel does not wait for (on an Objective it is
+   [is_optional]); it is an error outside a direct child of a Parallel. [bonus_achievement] (optional nodes only) is
+   granted to the party when the quest completes with that node completed. Semantics: fey-rs
+   docs/systems/quests.md. *)
 type quest_sequence_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   node_type <json name="type"> <cs ignore="true">: quest_node_type;
   id <cs ignore="true">: int;
   name <cs ignore="true">: string;
+  ?optional <cs usetype="Optional<bool>">: bool option;
+  ?bonus_achievement <cs usetype="Optional<Type.Achievement>">: achievement_type option;
   children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
 }
 
@@ -247,6 +253,8 @@ type quest_parallel_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto"
   node_type <json name="type"> <cs ignore="true">: quest_node_type;
   id <cs ignore="true">: int;
   name <cs ignore="true">: string;
+  ?optional <cs usetype="Optional<bool>">: bool option;
+  ?bonus_achievement <cs usetype="Optional<Type.Achievement>">: achievement_type option;
   children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
 }
 
@@ -255,6 +263,8 @@ type quest_any_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" attr
   node_type <json name="type"> <cs ignore="true">: quest_node_type;
   id <cs ignore="true">: int;
   name <cs ignore="true">: string;
+  ?optional <cs usetype="Optional<bool>">: bool option;
+  ?bonus_achievement <cs usetype="Optional<Type.Achievement>">: achievement_type option;
   children <cs usetype="QuestNode[]">: quest_node_internal list <ocaml valid="Validation.list_min_length 1">;
 }
 
@@ -262,6 +272,8 @@ type quest_timer_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto" at
   node_type <json name="type"> <cs ignore="true">: quest_node_type;
   id <cs ignore="true">: int;
   name <cs ignore="true">: string;
+  ?optional <cs usetype="Optional<bool>">: bool option;
+  ?bonus_achievement <cs usetype="Optional<Type.Achievement>">: achievement_type option;
   duration: float <ocaml valid="Validation.float_min 0.1">;
   child <cs usetype="QuestNode">: quest_node_internal;
   on_timeout <cs usetype="Type.QuestTimerTimeout">: quest_timer_timeout_type;
@@ -273,6 +285,7 @@ type quest_objective_node <cs extends="QuestNode" namespace="Octoio.Fey.Data.Dto
   name <cs ignore="true">: string;
   metadata: metadata;
   is_optional: bool;
+  ?bonus_achievement <cs usetype="Optional<Type.Achievement>">: achievement_type option;
   condition <cs usetype="QuestCondition">: quest_condition_internal;
 }
 
@@ -302,4 +315,4 @@ type quest <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   is_repeatable: bool;
   achievement_on_complete <cs usetype="Type.Achievement">: achievement_type;
   required_achievements <cs usetype="List<Type.Achievement>">: achievement_type list <ocaml valid="Validation.list_min_length 1">;
-} <ocaml valid="Validation.validate_quest_node_ids">
+} <ocaml valid="Validation.validate_quest">

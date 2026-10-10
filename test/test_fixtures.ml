@@ -734,6 +734,7 @@ let minimal_quest_objective_node =
     name = "teleport";
     metadata = minimal_metadata;
     is_optional = false;
+    bonus_achievement = None;
     condition = `Teleport { Data.Quest_t.condition_type = `Teleport; stage = None }
   }
 ;;
@@ -819,6 +820,8 @@ let quest_with_spawns =
       { Data.Quest_t.node_type = `Sequence;
         id = 0;
         name = "root";
+        optional = None;
+        bonus_achievement = None;
         children = [ spawn_action; objective; spawn_sequence_action ]
       }
   in

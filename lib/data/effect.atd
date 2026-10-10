@@ -67,6 +67,16 @@ type effect_scaling <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializabl
   stat <cs usetype="Type.Stat">: stat_type;
 }
 
+(* The resistance a damage hit is mitigated by: Armor (Physical) or MagicResist (Magical) *)
+type damage_school <cs namespace="Octoio.Fey.Data.Type"> =
+  [ Physical
+  | Magical
+  ]
+
+(* [school] (Damage and Heal hits only): every scaler of this hit feeds that school, so a damage hit is mitigated by
+   its Armor (Physical) or MagicResist (Magical) whatever the scaler stats are. Absent: each scaler goes to the
+   school of its stat (AbilityPower, Int, Mana, MagicResist are magical, every other stat is physical). A heal is
+   never mitigated; its school only labels the breakdown. Any other hit type with a school is an error. *)
 type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
   hit_type <cs usetype="Type.Hit">: hit_type;
   scalers: effect_scaling list;
@@ -75,6 +85,7 @@ type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.D
   hit_sound: entity_reference;
   can_crit: bool;
   can_miss: bool;
+  ?school <cs usetype="Optional<Type.DamageSchool>">: damage_school option;
 } <ocaml valid="Validation.validate_hit_effect">
 
 (* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
