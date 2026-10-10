@@ -355,3 +355,16 @@ let validate_guarantee_quality_if_some (quality : Quality_t.quality_type option)
   | None -> true
   | Some q -> validate_guarantee_quality q
 ;;
+
+(* A circle needs a radius; a box needs both half extents. Coordinates must be finite. *)
+let validate_obstacle (o : Stage_t.obstacle) =
+  let pos = function Some x -> Float.is_finite x && x > 0. | None -> false in
+  Float.is_finite o.x && Float.is_finite o.z
+  && Option.fold ~none:true ~some:Float.is_finite o.yaw
+  &&
+  match o.shape with
+  | `Circle -> pos o.radius
+  | `Box -> pos o.half_x && pos o.half_z
+
+let validate_obstacles (obstacles : Stage_t.obstacle list option) =
+  Option.fold ~none:true ~some:(List.for_all validate_obstacle) obstacles

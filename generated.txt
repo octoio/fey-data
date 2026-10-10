@@ -27,6 +27,9 @@
 ../fey/Assets/Scripts/Data/Dto/SkillStone.cs
 ../fey/Assets/Scripts/Data/Type/Stage.cs
 ../fey/Assets/Scripts/Data/Type/Portal.cs
+../fey/Assets/Scripts/Data/Type/ObstacleKind.cs
+../fey/Assets/Scripts/Data/Type/ObstacleShape.cs
+../fey/Assets/Scripts/Data/Dto/Obstacle.cs
 ../fey/Assets/Scripts/Data/Dto/Stage.cs
 ../fey/Assets/Scripts/Data/Dto/EntityIndex.cs
 ../fey/Assets/Scripts/Data/Dto/EntityIndexContainer.cs

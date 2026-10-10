@@ -14,6 +14,39 @@ type portal_type <cs name="Portal" namespace="Octoio.Fey.Data.Type"> =
   [ Primary
   ]
 
+(* What an obstacle looks like on the client; the simulation never reads it. *)
+type obstacle_kind <cs name="ObstacleKind" namespace="Octoio.Fey.Data.Type"> =
+  [ Rock
+  | Tree
+  | Wall
+  | Pillar
+  | Water
+  | Ruin
+  | Crate
+  | Bush
+  ]
+
+(* A circle (pillar, tree, rock: [radius]) or an oriented box (wall, ruin: [half_x], [half_z], turned by [yaw] degrees) *)
+type obstacle_shape <cs name="ObstacleShape" namespace="Octoio.Fey.Data.Type"> =
+  [ Circle
+  | Box
+  ]
+
+(* A solid piece of level geometry on the ground plane, in stage coordinates (the same frame as the anchors).
+   Characters cannot enter it and walk round it; pathfinding plans round it; unless [blocks_sight] is false (default true:
+   low water, a bush) skillshots stop at it and unit-target casts need a line of sight past it. [kind] is presentation only. *)
+type obstacle <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  kind <cs usetype="Type.ObstacleKind">: obstacle_kind;
+  shape <cs usetype="Type.ObstacleShape">: obstacle_shape;
+  x: float;
+  z: float;
+  ?radius <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_x <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_z <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?yaw <cs usetype="Optional<float>">: float option;
+  ?blocks_sight <cs usetype="Optional<bool>">: bool option;
+}
+
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
 type stage <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic"> = {
   metadata: metadata;
@@ -22,4 +55,5 @@ type stage <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   ?thumbnail_reference <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Image">;
   anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Anchor">;
   ?quest <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
+  ?obstacles <cs usetype="Optional<Obstacle[]>">: obstacle list option <ocaml valid="Validation.validate_obstacles">;
 }

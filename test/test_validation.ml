@@ -624,6 +624,26 @@ module MoveNodeValidationTests = struct
   ;;
 end
 
+module ObstacleValidationTests = struct
+  let obstacle shape radius half_x half_z : Data.Stage_t.obstacle =
+    { kind = `Rock; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None; blocks_sight = None }
+  ;;
+
+  let test_validate_obstacles () =
+    check bool "absent" true (validate_obstacles None);
+    check bool "circle" true (validate_obstacles (Some [ obstacle `Circle (Some 1.) None None ]));
+    check bool "circle needs a radius" false (validate_obstacles (Some [ obstacle `Circle None None None ]));
+    check bool "box" true (validate_obstacles (Some [ obstacle `Box None (Some 2.) (Some 0.5) ]));
+    check bool "box needs both half extents" false (validate_obstacles (Some [ obstacle `Box None (Some 2.) None ]));
+    check bool "one bad obstacle fails the list" false
+      (validate_obstacles (Some [ obstacle `Circle (Some 1.) None None; obstacle `Circle (Some 0.) None None ]))
+  ;;
+end
+
+let obstacle_validation_tests =
+  [ "validate_obstacles", `Quick, ObstacleValidationTests.test_validate_obstacles ]
+;;
+
 let move_node_validation_tests =
   [ "validate_move_node", `Quick, MoveNodeValidationTests.test_validate_move_node;
     "validate_charges", `Quick, MoveNodeValidationTests.test_validate_charges
@@ -1069,6 +1089,7 @@ let () =
       ("Summon Control Validation", summon_control_validation_tests);
       ("Projectile Kind Validation", projectile_kind_validation_tests);
       ("Move Node Validation", move_node_validation_tests);
+      ("Obstacle Validation", obstacle_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);

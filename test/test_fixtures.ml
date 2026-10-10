@@ -883,7 +883,8 @@ let minimal_stage =
     theme_color = minimal_color;
     thumbnail_reference = None;
     anchors = [ minimal_anchor_reference ];
-    quest = None
+    quest = None;
+    obstacles = None
   }
 ;;
 
