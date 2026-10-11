@@ -112,8 +112,22 @@ Supports various game entity types including:
 - **Combat**: weapon, weapon_class (the animation set of a weapon category), character, skill, equipment, status
 - **Assets**: audio, animation, model, image, cursor; `visual.atd` (the sprite layer an item or monster is drawn with)
 - **System**: quality, stat, drop, affix, requirement
+- **Map generation**: stage (an optional `generator` spec), anchor (an optional `binding` to a generated slot), room_prefab (a hand-made room); see below
 
 Each type has its own ATD schema defining structure and validation rules.
+
+### Map generation data
+
+A stage may carry a `generator` spec (`lib/data/generator.atd`: room requirements, connection rules, forbidden adjacencies,
+pinned prefabs with an optional fixed position and door side, par rules, seed policy), its anchors a `binding` (slot and
+ordinal) and `RoomPrefab` entities (`room_prefab.atd`) the hand-made rooms. The generator itself lives in Rust only
+(`fey-rs`, `fey_core::mapgen`); Unity never generates, it only stores the data. `lib/mapgen_check.ml` ports the generator's
+static checks, so an infeasible spec or a quest the spec cannot hold is a build error (`dune exec gamedata`): spec
+feasibility (counts against the main path, farthest and chokepoint rules, spacing, prefabs that exist and match the
+generator, impossible pins, seed policy, par), every anchor of a generated stage bound with contiguous ordinals, the quest
+demands (`demands` and `apply_demands`: the anchors a quest names raise the spec's requirements) still satisfiable, room
+prefab ids unique and slots inside the room. The Rust code is the reference; change both together. Design:
+`fey-rs/docs/design/mapgen.md`.
 
 ### Sprite pipeline metadata
 

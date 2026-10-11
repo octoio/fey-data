@@ -474,6 +474,185 @@ let weapon_class_error_messages definitions =
     categories
 ;;
 
+(* Map generation (docs/design/mapgen.md): a stage with a generator spec must be generatable. The spec is
+   feasible (the static checks of the Rust generator), every anchor of the stage is bound to a generated slot
+   with contiguous ordinals, and every quest played on the stage finds its anchors and its rooms in the spec.
+   Room prefab ids are unique and their slots lie inside the room. *)
+let generator_error_messages definitions =
+  let ref_string (r : Data.Common_t.entity_reference) = r.id in
+  let prefabs =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `RoomPrefab { entity; _ } ->
+          Some (Dataset.entity_reference_of_entity_definition definition, entity)
+        | _ -> None)
+      definitions
+  in
+  let anchors =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity; _ } ->
+          let binding =
+            match entity with
+            | `Zone a -> a.binding
+            | `SpawnPoint a -> a.binding
+            | `Portal a -> a.binding
+            | `QuestBoard a -> a.binding
+          in
+          Some (Dataset.entity_reference_of_entity_definition definition, binding)
+        | _ -> None)
+      definitions
+  in
+  let prefab_kind reference =
+    Option.map
+      (fun (p : Data.Room_prefab_t.room_prefab) -> p.generator)
+      (List.assoc_opt reference prefabs)
+  in
+  let prefab_errors =
+    List.concat_map
+      (fun (reference, (p : Data.Room_prefab_t.room_prefab)) ->
+        let name = ref_string reference in
+        let duplicate =
+          if List.exists
+               (fun (other, (o : Data.Room_prefab_t.room_prefab)) ->
+                 other <> reference && o.prefab_id = p.prefab_id)
+               prefabs
+          then [ Printf.sprintf "Room prefab %s: prefab_id %s is used by another prefab" name p.prefab_id ]
+          else []
+        in
+        let hx = p.size.x /. 2. and hz = p.size.z /. 2. in
+        let outside =
+          List.filter_map
+            (fun (s : Data.Room_prefab_t.prefab_slot) ->
+              if Float.abs s.x <= hx && Float.abs s.z <= hz
+              then None
+              else
+                Some
+                  (Printf.sprintf
+                     "Room prefab %s: slot at (%g, %g) is outside the %g x %g room"
+                     name
+                     s.x
+                     s.z
+                     p.size.x
+                     p.size.z))
+            p.slots
+        in
+        let size =
+          if p.size.x > 0. && p.size.z > 0.
+          then []
+          else [ Printf.sprintf "Room prefab %s: size must be positive" name ]
+        in
+        duplicate @ outside @ size)
+      prefabs
+  in
+  let stage_errors =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stage { entity = { generator = Some spec; anchors = stage_anchors; _ }; _ } ->
+          let stage_reference = Dataset.entity_reference_of_entity_definition definition in
+          let stage_name = ref_string stage_reference in
+          let spec_errors =
+            List.map
+              (fun m -> Printf.sprintf "Stage %s generator: %s" stage_name m)
+              (Mapgen_check.spec_problems ~prefab_kind spec)
+          in
+          let bindings =
+            List.filter_map
+              (fun (a : Data.Common_t.entity_reference) ->
+                match List.assoc_opt a anchors with
+                | Some (Some binding) -> Some (a.id, binding)
+                | _ -> None)
+              stage_anchors
+          in
+          let unbound_errors =
+            List.filter_map
+              (fun (a : Data.Common_t.entity_reference) ->
+                match List.assoc_opt a anchors with
+                | Some None ->
+                  Some
+                    (Printf.sprintf
+                       "Stage %s has a generator, so anchor %s needs a binding"
+                       stage_name
+                       (ref_string a))
+                | _ -> None)
+              stage_anchors
+          in
+          let ordinal_errors =
+            let slots =
+              List.sort_uniq
+                compare
+                (List.map (fun (_, (b : Data.Generator_t.anchor_binding)) -> b.slot) bindings)
+            in
+            List.filter_map
+              (fun slot ->
+                let ordinals =
+                  List.sort
+                    compare
+                    (List.filter_map
+                       (fun (_, (b : Data.Generator_t.anchor_binding)) ->
+                         if b.slot = slot
+                         then Some (Option.value b.ordinal ~default:0)
+                         else None)
+                       bindings)
+                in
+                if ordinals = List.init (List.length ordinals) Fun.id
+                then None
+                else
+                  Some
+                    (Printf.sprintf
+                       "Stage %s: the ordinals of the %s anchors are %s, they must be 0..n-1 without repeats"
+                       stage_name
+                       (Base.String.strip
+                          ~drop:(fun c -> c = '"')
+                          (Data.Generator_j.string_of_anchor_slot slot))
+                       (String.concat ", " (List.map string_of_int ordinals))))
+              slots
+          in
+          let quest_errors =
+            List.concat_map
+              (fun (d : Data.Entity_t.entity_definition_internal) ->
+                match d with
+                | `Quest { entity = quest; _ } when quest.stage = stage_reference ->
+                  let quest_name = ref_string (Dataset.entity_reference_of_entity_definition d) in
+                  (match Mapgen_check.demands quest bindings with
+                   | Error unbound ->
+                     List.map
+                       (fun id ->
+                         Printf.sprintf
+                           "Quest %s names anchor %s, which has no binding on its generated stage %s"
+                           quest_name
+                           id
+                           stage_name)
+                       unbound
+                   | Ok demands ->
+                     let raised = Mapgen_check.apply_demands spec demands in
+                     (* only what the demands add: problems the spec has alone are reported once above *)
+                     let base = Mapgen_check.spec_problems ~prefab_kind spec in
+                     List.filter_map
+                       (fun m ->
+                         if List.mem m base
+                         then None
+                         else
+                           Some
+                             (Printf.sprintf
+                                "Quest %s cannot run on generated stage %s: %s"
+                                quest_name
+                                stage_name
+                                m))
+                       (Mapgen_check.spec_problems ~prefab_kind raised))
+                | _ -> [])
+              definitions
+          in
+          spec_errors @ unbound_errors @ ordinal_errors @ quest_errors
+        | _ -> [])
+      definitions
+  in
+  prefab_errors @ stage_errors
+;;
+
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -512,6 +691,7 @@ let validate_entity_definitions dataset =
   let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
+  let generator_errors = generator_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -527,7 +707,8 @@ let validate_entity_definitions dataset =
        @ interact_errors
        @ drop_table_errors
        @ tier_errors
-       @ weapon_class_errors)
+       @ weapon_class_errors
+       @ generator_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

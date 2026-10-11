@@ -62,7 +62,8 @@ let test_entity_parity_comprehensive () =
       ("quest_difficulty", minimal_quest_difficulty_entity_definition, `QuestDifficulty);
       ("anchor", minimal_anchor_entity_definition, `Anchor);
       ("stage", minimal_stage_entity_definition, `Stage);
-      ("weapon_class", minimal_weapon_class_entity_definition, `WeaponClass)
+      ("weapon_class", minimal_weapon_class_entity_definition, `WeaponClass);
+      ("room_prefab", minimal_room_prefab_entity_definition, `RoomPrefab)
     ]
   in
   List.iter

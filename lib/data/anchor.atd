@@ -2,6 +2,7 @@ type metadata <ocaml from="Common"> = abstract
 type transform <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 type character_team <ocaml from="Effect"> = abstract
+type anchor_binding <ocaml from="Generator"> = abstract
 
 type anchor_type <cs name="Anchor" namespace="Octoio.Fey.Data.Type"> =
   [ Zone
@@ -20,12 +21,15 @@ type anchor <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impo
   anchor_type <json name="type"> <cs usetype="Type.Anchor">: anchor_type;
   metadata: metadata;
   transform: transform;
+  (* On a stage with a generator: which generated slot this anchor is; see [anchor_binding] *)
+  ?binding <cs usetype="Optional<AnchorBinding>">: anchor_binding option;
 }
 
 type anchor_zone <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   anchor_type <json name="type"> <cs ignore="true">: anchor_type;
   metadata <cs ignore="true">: metadata;
   transform <cs ignore="true">: transform;
+  ?binding <cs ignore="true">: anchor_binding option;
   detection <cs usetype="Type.ZoneDetection">: zone_detection_type;
   radius: float <ocaml valid="Validation.float_min 0.1">;
   color: color;
@@ -39,6 +43,7 @@ type anchor_spawn_point <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" att
   anchor_type <json name="type"> <cs ignore="true">: anchor_type;
   metadata <cs ignore="true">: metadata;
   transform <cs ignore="true">: transform;
+  ?binding <cs ignore="true">: anchor_binding option;
   ?team <cs usetype="Optional<Type.CharacterTeam>">: character_team option;
   ?radius <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.5">;
 }
@@ -47,12 +52,14 @@ type anchor_portal <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attribut
   anchor_type <json name="type"> <cs ignore="true">: anchor_type;
   metadata <cs ignore="true">: metadata;
   transform <cs ignore="true">: transform;
+  ?binding <cs ignore="true">: anchor_binding option;
 }
 
 type anchor_quest_board <cs extends="Anchor" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
   anchor_type <json name="type"> <cs ignore="true">: anchor_type;
   metadata <cs ignore="true">: metadata;
   transform <cs ignore="true">: transform;
+  ?binding <cs ignore="true">: anchor_binding option;
 }
 
 type anchor_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=Anchor),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=Anchor,enumname=Type.Anchor)"> =

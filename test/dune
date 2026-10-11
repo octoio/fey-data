@@ -31,6 +31,11 @@
  (libraries gamedata alcotest test_fixtures gamedata.data))
 
 (test
+ (name test_mapgen)
+ (modules test_mapgen)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
  (name test_io)
  (modules test_io)
  (libraries gamedata alcotest test_fixtures gamedata.data))

@@ -1,0 +1,168 @@
+type entity_reference <ocaml from="Common"> = abstract
+type int_range <ocaml from="Common"> = abstract
+type float_range <ocaml from="Common"> = abstract
+
+(* Map generation data contract (docs/design/mapgen.md in fey-rs). The generator itself lives in Rust only
+   (fey_core::mapgen); these types are the spec it reads and the checks fey-data runs on it at build time.
+   Unity never generates. *)
+
+(* What a room is for. Roles are what a quest and a requirement talk about. *)
+type room_role <cs name="RoomRole" namespace="Octoio.Fey.Data.Type"> =
+  [ Entrance
+  | Combat
+  | Ambush
+  | Rest
+  | Treasure
+  | Objective
+  | Boss
+  | Filler
+  ]
+
+(* The anchors a room carries. A quest anchor on a generated stage is bound to (slot, ordinal). *)
+type anchor_slot <cs name="AnchorSlot" namespace="Octoio.Fey.Data.Type"> =
+  [ PlayerSpawn
+  | EntryPortal
+  | PackSpawn
+  | BossSpawn
+  | ExitPortal
+  | Shrine
+  | Chest
+  | ObjectiveZone
+  ]
+
+(* The theme turns it into units *)
+type room_size <cs name="RoomSize" namespace="Octoio.Fey.Data.Type"> =
+  [ Small
+  | Medium
+  | Large
+  | Huge
+  ]
+
+(* Which part of the room graph a requirement may use: the main path, the end of a side branch, or the main path first *)
+type path_rule <cs name="PathRule" namespace="Octoio.Fey.Data.Type"> =
+  [ MainPath
+  | Branch
+  | Any
+  ]
+
+(* One builder per kind (Cave later) *)
+type generator_kind <cs name="GeneratorKind" namespace="Octoio.Fey.Data.Type"> =
+  [ Crypt
+  | Forest
+  ]
+
+(* PerRun: the layout seed is derived from the master seed, the stage and the run counter (a new layout every run).
+   Fixed: [fixed_seed] of the spec. *)
+type seed_policy <cs name="SeedPolicy" namespace="Octoio.Fey.Data.Type"> =
+  [ PerRun
+  | Fixed
+  ]
+
+(* The side of a pinned room its door is on, in world axes *)
+type facing <cs name="Facing" namespace="Octoio.Fey.Data.Type"> =
+  [ PosX
+  | PosZ
+  | NegX
+  | NegZ
+  ]
+
+(* A point on the ground plane *)
+type plane_point <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  x: float;
+  z: float;
+}
+
+(* Where a required room may stand, in graph depth (rooms from the entrance, entrance = 0). [farthest]: the last room of
+   the main path and the deepest of the graph. [chokepoint]: on every route from the entrance to the farthest room.
+   Absent = false / 0 / no limit. *)
+type room_placement <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  ?farthest <cs usetype="Optional<bool>">: bool option;
+  ?min_depth <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+  ?max_depth <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+  ?chokepoint <cs usetype="Optional<bool>">: bool option;
+}
+
+(* Hints for content and art. [max_enemies] caps what a quest spawns in the room, [torches] is decor, [min_exits] is the
+   least number of connections the room has. *)
+type room_tags <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  ?max_enemies <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+  ?torches <cs usetype="Optional<bool>">: bool option;
+  ?min_exits <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+}
+
+(* One kind of room the stage must ([hard], the default) or should have. Soft: missing rooms only lower the score by
+   [weight] (default 1). [min_spacing]: graph distance between two rooms of this requirement. [prefab]: a RoomPrefab
+   every room of this requirement uses. [path] absent = Any. *)
+type room_requirement <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  role <cs usetype="Type.RoomRole">: room_role;
+  min: int <ocaml valid="Validation.int_min 0">;
+  max: int <ocaml valid="Validation.int_min 0">;
+  ?hard <cs usetype="Optional<bool>">: bool option;
+  size <cs usetype="Type.RoomSize">: room_size;
+  ?placement <cs usetype="Optional<RoomPlacement>">: room_placement option;
+  ?path <cs usetype="Optional<Type.PathRule>">: path_rule option;
+  ?min_spacing <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+  ?prefab <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `RoomPrefab">;
+  ?tags <cs usetype="Optional<RoomTags>">: room_tags option;
+  ?weight <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+}
+
+(* [main_path]: rooms on the main path, entrance and farthest room included. [loops]: extra connections that close a
+   cycle (never through the entrance or the boss arena). [dead_ends]: whether a side room may have one connection.
+   [branch_len]: rooms in a side branch. *)
+type connection_rules <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  main_path: int_range;
+  loops: int_range;
+  dead_ends: bool;
+  branch_len: int_range;
+}
+
+(* Two roles never directly connected *)
+type role_pair <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  a <cs usetype="Type.RoomRole">: room_role;
+  b <cs usetype="Type.RoomRole">: room_role;
+}
+
+(* A hand-made room that must appear, optionally at a fixed place. [at]: the world position of its centre. [facing]: the
+   side its door is on (the generator turns the whole map to match). Role Boss with [at] and [facing] is a statically
+   placed boss arena: the rest of the map is built around it. Only one pinned prefab may have [at]. *)
+type pinned_prefab <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  prefab: entity_reference <ocaml valid="Validation.entity_reference_of_type `RoomPrefab">;
+  role <cs usetype="Type.RoomRole">: room_role;
+  ?at <cs usetype="Optional<PlanePoint>">: plane_point option;
+  ?facing <cs usetype="Optional<Type.Facing>">: facing option;
+}
+
+(* Difficulty bounds measured on the finished layout; a layout outside them is re-rolled. [boss_path]: walking distance
+   in units from the player spawn to the boss. *)
+type par_rule <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  boss_path: float_range;
+}
+
+(* What the generator needs besides the seed. [version]: the generator version the spec was tuned for. [party_size]
+   (default 4) and [corridor_width] (default 8; raised to the party minimum) size the corridors. [fill]: the role of
+   main-path rooms no requirement claims. [max_attempts] (default 64): derived seeds tried before giving up.
+   [candidates] (default 1): valid layouts scored, the best is kept. *)
+type generator_spec <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  generator <cs usetype="Type.GeneratorKind">: generator_kind;
+  version: int <ocaml valid="Validation.int_min 1">;
+  requirements: room_requirement list <ocaml valid="Validation.list_min_length 1">;
+  connections: connection_rules;
+  ?forbidden_adjacent <cs usetype="Optional<RolePair[]>">: role_pair list option;
+  ?pinned <cs usetype="Optional<PinnedPrefab[]>">: pinned_prefab list option;
+  ?party_size <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 1">;
+  ?corridor_width <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 1.">;
+  fill <cs usetype="Type.RoomRole">: room_role;
+  ?max_attempts <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 1">;
+  ?candidates <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 1">;
+  ?par <cs usetype="Optional<ParRule>">: par_rule option;
+  seed_policy <cs usetype="Type.SeedPolicy">: seed_policy;
+  ?fixed_seed <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+}
+
+(* A generated stage's anchor is the [ordinal]-th (default 0, counted by room depth then room) anchor of [slot] in the
+   layout; the anchor's transform is the hand-made fallback and is ignored by the generator. *)
+type anchor_binding <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  slot <cs usetype="Type.AnchorSlot">: anchor_slot;
+  ?ordinal <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 0">;
+}

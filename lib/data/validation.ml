@@ -303,7 +303,8 @@ let validate_entity_definition_internal
   | `Anchor { owner; id; entity_type; key; version; _ }
   | `Stage { owner; id; entity_type; key; version; _ }
   | `SkillStone { owner; id; entity_type; key; version; _ }
-  | `WeaponClass { owner; id; entity_type; key; version; _ } ->
+  | `WeaponClass { owner; id; entity_type; key; version; _ }
+  | `RoomPrefab { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -475,3 +476,7 @@ let validate_animation_set (entries : Weapon_class_t.animation_set_entry list) =
        (fun (e : Weapon_class_t.animation_set_entry) -> animation_slot_takes_cue e.slot e.cue)
        entries
 ;;
+
+(* `crypt.hollow_nest`: lower case words joined by dots and underscores *)
+let prefab_id_regex = Re.Perl.compile_pat "^[a-z0-9]+(\\.[a-z0-9_]+)+$"
+let validate_prefab_id (id : string) = Re.execp prefab_id_regex id

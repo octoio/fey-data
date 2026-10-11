@@ -675,7 +675,8 @@ let test_interact_needs_a_zone_anchor () =
             `Portal
               { Data.Anchor_t.anchor_type = `Portal;
                 metadata = minimal_metadata;
-                transform = minimal_transform
+                transform = minimal_transform;
+                binding = None
               }
         } )
   in
@@ -846,7 +847,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_quest_difficulty_entity_definition;
       minimal_anchor_entity_definition;
       minimal_stage_entity_definition;
-      minimal_weapon_class_entity_definition
+      minimal_weapon_class_entity_definition;
+      minimal_room_prefab_entity_definition
     ]
   in
   List.iter
