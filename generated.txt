@@ -84,6 +84,10 @@
 ../fey/Assets/Scripts/Data/Mapper/EntityDefinitionConverter.cs
 ../fey/Assets/Scripts/Data/Dto/PrefabSlot.cs
 ../fey/Assets/Scripts/Data/Dto/RoomPrefab.cs
+../fey/Assets/Scripts/Data/Type/VfxElement.cs
+../fey/Assets/Scripts/Data/Dto/SkillVfx.cs
+../fey/Assets/Scripts/Data/Dto/ProjectileVfx.cs
+../fey/Assets/Scripts/Data/Dto/StatusVfx.cs
 ../fey/Assets/Scripts/Data/Type/Stat.cs
 ../fey/Assets/Scripts/Data/Dto/Stat.cs
 ../fey/Assets/Scripts/Data/Dto/StatSheet.cs
