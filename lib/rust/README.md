@@ -18,6 +18,7 @@ Emits serde types into `fey-rs/crates/fey_data/src/generated` (path: `rust_outpu
 - Records -> structs (`<json name="x">` -> `#[serde(rename)]`); sums without payloads -> enums that derive serde (`"Tag"`).
 - Sums with payloads -> custom serde impls: `["Tag", payload]`, or `{"type": "Tag", ...}` with `<json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">` (the payload is the whole object, as in atdgen).
 - `type x <ocaml from="Mod"> = abstract` -> `use super::mod::X;`. Types that contain themselves inline (through fields, options, payloads, not `Vec`) get a `Box`.
+- `(string * T) list <json repr="object">` -> `BTreeMap<String, T>` (a JSON object; keys come out sorted).
 - Unsupported (fails loudly): type parameters, anonymous nested records/sums, `inherit`, other JSON adapters.
 
 ## `<rs ...>` annotations (C# `<cs ...>` equivalents; `<cs ...>` is ignored)

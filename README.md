@@ -109,11 +109,23 @@ rust_output_path = "../fey-rs/crates/fey_data/src/generated"
 ## Entity Types
 
 Supports various game entity types including:
-- **Combat**: weapon, character, skill, equipment, status
-- **Assets**: audio, animation, model, image, cursor
+- **Combat**: weapon, weapon_class (the animation set of a weapon category), character, skill, equipment, status
+- **Assets**: audio, animation, model, image, cursor; `visual.atd` (the sprite layer an item or monster is drawn with)
 - **System**: quality, stat, drop, affix, requirement
 
 Each type has its own ATD schema defining structure and validation rules.
+
+### Sprite pipeline metadata
+
+`lib/data/sprite.atd` is not an entity: it is the schema of the sprite pipeline's output (`sprites.json`, version 3, trimmed
+atlases, and `portraits/portraits.json`). It generates the Rust types (`fey_data::sprite`) and no C#. Validate the files with
+
+```bash
+dune exec spritecheck -- <sprites.json | portraits.json | directory>...
+```
+
+which reads the shape through the generated reader (unknown fields are refused) and then checks what spans fields
+(`lib/sprite_check.ml`): rects inside their sheet and cell, every listed animation having a sheet, attack phases covering the clip.
 
 ## Key Features
 

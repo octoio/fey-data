@@ -28,6 +28,9 @@ If linking fails against OpenSSL after a Homebrew upgrade, the `ssl` bindings we
 7. Tests: `test/test_fixtures.ml`, `test_parity.ml`, `test_dataset.ml` (all-entity-types lists).
 8. Consumers: `../fey-console` (`src/models/common.types.ts` EntityType enum, a `<name>.types.ts` model, the entity count in `test/app.test.tsx`), `../fey` (`GameStorageData.cs` implements the generated visitor: add a dictionary and a `Visit` method; new polymorphic families register their converter in `Data/Mapper/JsonDeserializer.cs`), `../fey-rs` (regenerate, round-trip test `crates/fey_data/tests/roundtrip.rs`).
 
+## Sprite metadata (not an entity)
+`lib/data/sprite.atd` types the sprite pipeline output (`sprites.json` v3, `portraits.json`); every type is `<cs ignore>` (Rust only). `dune exec spritecheck -- <path>...` validates files against it (`lib/sprite_check.ml`). `(string * T) list <json repr="object">` is how JSON maps are declared (Rust `BTreeMap`). The pipeline lives in the private `fey-assets` repo; its `pipeline/build.sh` calls the checker when `../fey-data` is built.
+
 ## Rules
 - Public repo: no personal details, absolute home paths or licensed content names (vendor names only) in code, docs or commits.
 - Every commit builds and passes `dune runtest`.

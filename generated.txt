@@ -1,3 +1,6 @@
+../fey/Assets/Scripts/Data/Type/AnimationSlot.cs
+../fey/Assets/Scripts/Data/Dto/AnimationSetEntry.cs
+../fey/Assets/Scripts/Data/Dto/WeaponClass.cs
 ../fey/Assets/Scripts/Data/Dto/Spawn.cs
 ../fey/Assets/Scripts/Data/Dto/SpawnSequenceStep.cs
 ../fey/Assets/Scripts/Data/Dto/SpawnSequence.cs
@@ -30,6 +33,7 @@
 ../fey/Assets/Scripts/Data/Type/ObstacleKind.cs
 ../fey/Assets/Scripts/Data/Type/ObstacleShape.cs
 ../fey/Assets/Scripts/Data/Dto/Obstacle.cs
+../fey/Assets/Scripts/Data/Dto/StageProp.cs
 ../fey/Assets/Scripts/Data/Dto/Stage.cs
 ../fey/Assets/Scripts/Data/Dto/EntityIndex.cs
 ../fey/Assets/Scripts/Data/Dto/EntityIndexContainer.cs
@@ -56,6 +60,7 @@
 ../fey/Assets/Scripts/Data/Dto/AnchorEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/StageEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/SkillStoneEntityDefinition.cs
+../fey/Assets/Scripts/Data/Dto/WeaponClassEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/IEntityDefinitionVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/EntityDefinitionVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/EntityDefinitionConverter.cs
@@ -77,6 +82,7 @@
 ../fey/Assets/Scripts/Data/Type/WeaponEquipIndex.cs
 ../fey/Assets/Scripts/Data/Type/WeaponSheatheLocation.cs
 ../fey/Assets/Scripts/Data/Dto/Weapon.cs
+../fey/Assets/Scripts/Data/Dto/VisualLayer.cs
 ../fey/Assets/Scripts/Data/Type/Drop.cs
 ../fey/Assets/Scripts/Data/Type/LootDistribution.cs
 ../fey/Assets/Scripts/Data/Dto/Drop.cs

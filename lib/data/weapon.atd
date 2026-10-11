@@ -4,6 +4,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type stat_affix <ocaml from="Affix"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type model_anchor_set <ocaml from="Model"> = abstract
+type visual_layer <ocaml from="Visual"> = abstract
 
 type weapon_category <cs namespace="Octoio.Fey.Data.Type"> = 
     [ None
@@ -47,4 +48,8 @@ type weapon <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impo
     model_anchor_set: model_anchor_set;
     (* character level needed to equip it; absent = any *)
     ?min_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 2">;
+    (* the weapon class whose animation set it uses, when not the one listing its category (a spear thrust with a sword category) *)
+    ?weapon_class <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
+    (* the sprite layer drawn for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
+    ?visual <cs usetype="Optional<VisualLayer>">: visual_layer option;
 }

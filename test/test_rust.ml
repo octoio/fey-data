@@ -168,6 +168,27 @@ let test_runtime_is_emitted () =
   check_has "option module" r "pub mod atd_option"
 ;;
 
+let test_object_maps () =
+  let files =
+    generate
+      [ module_of
+          "sample"
+          {|
+type cell = { w: int }
+type sheet = {
+  cells: (string * cell) list <json repr="object">;
+  ?extra: (string * float) list <json repr="object"> option;
+  plain: (string * cell) list;
+}
+|}
+      ]
+  in
+  let c = find_file files "sample" in
+  check_has "object map" c "pub cells: std::collections::BTreeMap<String, Cell>,";
+  check_has "optional object map" c "pub extra: Option<std::collections::BTreeMap<String, f64>>,";
+  check_has "plain list of pairs" c "pub plain: Vec<(String, Cell)>,"
+;;
+
 let test_unresolved_type_fails () =
   match generate [ module_of "sample" "type s = { n: missing }\n" ] with
   | _ -> fail "expected a failure for an unresolved type"
@@ -181,7 +202,8 @@ let () =
         [ test_case "record fields" `Quick test_record_fields;
           test_case "unit enum" `Quick test_unit_enum;
           test_case "ints are lenient" `Quick test_ints_are_lenient;
-          test_case "recursion is boxed" `Quick test_recursion_is_boxed
+          test_case "recursion is boxed" `Quick test_recursion_is_boxed;
+          test_case "json object maps" `Quick test_object_maps
         ] );
       ( "serde",
         [ test_case "payload sum uses atd encoding" `Quick test_payload_sum_uses_atd_encoding;

@@ -59,3 +59,8 @@
  (name test_integration)
  (modules test_integration)
  (libraries gamedata alcotest test_fixtures gamedata.data))
+
+(test
+ (name test_sprite)
+ (modules test_sprite)
+ (libraries gamedata gamedata.data alcotest str))

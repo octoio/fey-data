@@ -1,0 +1,32 @@
+type metadata <ocaml from="Common"> = abstract
+type weapon_category <ocaml from="Weapon"> = abstract
+type animation_cue <ocaml from="Animation"> = abstract
+
+(* Which presentation an entry of a class's animation set stands for *)
+type animation_slot <cs namespace="Octoio.Fey.Data.Type"> =
+  [ Idle
+  | Walk
+  | Run
+  | BasicAttack
+  | Hit
+  | Death
+  ]
+
+(* The cue a slot plays. The cue stays a name (which clip plays it is each engine adapter's choice); [variant]
+   picks one of several alternatives for it, a class's own stance for instance. *)
+type animation_set_entry <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  slot <cs usetype="Type.AnimationSlot">: animation_slot;
+  cue <cs usetype="Type.AnimationCue">: animation_cue;
+  variant: int <ocaml valid="Validation.int_min 0">;
+}
+
+(* A weapon class groups weapon categories that share one animation set: the cue a basic attack plays follows the
+   weapon in hand, and idle, walk and run may differ per class (a bow stance). A weapon belongs to the class
+   listing its category (a weapon names another class itself to override it); a category is in at most one class.
+   [animation_set] holds one entry per slot at most; a missing slot falls back to the class named Unarmed
+   (every character without a weapon uses its set). *)
+type weapon_class <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  metadata: metadata;
+  categories: weapon_category list <ocaml valid="Validation.validate_weapon_class_categories">;
+  animation_set: animation_set_entry list <ocaml valid="Validation.validate_animation_set">;
+}

@@ -51,7 +51,8 @@ let entity_reference_of_entity_definition
   | `QuestDifficulty { id; owner; entity_type; key; version; _ }
   | `Anchor { id; owner; entity_type; key; version; _ }
   | `Stage { id; owner; entity_type; key; version; _ }
-  | `SkillStone { id; owner; entity_type; key; version; _ } ->
+  | `SkillStone { id; owner; entity_type; key; version; _ }
+  | `WeaponClass { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -244,6 +245,13 @@ let extract_entity_reference_from_quest_entity
   difficulty :: stage :: extract_entity_reference_from_quest_node root
 ;;
 
+(* The weapon classes a visual layer is limited to *)
+let extract_entity_reference_from_visual_layer (layer : Data.Visual_t.visual_layer option) =
+  match layer with
+  | None -> []
+  | Some { only_for_classes; _ } -> Option.value only_for_classes ~default:[]
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -251,11 +259,15 @@ let extract_entity_reference_from_entity_definition
   | `Weapon { entity; _ } ->
     [ entity.model_anchor_set.model_reference; entity.icon_reference ]
     @ extract_from_option_entity_reference entity.basic_attack
+    @ extract_from_option_entity_reference entity.weapon_class
+    @ extract_entity_reference_from_visual_layer entity.visual
   | `Skill { entity; _ } ->
     extract_entity_reference_from_skill_entity entity
     @ extract_entity_reference_from_triggers entity.triggers
   | `Equipment { entity; _ } ->
-    [ entity.icon_reference ] @ extract_entity_reference_from_triggers entity.triggers
+    [ entity.icon_reference ]
+    @ extract_entity_reference_from_triggers entity.triggers
+    @ extract_entity_reference_from_visual_layer entity.visual
   | `SkillStone { entity; _ } -> [ entity.icon_reference ]
   | `Cursor { entity; _ } -> [ entity.icon_reference ]
   | `Sound { entity; _ } -> entity.audio_references
@@ -266,6 +278,9 @@ let extract_entity_reference_from_entity_definition
     @ entity.skills
     @ Option.value entity.starting_equipment ~default:[]
     @ Option.value entity.starting_weapons ~default:[]
+    @ List.concat_map
+        (fun layer -> extract_entity_reference_from_visual_layer (Some layer))
+        (Option.value entity.visual_layers ~default:[])
     @ (match entity.enrage with
        | None -> []
        | Some { effects; _ } ->
@@ -278,6 +293,7 @@ let extract_entity_reference_from_entity_definition
     @ extract_from_option_entity_reference entity.thumbnail_reference
     @ extract_from_option_entity_reference entity.quest
   | `QuestDifficulty _
+  | `WeaponClass _
   | `Anchor _
   | `AnimationSource _
   | `AudioClip _

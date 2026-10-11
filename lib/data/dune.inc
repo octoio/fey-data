@@ -440,6 +440,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets sprite_j.ml sprite_j.mli)
+ (deps sprite.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets sprite_t.ml sprite_t.mli)
+ (deps sprite.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets sprite_v.ml sprite_v.mli)
+ (deps sprite.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets stage_j.ml stage_j.mli)
  (deps stage.atd)
  (mode fallback)
@@ -524,6 +545,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets visual_j.ml visual_j.mli)
+ (deps visual.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets visual_t.ml visual_t.mli)
+ (deps visual.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets visual_v.ml visual_v.mli)
+ (deps visual.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets weapon_j.ml weapon_j.mli)
  (deps weapon.atd)
  (mode fallback)
@@ -540,6 +582,27 @@
 (rule
  (targets weapon_v.ml weapon_v.mli)
  (deps weapon.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets weapon_class_j.ml weapon_class_j.mli)
+ (deps weapon_class.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets weapon_class_t.ml weapon_class_t.mli)
+ (deps weapon_class.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets weapon_class_v.ml weapon_class_v.mli)
+ (deps weapon_class.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -611,6 +674,9 @@
   spawn_j
   spawn_t
   spawn_v
+  sprite_j
+  sprite_t
+  sprite_v
   stage_j
   stage_t
   stage_v
@@ -623,6 +689,12 @@
   trigger_j
   trigger_t
   trigger_v
+  visual_j
+  visual_t
+  visual_v
+  weapon_class_j
+  weapon_class_t
+  weapon_class_v
   weapon_j
   weapon_t
   weapon_v

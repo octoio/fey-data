@@ -447,6 +447,33 @@ let tier_error_messages definitions =
   duplicate_errors @ base_errors @ gate_errors
 ;;
 
+(* A weapon category belongs to at most one weapon class, so a weapon finds its animation set without a tie *)
+let weapon_class_error_messages definitions =
+  let classes =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `WeaponClass { key; entity; _ } -> Some (key, entity.Data.Weapon_class_t.categories)
+        | _ -> None)
+      definitions
+  in
+  let categories =
+    List.sort_uniq compare (List.concat_map (fun (_, categories) -> categories) classes)
+  in
+  List.filter_map
+    (fun category ->
+      match List.filter (fun (_, cs) -> List.mem category cs) classes with
+      | _ :: _ :: _ as owners ->
+        Some
+          (Printf.sprintf
+             "Weapon category %s is in the weapon classes %s"
+             (Base.String.strip ~drop:(fun c -> c = '"')
+                (Data.Weapon_j.string_of_weapon_category category))
+             (String.concat ", " (List.sort compare (List.map fst owners))))
+      | _ -> None)
+    categories
+;;
+
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -484,6 +511,7 @@ let validate_entity_definitions dataset =
   let interact_errors = interact_error_messages (take_definitions dataset) in
   let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
   let tier_errors = tier_error_messages (take_definitions dataset) in
+  let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -498,7 +526,8 @@ let validate_entity_definitions dataset =
        @ quest_completability_errors
        @ interact_errors
        @ drop_table_errors
-       @ tier_errors)
+       @ tier_errors
+       @ weapon_class_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

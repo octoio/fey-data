@@ -25,6 +25,12 @@ type animation_cue <cs name="AnimationCue" namespace="Octoio.Fey.Data.Type"> =
   | CastAttack
   | CastChannel
   | HitBlocked
+  | AttackShoot  (* a bow or other ranged weapon loosing a shot *)
+  | Idle         (* standing; with [variant] a class's own stance (a bow stance) *)
+  | Walk
+  | Run
+  | Hit          (* taking a hit *)
+  | Death
   ]
 
 type animation_source <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System" modifiers="partial"> = {

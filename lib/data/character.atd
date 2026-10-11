@@ -6,6 +6,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type skill_type <ocaml from="Common"> = abstract
 type stat_sheet <ocaml from="Stat"> = abstract
 type status_effect <ocaml from="Effect"> = abstract
+type visual_layer <ocaml from="Visual"> = abstract
 
 type character_type <cs name="Character" namespace="Octoio.Fey.Data.Type"> = 
   [ Adventurer
@@ -105,4 +106,9 @@ type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"
        absent = nothing *)
     ?starting_equipment <cs usetype="Optional<EntityReference[]>">: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Equipment">;
     ?starting_weapons <cs usetype="Optional<EntityReference[]>">: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Weapon">;
+    (* Sprite look of a monster: the family (its own skeleton and clips, the directory of its sheets) and the layers
+       drawn, usually a single body sheet. Absent: the client draws the character's default look. A weapon class is
+       not needed, the attack cue comes from the skill. *)
+    ?sprite_family <cs usetype="Optional<string>">: string option <ocaml valid="Validation.validate_sheet_id_if_some">;
+    ?visual_layers <cs usetype="Optional<VisualLayer[]>">: visual_layer list option;
   }
