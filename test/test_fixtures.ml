@@ -266,6 +266,29 @@ let minimal_weapon_class_entity_definition : Data.Entity_t.entity_definition_int
     }
 ;;
 
+(* Minimal valid room prefab *)
+let minimal_room_prefab =
+  { Data.Room_prefab_t.metadata = minimal_metadata;
+    generator = `Crypt;
+    prefab_id = "crypt.minimal_room";
+    size = { Data.Generator_t.x = 18.0; z = 18.0 };
+    door_band = 2.0;
+    obstacles = None;
+    slots = [ { Data.Room_prefab_t.slot = `Shrine; x = 0.0; z = 0.0; area = None } ]
+  }
+;;
+
+let minimal_room_prefab_entity_definition : Data.Entity_t.entity_definition_internal =
+  `RoomPrefab
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `RoomPrefab;
+      key = "MinimalRoomPrefab";
+      version = 1;
+      id = "ownr:RoomPrefab:MinimalRoomPrefab:1";
+      entity = minimal_room_prefab
+    }
+;;
+
 (* Minimal valid status *)
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
@@ -877,6 +900,7 @@ let minimal_anchor_zone =
   { Data.Anchor_t.anchor_type = `Zone;
     metadata = minimal_metadata;
     transform = minimal_transform;
+    binding = None;
     detection = `Overlap;
     radius = 3.0;
     color = minimal_color;
@@ -915,7 +939,8 @@ let minimal_stage =
     anchors = [ minimal_anchor_reference ];
     quest = None;
     obstacles = None;
-    decor = None
+    decor = None;
+    generator = None
   }
 ;;
 

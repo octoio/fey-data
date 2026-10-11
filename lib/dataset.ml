@@ -52,7 +52,8 @@ let entity_reference_of_entity_definition
   | `Anchor { id; owner; entity_type; key; version; _ }
   | `Stage { id; owner; entity_type; key; version; _ }
   | `SkillStone { id; owner; entity_type; key; version; _ }
-  | `WeaponClass { id; owner; entity_type; key; version; _ } ->
+  | `WeaponClass { id; owner; entity_type; key; version; _ }
+  | `RoomPrefab { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -252,6 +253,14 @@ let extract_entity_reference_from_visual_layer (layer : Data.Visual_t.visual_lay
   | Some { only_for_classes; _ } -> Option.value only_for_classes ~default:[]
 ;;
 
+(* The room prefabs a generator spec uses, in requirements and pins *)
+let extract_entity_reference_from_generator_spec (spec : Data.Generator_t.generator_spec) =
+  List.filter_map (fun (r : Data.Generator_t.room_requirement) -> r.prefab) spec.requirements
+  @ List.map
+      (fun (p : Data.Generator_t.pinned_prefab) -> p.prefab)
+      (Option.value spec.pinned ~default:[])
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -292,8 +301,12 @@ let extract_entity_reference_from_entity_definition
     entity.anchors
     @ extract_from_option_entity_reference entity.thumbnail_reference
     @ extract_from_option_entity_reference entity.quest
+    @ (match entity.generator with
+       | None -> []
+       | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `QuestDifficulty _
   | `WeaponClass _
+  | `RoomPrefab _
   | `Anchor _
   | `AnimationSource _
   | `AudioClip _

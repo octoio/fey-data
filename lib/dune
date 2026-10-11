@@ -4,6 +4,7 @@
  (modules
   dataset
   io
+  mapgen_check
   parity
   processing
   server

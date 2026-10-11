@@ -251,6 +251,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets generator_j.ml generator_j.mli)
+ (deps generator.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets generator_t.ml generator_t.mli)
+ (deps generator.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets generator_v.ml generator_v.mli)
+ (deps generator.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets image_j.ml image_j.mli)
  (deps image.atd)
  (mode fallback)
@@ -372,6 +393,27 @@
 (rule
  (targets requirement_v.ml requirement_v.mli)
  (deps requirement.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets room_prefab_j.ml room_prefab_j.mli)
+ (deps room_prefab.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets room_prefab_t.ml room_prefab_t.mli)
+ (deps room_prefab.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets room_prefab_v.ml room_prefab_v.mli)
+ (deps room_prefab.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -647,6 +689,9 @@
   equipment_j
   equipment_t
   equipment_v
+  generator_j
+  generator_t
+  generator_v
   image_j
   image_t
   image_v
@@ -665,6 +710,9 @@
   requirement_j
   requirement_t
   requirement_v
+  room_prefab_j
+  room_prefab_t
+  room_prefab_v
   skill_j
   skill_stone_j
   skill_stone_t
