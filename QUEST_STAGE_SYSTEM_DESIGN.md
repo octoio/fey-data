@@ -1,20 +1,7 @@
 # Quest & Stage System Redesign
 
 ## Status
-**SHIPPED — merged to main in all three repos (July 12, 2026).** Play-tested; follow-up fixes (boar Gore skill, forest slime spawns, dormant zones, drop/loot crashes, completability validation) landed in the same PRs.
-- fey-data: anchor/stage/quest-v2 ATD schemas, validations (anchor ownership, quest⊆stage anchor
-  subset, unique node ids), fixtures — committed green on `quest-entity`.
-- fey (Unity): full port on `quest-entity` (uncommitted): AnchorService with runtime-spawned
-  zone/portal prefabs, uint stage/anchor indices through the whole interact/teleport chain,
-  QuestService execution tree (Sequence/Parallel/Any/Timer/Objective/Action), condition modules,
-  QuestActionExecutor, GUI rework. Legacy StageType/ZoneType/PortalType/StageData and the
-  requirement/result module stack are deleted. `compile.fish` green, `test.fish` 721 green
-  (includes new QuestNodeWalkerTests; QuestNodeWalker lives in the Data assembly).
-- fey-console: quest-v2/anchor/stage models + dedicated Stage Editor tab (stage form, anchor
-  cards with transforms/zone fields, entity-ref pickers, save-to-disk). 1160 tests, lint, build
-  all green (uncommitted on `quest-entity`).
-- Remaining: assign _portalPrefab/_overlapZonePrefab/_triggerZonePrefab on GameStorageData in
-  the inspector; play-test; then logical green commits (this document stays local).
+**SHIPPED: merged to main in all three repos (July 12, 2026).** This document is kept as the design record.
 
 The five open questions were resolved with Octoio (see Decisions).
 
