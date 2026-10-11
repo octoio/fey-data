@@ -29,6 +29,12 @@ let lookup ctx ~module_name name =
 let rec rust_type ctx ~module_name ~owner ~inline (te : Atd.Ast.type_expr) : string =
   let recur = rust_type ctx ~module_name ~owner in
   match te with
+  | Atd.Ast.List (_, Atd.Ast.Tuple (_, [ (_, Atd.Ast.Name (_, (_, "string", []), _), _); (_, value, _) ], _), annot)
+    when get_json annot "repr" = Some "object" ->
+    (* `(string * T) list <json repr="object">` is a JSON object *)
+    Printf.sprintf
+      "std::collections::BTreeMap<String, %s>"
+      (recur ~inline:false value)
   | Atd.Ast.List (_, arg, _) -> Printf.sprintf "Vec<%s>" (recur ~inline:false arg)
   | Atd.Ast.Option (_, arg, _) | Atd.Ast.Nullable (_, arg, _) ->
     Printf.sprintf "Option<%s>" (recur ~inline arg)

@@ -684,6 +684,78 @@ let test_interact_needs_a_zone_anchor () =
   check int "a Portal cannot" 1 (errors [ portal; quest ])
 ;;
 
+let weapon_class_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"is in the weapon classes"
+      | None -> false)
+    validated.errors
+;;
+
+let weapon_class_definition key categories =
+  ( "data/json/" ^ key ^ ".weaponclass.json",
+    `WeaponClass
+      ({ owner = "ownr";
+         entity_type = `WeaponClass;
+         key;
+         version = 1;
+         id = "ownr:WeaponClass:" ^ key ^ ":1";
+         entity = { minimal_weapon_class with categories }
+       }
+        : Data.Entity_t.weapon_class_entity_definition) )
+;;
+
+let test_a_category_is_in_one_weapon_class () =
+  let count defs = List.length (weapon_class_errors defs) in
+  check int "disjoint classes" 0
+    (count [ weapon_class_definition "Swords" [ `OneHandSword; `OneHandAxe ]; weapon_class_definition "Bows" [ `Bow ] ]);
+  check int "a shared category" 1
+    (count [ weapon_class_definition "Swords" [ `OneHandSword; `Dagger ]; weapon_class_definition "Knives" [ `Dagger ] ])
+;;
+
+let test_weapon_and_visual_references () =
+  let class_ref =
+    Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
+  in
+  let layer : Data.Visual_t.visual_layer =
+    { sheet = "weapon.sword"; socket = Some `MainHandAnchor; sort = 0; only_for_classes = Some [ class_ref ] }
+  in
+  let weapon =
+    `Weapon
+      ({ owner = "ownr";
+         entity_type = `Weapon;
+         key = "Sword";
+         version = 1;
+         id = "ownr:Weapon:Sword:1";
+         entity = { minimal_weapon with weapon_class = Some class_ref; visual = Some layer }
+       }
+        : Data.Entity_t.weapon_entity_definition)
+  in
+  let refs = Dataset.extract_entity_reference_from_entity_definition weapon in
+  check int "the class override and the layer's classes" 2
+    (List.length (List.filter (fun r -> r = class_ref) refs));
+  let equipment =
+    `Equipment
+      ({ owner = "ownr";
+         entity_type = `Equipment;
+         key = "Cap";
+         version = 1;
+         id = "ownr:Equipment:Cap:1";
+         entity = { minimal_equipment with visual = Some layer }
+       }
+        : Data.Entity_t.equipment_entity_definition)
+  in
+  check bool "an equipment layer's classes" true
+    (List.mem class_ref (Dataset.extract_entity_reference_from_entity_definition equipment))
+;;
+
 let test_kill_objective_without_spawn_is_not_completable () =
   let dataset = completability_dataset (`Objective (kill_objective_node 0)) in
   check
@@ -773,7 +845,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_quest_entity_definition;
       minimal_quest_difficulty_entity_definition;
       minimal_anchor_entity_definition;
-      minimal_stage_entity_definition
+      minimal_stage_entity_definition;
+      minimal_weapon_class_entity_definition
     ]
   in
   List.iter
@@ -1032,6 +1105,8 @@ let dataset_tests =
       "Kill objective concurrent with spawn is completable"
       `Quick
       test_kill_objective_concurrent_with_spawn_is_completable;
+    test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
+    test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "Kill amount exceeding spawns is not completable"
       `Quick

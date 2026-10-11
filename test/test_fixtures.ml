@@ -147,7 +147,9 @@ let minimal_weapon =
     random_stat_affixes = [];
     basic_attack = None;
     model_anchor_set = minimal_model_anchor_set;
-    min_level = None
+    min_level = None;
+    weapon_class = None;
+    visual = None
   }
 ;;
 
@@ -188,7 +190,8 @@ let minimal_skill =
     root_while_casting = None;
     cancels_cast = None;
     charges = None;
-    triggers = None
+    triggers = None;
+    hit_delay = None
   }
 ;;
 
@@ -208,7 +211,8 @@ let minimal_equipment =
     random_stat_affix_count = minimal_int_range;
     random_stat_affixes = [];
     triggers = None;
-    min_level = None
+    min_level = None;
+    visual = None
   }
 ;;
 
@@ -240,6 +244,25 @@ let minimal_skill_stone_entity_definition : Data.Entity_t.entity_definition_inte
       version = 1;
       id = "ownr:SkillStone:MinimalSkillStone:1";
       entity = minimal_skill_stone
+    }
+;;
+
+(* Minimal valid weapon class *)
+let minimal_weapon_class =
+  { Data.Weapon_class_t.metadata = minimal_metadata;
+    categories = [ `OneHandSword ];
+    animation_set = [ { slot = `BasicAttack; cue = `AttackSlash; variant = 0 } ]
+  }
+;;
+
+let minimal_weapon_class_entity_definition : Data.Entity_t.entity_definition_internal =
+  `WeaponClass
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `WeaponClass;
+      key = "MinimalWeaponClass";
+      version = 1;
+      id = "ownr:WeaponClass:MinimalWeaponClass:1";
+      entity = minimal_weapon_class
     }
 ;;
 
@@ -338,7 +361,9 @@ let minimal_character =
     starting_weapons = None;
     level = None;
     level_growth = None;
-    rank = None
+    rank = None;
+    sprite_family = None;
+    visual_layers = None
   }
 ;;
 
@@ -674,7 +699,8 @@ let skill_with_projectile =
     root_while_casting = None;
     cancels_cast = None;
     charges = None;
-    triggers = None
+    triggers = None;
+    hit_delay = None
   }
 ;;
 
@@ -888,7 +914,8 @@ let minimal_stage =
     thumbnail_reference = None;
     anchors = [ minimal_anchor_reference ];
     quest = None;
-    obstacles = None
+    obstacles = None;
+    decor = None
   }
 ;;
 

@@ -1,0 +1,19 @@
+type model_anchor_position <ocaml from="Model"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+(* One drawn layer of a sprite character (a paper doll). The client resolves [sheet] to the sheets of the
+   active pack (<sheet>.<animation>.{albedo,normal,depth}.png, see the sprite metadata in sprite.atd); data names
+   no file. Every humanoid is drawn as split base layers (head, torso, legs, ...): a piece of armour replaces
+   the layer of its equipment slot (the category's name, lower case) instead of hiding a part of the body.
+   Layers carry per-pixel depth, so the draw order follows the geometry; [sort] only breaks a tie. *)
+type visual_layer <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  (* the sheet family id, e.g. "chest.strappedleathertunic" or "body_green"; lower case letters, digits, '_' and '.' *)
+  sheet: string <ocaml valid="Validation.validate_sheet_id">;
+  (* the body socket it follows. Absent: equipment follows the socket of its category (Head -> HeadAnchor, Back ->
+     BackAnchor, Chest -> ChestAnchor, ...), a weapon the socket of its hand; a monster body has none *)
+  ?socket <cs usetype="Optional<Type.ModelAnchorPosition>">: model_anchor_position option;
+  (* draw order tie-break when two layers have equal pixel depth (a cape over the back) *)
+  sort: int;
+  (* only drawn while the wielded weapon belongs to one of these weapon classes; absent = always *)
+  ?only_for_classes <cs usetype="Optional<EntityReference[]>">: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `WeaponClass">;
+}

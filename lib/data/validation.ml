@@ -302,7 +302,8 @@ let validate_entity_definition_internal
   | `Quest { owner; id; entity_type; key; version; _ }
   | `Anchor { owner; id; entity_type; key; version; _ }
   | `Stage { owner; id; entity_type; key; version; _ }
-  | `SkillStone { owner; id; entity_type; key; version; _ } ->
+  | `SkillStone { owner; id; entity_type; key; version; _ }
+  | `WeaponClass { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -402,3 +403,75 @@ let validate_obstacle (o : Stage_t.obstacle) =
 
 let validate_obstacles (obstacles : Stage_t.obstacle list option) =
   Option.fold ~none:true ~some:(List.for_all validate_obstacle) obstacles
+
+
+(* The id of a sprite sheet family or layer: lower case letters, digits, '_' and '.', starting with a letter *)
+let validate_sheet_id (id : string) =
+  String.length id > 0
+  && String.length id <= 64
+  && (match id.[0] with 'a' .. 'z' -> true | _ -> false)
+  && String.for_all (function 'a' .. 'z' | '0' .. '9' | '_' | '.' -> true | _ -> false) id
+  && not (String.starts_with ~prefix:"." id || String.ends_with ~suffix:"." id)
+;;
+
+let validate_sheet_id_if_some (id : string option) =
+  Option.fold ~none:true ~some:validate_sheet_id id
+;;
+
+(* A prop is named by kind (lamp), model key (NTree3) or model id (Octoio:Model:NTree3:1) *)
+let validate_prop_name (name : string) =
+  String.length name > 0
+  && String.length name <= 96
+  && String.for_all
+       (function 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' | '-' | ':' -> true | _ -> false)
+       name
+;;
+
+let validate_prop_name_if_some (name : string option) =
+  Option.fold ~none:true ~some:validate_prop_name name
+;;
+
+let validate_prop_scale (scale : float option) =
+  Option.fold ~none:true ~some:(fun s -> Float.is_finite s && s >= 0.1 && s <= 10.) scale
+;;
+
+(* Scenery stands on finite ground coordinates *)
+let validate_stage_props (props : Stage_t.stage_prop list option) =
+  Option.fold
+    ~none:true
+    ~some:
+      (List.for_all (fun (p : Stage_t.stage_prop) ->
+         Float.is_finite p.x
+         && Float.is_finite p.z
+         && Option.fold ~none:true ~some:Float.is_finite p.yaw))
+    props
+;;
+
+(* A class lists at least one category, none twice *)
+let validate_weapon_class_categories (categories : Weapon_t.weapon_category list) =
+  categories <> [] && List.length categories = List.length (List.sort_uniq compare categories)
+;;
+
+(* The cue a slot plays: an attack cue for the basic attack, the locomotion cues for idle, walk and run, the
+   hit and death cues for the rest *)
+let animation_slot_takes_cue (slot : Weapon_class_t.animation_slot) (cue : Animation_t.animation_cue)
+  =
+  match slot, cue with
+  | `Idle, `Idle | `Walk, `Walk | `Run, `Run | `Death, `Death -> true
+  | `Hit, (`Hit | `HitBlocked) -> true
+  | ( `BasicAttack,
+      ( `AttackGeneric | `AttackUnarmed | `AttackStab | `AttackSlash | `AttackThrust
+      | `AttackCrush | `AttackWand | `AttackShield | `AttackDual | `AttackTwoHandSlash
+      | `AttackTwoHandChop | `AttackTwoHandThrust | `AttackTwoHandStaff | `AttackShoot ) )
+    -> true
+  | _ -> false
+;;
+
+(* One entry per slot, each with a cue that fits its slot *)
+let validate_animation_set (entries : Weapon_class_t.animation_set_entry list) =
+  let slots = List.map (fun (e : Weapon_class_t.animation_set_entry) -> e.slot) entries in
+  List.length slots = List.length (List.sort_uniq compare slots)
+  && List.for_all
+       (fun (e : Weapon_class_t.animation_set_entry) -> animation_slot_takes_cue e.slot e.cue)
+       entries
+;;

@@ -45,6 +45,22 @@ type obstacle <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" im
   ?half_z <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
   ?yaw <cs usetype="Optional<float>">: float option;
   ?blocks_sight <cs usetype="Optional<bool>">: bool option;
+  (* The prop that dresses it, by kind (`lamp`, `fence`, `barrel`, ...) or by model key or id (`NTree3`,
+     `Octoio:Model:NTree3:1`): the client's pack catalog resolves it to a model (key or id first, then the kind)
+     and scales it to the shape. Absent: the catalog picks a model for [kind] and the stage's theme. Presentation only. *)
+  ?prop <cs usetype="Optional<string>">: string option <ocaml valid="Validation.validate_prop_name_if_some">;
+}
+
+(* Scenery that is not in the way: a prop standing at ([x], [z]) turned by [yaw] degrees and scaled by [scale] (default 1;
+   the model's own size, the catalog does not fit it to a footprint). Nothing collides with it and the simulation never
+   reads it. [prop] is resolved like an obstacle's: a kind or a model key or id, not found = nothing is drawn. A lantern
+   or a street lamp brings the light its model carries. *)
+type stage_prop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+  prop <cs usetype="string">: string <ocaml valid="Validation.validate_prop_name">;
+  x: float;
+  z: float;
+  ?yaw <cs usetype="Optional<float>">: float option;
+  ?scale <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_prop_scale">;
 }
 
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
@@ -56,4 +72,6 @@ type stage <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Anchor">;
   ?quest <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
   ?obstacles <cs usetype="Optional<Obstacle[]>">: obstacle list option <ocaml valid="Validation.validate_obstacles">;
+  (* Non-colliding scenery, see [stage_prop] *)
+  ?decor <cs usetype="Optional<StageProp[]>">: stage_prop list option <ocaml valid="Validation.validate_stage_props">;
 }

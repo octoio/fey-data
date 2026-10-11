@@ -228,4 +228,7 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   ?charges <cs usetype="Optional<int>">: int option <ocaml valid="Validation.validate_charges">;
   (* effects that fire on something happening to a character that knows the skill (see trigger.atd) *)
   ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+  (* seconds from the start of the cast to the hit, for skills with an attack cue: the client plays the attack clip at
+     the rate (clip impact time / hit_delay) so the hit lands with the simulation's. Absent: the client's default *)
+  ?hit_delay <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.05">;
 }

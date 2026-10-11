@@ -675,7 +675,7 @@ end
 
 module ObstacleValidationTests = struct
   let obstacle shape radius half_x half_z : Data.Stage_t.obstacle =
-    { kind = `Rock; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None; blocks_sight = None }
+    { kind = `Rock; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None; blocks_sight = None; prop = None }
   ;;
 
   let test_validate_obstacles () =
@@ -691,6 +691,73 @@ end
 
 let obstacle_validation_tests =
   [ "validate_obstacles", `Quick, ObstacleValidationTests.test_validate_obstacles ]
+;;
+
+module PresentationValidationTests = struct
+  let test_sheet_id () =
+    check bool "family" true (validate_sheet_id "body_green");
+    check bool "item layer" true (validate_sheet_id "chest.strappedleathertunic");
+    check bool "empty" false (validate_sheet_id "");
+    check bool "upper case" false (validate_sheet_id "Body");
+    check bool "starts with a digit" false (validate_sheet_id "1body");
+    check bool "path" false (validate_sheet_id "a/b");
+    check bool "trailing dot" false (validate_sheet_id "body.");
+    check bool "absent" true (validate_sheet_id_if_some None);
+    check bool "bad if present" false (validate_sheet_id_if_some (Some "Slime"))
+  ;;
+
+  let test_prop_name () =
+    check bool "kind" true (validate_prop_name "lamp");
+    check bool "key" true (validate_prop_name "NTree3");
+    check bool "id" true (validate_prop_name "Octoio:Model:NTree3:1");
+    check bool "empty" false (validate_prop_name "");
+    check bool "space" false (validate_prop_name "street lamp");
+    check bool "path" false (validate_prop_name "../x");
+    check bool "absent" true (validate_prop_name_if_some None)
+  ;;
+
+  let stage_prop ?(x = 1.) ?scale prop : Data.Stage_t.stage_prop =
+    { prop; x; z = 2.; yaw = None; scale }
+  ;;
+
+  let test_stage_props () =
+    check bool "absent" true (validate_stage_props None);
+    check bool "props" true (validate_stage_props (Some [ stage_prop "fence"; stage_prop ~scale:1.5 "lamp" ]));
+    check bool "non finite position" false (validate_stage_props (Some [ stage_prop ~x:Float.nan "fence" ]));
+    check bool "scale in range" true (validate_prop_scale (Some 2.));
+    check bool "scale too small" false (validate_prop_scale (Some 0.01));
+    check bool "scale too big" false (validate_prop_scale (Some 50.))
+  ;;
+
+  let entry slot cue : Data.Weapon_class_t.animation_set_entry = { slot; cue; variant = 0 }
+
+  let test_weapon_class_categories () =
+    check bool "one" true (validate_weapon_class_categories [ `Bow ]);
+    check bool "two" true (validate_weapon_class_categories [ `OneHandSword; `OneHandAxe ]);
+    check bool "none" false (validate_weapon_class_categories []);
+    check bool "twice" false (validate_weapon_class_categories [ `Bow; `Bow ])
+  ;;
+
+  let test_animation_set () =
+    check bool "empty" true (validate_animation_set []);
+    check bool "attack" true (validate_animation_set [ entry `BasicAttack `AttackShoot ]);
+    check bool "stance" true
+      (validate_animation_set
+         [ entry `Idle `Idle; entry `Walk `Walk; entry `Run `Run; entry `Hit `HitBlocked; entry `Death `Death ]);
+    check bool "an attack cue in the idle slot" false (validate_animation_set [ entry `Idle `AttackSlash ]);
+    check bool "an idle cue as the basic attack" false (validate_animation_set [ entry `BasicAttack `Idle ]);
+    check bool "a slot twice" false
+      (validate_animation_set [ entry `BasicAttack `AttackSlash; entry `BasicAttack `AttackStab ])
+  ;;
+end
+
+let presentation_validation_tests =
+  [ "validate_sheet_id", `Quick, PresentationValidationTests.test_sheet_id;
+    "validate_prop_name", `Quick, PresentationValidationTests.test_prop_name;
+    "validate_stage_props", `Quick, PresentationValidationTests.test_stage_props;
+    "validate_weapon_class_categories", `Quick, PresentationValidationTests.test_weapon_class_categories;
+    "validate_animation_set", `Quick, PresentationValidationTests.test_animation_set
+  ]
 ;;
 
 let move_node_validation_tests =
@@ -1161,6 +1228,7 @@ let () =
       ("Projectile Kind Validation", projectile_kind_validation_tests);
       ("Move Node Validation", move_node_validation_tests);
       ("Obstacle Validation", obstacle_validation_tests);
+      ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);

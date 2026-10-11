@@ -1,9 +1,17 @@
 (executable
  (public_name gamedata)
  (name main)
+ (modules main)
  (libraries gamedata gamedata.csharp gamedata.rust gamedata.data gamedata.config))
 
 (executable
  (public_name server)
  (name server)
+ (modules server)
+ (libraries gamedata gamedata.data))
+
+(executable
+ (public_name spritecheck)
+ (name spritecheck)
+ (modules spritecheck)
  (libraries gamedata gamedata.data))
