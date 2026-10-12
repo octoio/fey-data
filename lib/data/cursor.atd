@@ -8,6 +8,9 @@ type cursor_type <cs name="Cursor" namespace="Octoio.Fey.Data.Type" imports="Sys
     | Loot
     | QuestBoard
     | Interact
+    | Move
+    | Invalid
+    | Ally
     ] 
 
 type cursor <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
