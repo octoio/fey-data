@@ -792,6 +792,7 @@ module ProjectileKindValidationTests = struct
       max_hit_count = 1;
       on_impact = [];
       on_end = [];
+      vfx = None;
       speed;
       max_range;
       radius = 0.3
@@ -807,6 +808,7 @@ module ProjectileKindValidationTests = struct
       max_hit_count = 4;
       on_impact = [];
       on_end = [];
+      vfx = None;
       flight_time;
       max_range = 12.;
       radius = 2.;
@@ -823,6 +825,7 @@ module ProjectileKindValidationTests = struct
       max_hit_count = 1;
       on_impact = [];
       on_end = [];
+      vfx = None;
       range = 10.;
       width = 0.8;
       tick_interval;
@@ -1226,6 +1229,28 @@ let file_validation_tests =
   [ ("validate_file", `Quick, FileValidationTests.test_validate_file) ]
 ;;
 
+(* Effect keys (vfx.atd) *)
+module VfxKeyTests = struct
+  let test_vfx_key () =
+    let ok k = check bool k true (vfx_key k) in
+    let bad k = check bool ("bad " ^ k) false (vfx_key k) in
+    List.iter ok [ "fire/gather"; "frost/bolt-2"; "heal" ];
+    List.iter bad [ ""; "/fire"; "fire/"; "fire//x"; "Fire/gather"; "fire gather"; "fire_x" ]
+  ;;
+
+  let test_vfx_key_if_some () =
+    check bool "none" true (vfx_key_if_some None);
+    check bool "some ok" true (vfx_key_if_some (Some "a/b"));
+    check bool "some bad" false (vfx_key_if_some (Some "A"))
+  ;;
+end
+
+let vfx_key_tests =
+  [ ("vfx_key", `Quick, VfxKeyTests.test_vfx_key);
+    ("vfx_key_if_some", `Quick, VfxKeyTests.test_vfx_key_if_some)
+  ]
+;;
+
 (* Main test runner *)
 let () =
   let all_tests =
@@ -1248,7 +1273,8 @@ let () =
       ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
-      ("File Validation", file_validation_tests)
+      ("File Validation", file_validation_tests);
+      ("Vfx Key Validation", vfx_key_tests)
     ]
   in
   run "Validation Module Tests" all_tests

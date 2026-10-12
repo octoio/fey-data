@@ -3,6 +3,7 @@ type hit_type <ocaml from="Common"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type trigger <ocaml from="Trigger"> = abstract
+type status_vfx <ocaml from="Vfx"> = abstract
 
 type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octoio.Fey.Data.Type"> =
     [ StatChange
@@ -91,4 +92,6 @@ type status <cs namespace="Octoio.Fey.Data.Dto"> = {
     stack: status_stack;
     (* effects that fire on something happening to the afflicted character while it has the status (see trigger.atd) *)
     ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+  (* the effect on the afflicted character while the status lasts (see vfx.atd) *)
+  ?vfx <cs usetype="Optional<StatusVfx>">: status_vfx option;
 }
