@@ -653,9 +653,9 @@ let generator_error_messages definitions =
   prefab_errors @ stage_errors
 ;;
 
-(* Expeditions: the camp stage has a place for the party to appear on, the boss slot (the last one) is played on
-   hand-made stages only (a generated layout has no authored boss arena), and every quest of the chain is a quest the
-   board plays on a stage of its own. *)
+(* Expeditions: the camp stage has a place for the party to appear on, and every quest of the chain is a quest the
+   board plays on a stage of its own. The boss slot may be on a stage with a generator: the sim plays it on the
+   hand-made layout. *)
 let expedition_error_messages definitions =
   let quests =
     List.filter_map
@@ -702,7 +702,6 @@ let expedition_error_messages definitions =
             then [ Printf.sprintf "Expedition %s: camp stage %s must be hand-made" id entity.camp.id ]
             else []
         in
-        let last = List.length entity.slots - 1 in
         let slot_errors =
           List.concat
             (List.mapi
@@ -723,18 +722,7 @@ let expedition_error_messages definitions =
                                q.id
                            ]
                        in
-                       let stage_errors =
-                         match List.assoc_opt quest.stage.id stages with
-                         | Some (stage : Data.Stage_t.stage) when i = last && Option.is_some stage.generator ->
-                           [ Printf.sprintf
-                               "Expedition %s: boss slot quest %s is played on generated stage %s"
-                               id
-                               q.id
-                               quest.stage.id
-                           ]
-                         | _ -> []
-                       in
-                       origin_errors @ stage_errors)
+                       origin_errors)
                    slot.quests)
                entity.slots)
         in
