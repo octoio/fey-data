@@ -208,6 +208,15 @@ type skill_experience <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializa
   ?cooldown_per_level <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_cooldown_per_level">;
 }
 
+(* Movement during a cast. [Root]: the caster cannot walk for the cast window; move inputs are ignored. [Free]: movement
+   skills and buffs the caster may walk through. [CancelOnMove]: the caster stands still while casting, but a move
+   input before the window ends cancels the cast (mana and cooldown come back when nothing has landed) *)
+type skill_cast_movement <cs name="SkillCastMovement" namespace="Octoio.Fey.Data.Type"> =
+  [ Root
+  | Free
+  | CancelOnMove
+  ]
+
 type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
   metadata: metadata;
   quality <cs usetype="Type.Quality">: quality_type;
@@ -220,8 +229,10 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   cast_distance: float_range <cs validate="Validation.float_range_min {min=0.0; max=100.0}">;
   indicators: skill_indicator list;
   ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
-  (* true: the caster cannot walk from the start of the cast until it completes or is cancelled *)
-  ?root_while_casting <cs usetype="Optional<bool>">: bool option;
+  (* What a move input does to the caster while this skill is cast (docs/design/skill-audit.md in fey-rs). Absent = Root.
+     The cast window runs from the start of the cast to the end of its last Animation node (to the end of the tree
+     when it has none), so a zone that keeps burning after the cast does not hold the caster. *)
+  ?cast_movement <cs usetype="Optional<Type.SkillCastMovement>">: skill_cast_movement option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
   ?cancels_cast <cs usetype="Optional<bool>">: bool option;
   (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
