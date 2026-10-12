@@ -109,6 +109,6 @@ type character <cs namespace="Octoio.Fey.Data.Dto"  imports="System;UnityEngine"
     (* Sprite look of a monster: the family (its own skeleton and clips, the directory of its sheets) and the layers
        drawn, usually a single body sheet. Absent: the client draws the character's default look. A weapon class is
        not needed, the attack cue comes from the skill. *)
-    ?sprite_family <cs usetype="Optional<string>">: string option <ocaml valid="Validation.validate_sheet_id_if_some">;
+    ?sprite_family <cs usetype="Optional<string>">: string option <ocaml valid="Validation.validate_sprite_family_if_some">;
     ?visual_layers <cs usetype="Optional<VisualLayer[]>">: visual_layer list option;
   }

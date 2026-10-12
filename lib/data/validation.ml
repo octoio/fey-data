@@ -419,6 +419,17 @@ let validate_sheet_id_if_some (id : string option) =
   Option.fold ~none:true ~some:validate_sheet_id id
 ;;
 
+(* The id of a sprite family (the directory of its sheets): a sheet id that may also hold '-' between words
+   (the low-poly animal families are named lp-rat, lp-wolf, ...) *)
+let validate_sprite_family (id : string) =
+  validate_sheet_id (String.map (function '-' -> '_' | c -> c) id)
+  && not (String.starts_with ~prefix:"-" id || String.ends_with ~suffix:"-" id)
+;;
+
+let validate_sprite_family_if_some (id : string option) =
+  Option.fold ~none:true ~some:validate_sprite_family id
+;;
+
 (* A prop is named by kind (lamp), model key (NTree3) or model id (Octoio:Model:NTree3:1) *)
 let validate_prop_name (name : string) =
   String.length name > 0
