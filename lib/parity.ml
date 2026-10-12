@@ -27,6 +27,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `SkillStone _ -> `SkillStone
   | `WeaponClass _ -> `WeaponClass
   | `RoomPrefab _ -> `RoomPrefab
+  | `Achievement _ -> `Achievement
 ;;
 
 let test_stat_sheet_parity

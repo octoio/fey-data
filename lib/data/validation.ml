@@ -304,7 +304,8 @@ let validate_entity_definition_internal
   | `Stage { owner; id; entity_type; key; version; _ }
   | `SkillStone { owner; id; entity_type; key; version; _ }
   | `WeaponClass { owner; id; entity_type; key; version; _ }
-  | `RoomPrefab { owner; id; entity_type; key; version; _ } ->
+  | `RoomPrefab { owner; id; entity_type; key; version; _ }
+  | `Achievement { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -505,3 +506,47 @@ let validate_animation_set (entries : Weapon_class_t.animation_set_entry list) =
 (* `crypt.hollow_nest`: lower case words joined by dots and underscores *)
 let prefab_id_regex = Re.Perl.compile_pat "^[a-z0-9]+(\\.[a-z0-9_]+)+$"
 let validate_prefab_id (id : string) = Re.execp prefab_id_regex id
+
+(* Achievements: a condition names a ledger metric (a lower case snake id; the Rust side checks that it exists in
+   fey_core::ledger::METRICS) and optionally a subject, by entity or by tag, never both. *)
+let achievement_metric_key_regex = Re.Perl.compile_pat "^[a-z][a-z0-9_]{1,47}$"
+let achievement_metric_key (k : string) = Re.execp achievement_metric_key_regex k
+let achievement_subject_tag_regex = Re.Perl.compile_pat "^[A-Za-z0-9_@]{1,64}$"
+let achievement_subject_tag (t : string) = Re.execp achievement_subject_tag_regex t
+
+let achievement_subject_tag_if_some (t : string option) =
+  Option.fold ~none:true ~some:achievement_subject_tag t
+;;
+
+let rec achievement_condition_ok (c : Achievement_t.achievement_condition_internal) =
+  match c with
+  | `Stat { subject; subject_tag; _ } -> subject = None || subject_tag = None
+  | `All { children; _ } | `Any { children; _ } ->
+    List.for_all achievement_condition_ok children
+;;
+
+let unlock_name_regex = Re.Perl.compile_pat "^[a-zA-Z0-9_]{3,64}$"
+
+(* An unlock carries exactly the field its kind needs. *)
+let achievement_unlock_ok (u : Achievement_t.unlock) =
+  let target_is types =
+    match u.target with
+    | Some { entity_type; _ } -> List.mem entity_type types
+    | None -> false
+  in
+  let named =
+    match u.name with
+    | Some n -> Re.execp unlock_name_regex n
+    | None -> false
+  in
+  match u.kind with
+  | `ItemPool -> target_is [ `Equipment; `Weapon ] && u.feature = None && u.name = None
+  | `WeaponClass -> target_is [ `WeaponClass ] && u.feature = None && u.name = None
+  | `SkillPool -> target_is [ `Skill ] && u.feature = None && u.name = None
+  | `CampFeature -> u.feature <> None && u.target = None && u.name = None
+  | `KitChoice | `Expedition | `Vendor -> named && u.target = None && u.feature = None
+;;
+
+let validate_achievement (a : Achievement_t.achievement_def) =
+  achievement_condition_ok a.condition && List.for_all achievement_unlock_ok a.rewards
+;;
