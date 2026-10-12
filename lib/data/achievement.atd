@@ -3,3 +3,99 @@ type achievement_type <cs name="Achievement" namespace="Octoio.Fey.Data.Type"> =
   | SlimeExterminator
   | BoarDefender
   ]
+
+type metadata <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+(* Achievements as data (fey-rs docs/design/runs.md section 5). An achievement is earned when its [condition] holds
+   over a player's stat ledger; it never grants power, it only unlocks options (the [rewards]). The metric ids and the
+   subject kinds a condition may name are the ledger registry of the Rust side (fey_core::ledger::METRICS): this
+   schema keeps them as strings and a data test on the Rust side checks them. Data holds ids and numbers only. *)
+
+type achievement_op <cs name="AchievementOp" namespace="Octoio.Fey.Data.Type"> =
+  [ Ge
+  | Le
+  | Eq
+  ]
+
+(* Lifetime: the stats of every run so far plus the current one. Run: the current run only. *)
+type achievement_scope <cs name="AchievementScope" namespace="Octoio.Fey.Data.Type"> =
+  [ Lifetime
+  | Run
+  ]
+
+type achievement_condition_type <cs name="AchievementCondition" namespace="Octoio.Fey.Data.Type"> =
+  [ Stat
+  | All
+  | Any
+  ]
+
+type achievement_condition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+  condition_type <json name="type"> <cs usetype="Type.AchievementCondition">: achievement_condition_type;
+}
+
+(* [key] is a ledger metric id (kills, boss_kills, quest_cleared, ...). The ledger key is the metric id alone, or
+   metric/subject: [subject] names an entity (a character, skill or quest) and its id becomes the subject;
+   [subject_tag] names the subject of the metrics that have no entity (a monster rank, a tier). A Max metric holds
+   the highest value seen, a Min metric the lowest (absent = never, so only Le and Eq can be true for a value that
+   exists). *)
+type achievement_condition_stat <cs extends="AchievementCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: achievement_condition_type;
+  key: string <ocaml valid="Validation.achievement_metric_key">;
+  ?subject <cs usetype="Optional<EntityReference>">: entity_reference option;
+  ?subject_tag <cs usetype="Optional<string>">: string option <ocaml valid="Validation.achievement_subject_tag_if_some">;
+  op <cs usetype="Type.AchievementOp">: achievement_op;
+  value: int <ocaml valid="Validation.int_min 0">;
+  scope <cs usetype="Type.AchievementScope">: achievement_scope;
+}
+
+type achievement_condition_all <cs extends="AchievementCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: achievement_condition_type;
+  children <cs usetype="AchievementCondition[]">: achievement_condition_internal list <ocaml valid="Validation.list_min_length 1">;
+}
+
+type achievement_condition_any <cs extends="AchievementCondition" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
+  condition_type <json name="type"> <cs ignore="true">: achievement_condition_type;
+  children <cs usetype="AchievementCondition[]">: achievement_condition_internal list <ocaml valid="Validation.list_min_length 1">;
+}
+
+type achievement_condition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=AchievementCondition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=AchievementCondition,enumname=Type.AchievementCondition)"> =
+  [ Stat of achievement_condition_stat
+  | All of achievement_condition_all
+  | Any of achievement_condition_any
+  ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+
+type unlock_kind <cs name="UnlockKind" namespace="Octoio.Fey.Data.Type"> =
+  [ ItemPool
+  | WeaponClass
+  | SkillPool
+  | KitChoice
+  | CampFeature
+  | Expedition
+  | Vendor
+  ]
+
+type camp_feature <cs name="CampFeature" namespace="Octoio.Fey.Data.Type"> =
+  [ Merchant
+  | NextQuestReroll
+  | SharedStash
+  ]
+
+(* One option an achievement opens. ItemPool (an Equipment or Weapon), WeaponClass and SkillPool name their entity in
+   [target]; CampFeature names its [feature]; KitChoice, Expedition and Vendor name their option by [name] (an id)
+   until those get entity types of their own. The unlocks are recorded when the achievement is earned and applied at
+   the next run start. *)
+type unlock <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+  kind <cs usetype="Type.UnlockKind">: unlock_kind;
+  ?target <cs usetype="Optional<EntityReference>">: entity_reference option;
+  ?feature <cs usetype="Optional<Type.CampFeature>">: camp_feature option;
+  ?name <cs usetype="Optional<string>">: string option;
+}
+
+(* [hidden]: the client lists it only once earned. *)
+type achievement_def <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic"> = {
+  metadata: metadata;
+  hidden: bool;
+  condition <cs usetype="AchievementCondition">: achievement_condition_internal;
+  rewards <cs usetype="List<Unlock>">: unlock list <ocaml valid="Validation.list_min_length 1">;
+} <ocaml valid="Validation.validate_achievement">

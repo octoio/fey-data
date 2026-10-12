@@ -611,6 +611,90 @@ let quest_node_id_validation_tests =
   ]
 ;;
 
+module AchievementValidationTests = struct
+  let stat ?subject ?subject_tag key : Data.Achievement_t.achievement_condition_internal =
+    `Stat
+      { Data.Achievement_t.condition_type = `Stat;
+        key;
+        subject;
+        subject_tag;
+        op = `Ge;
+        value = 1;
+        scope = `Lifetime
+      }
+  ;;
+
+  let unlock ?target ?feature ?name kind : Data.Achievement_t.unlock =
+    { Data.Achievement_t.kind; target; feature; name }
+  ;;
+
+  let achievement condition rewards : Data.Achievement_t.achievement_def =
+    { Data.Achievement_t.metadata = { title = "T"; description = "D" };
+      hidden = false;
+      condition;
+      rewards
+    }
+  ;;
+
+  let merchant = unlock ~feature:`Merchant `CampFeature
+
+  let test_metric_keys () =
+    check bool "snake case" true (achievement_metric_key "boss_kills");
+    check bool "upper case" false (achievement_metric_key "BossKills");
+    check bool "slash is the subject's job" false (achievement_metric_key "kills/x");
+    check bool "empty" false (achievement_metric_key "")
+  ;;
+
+  let test_subject_is_entity_or_tag () =
+    let r = make_entity_reference ~entity_type:`Character () in
+    check bool "entity" true (validate_achievement (achievement (stat ~subject:r "kills") [ merchant ]));
+    check bool "tag" true
+      (validate_achievement (achievement (stat ~subject_tag:"Boss" "kills_rank") [ merchant ]));
+    check bool "both" false
+      (validate_achievement
+         (achievement (stat ~subject:r ~subject_tag:"Boss" "kills_rank") [ merchant ]));
+    let all =
+      `All
+        ({ Data.Achievement_t.condition_type = `All; children = [ stat "kills" ] }
+          : Data.Achievement_t.achievement_condition_all)
+    in
+    let bad =
+      `Any
+        ({ Data.Achievement_t.condition_type = `Any;
+           children = [ all; stat ~subject:r ~subject_tag:"x" "kills" ]
+         }
+          : Data.Achievement_t.achievement_condition_any)
+    in
+    check bool "nested bad" false (validate_achievement (achievement bad [ merchant ]))
+  ;;
+
+  let test_unlock_kinds () =
+    let ok u = achievement_unlock_ok u in
+    let skill = make_entity_reference ~entity_type:`Skill () in
+    let class_ = make_entity_reference ~entity_type:`WeaponClass () in
+    let equip = make_entity_reference ~entity_type:`Equipment () in
+    check bool "skill pool" true (ok (unlock ~target:skill `SkillPool));
+    check bool "skill pool wrong type" false (ok (unlock ~target:class_ `SkillPool));
+    check bool "item pool equipment" true (ok (unlock ~target:equip `ItemPool));
+    check bool "item pool weapon" true
+      (ok (unlock ~target:(make_entity_reference ~entity_type:`Weapon ()) `ItemPool));
+    check bool "weapon class" true (ok (unlock ~target:class_ `WeaponClass));
+    check bool "camp feature" true (ok merchant);
+    check bool "camp feature without feature" false (ok (unlock `CampFeature));
+    check bool "kit by name" true (ok (unlock ~name:"Farmhand" `KitChoice));
+    check bool "kit with target" false (ok (unlock ~name:"Farmhand" ~target:skill `KitChoice));
+    check bool "vendor without name" false (ok (unlock `Vendor));
+    check bool "skill pool with extra name" false (ok (unlock ~target:skill ~name:"abc" `SkillPool))
+  ;;
+end
+
+let achievement_validation_tests =
+  [ ("metric keys", `Quick, AchievementValidationTests.test_metric_keys);
+    ("subject is an entity or a tag", `Quick, AchievementValidationTests.test_subject_is_entity_or_tag);
+    ("unlock kinds", `Quick, AchievementValidationTests.test_unlock_kinds)
+  ]
+;;
+
 module SummonControlValidationTests = struct
   let summon ?lifetime ?controlled () : Data.Skill_t.skill_action_summon_node =
     { skill_action_node_type = `Summon;
@@ -1274,7 +1358,8 @@ let () =
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests);
-      ("Vfx Key Validation", vfx_key_tests)
+      ("Vfx Key Validation", vfx_key_tests);
+      ("Achievement Validation", achievement_validation_tests)
     ]
   in
   run "Validation Module Tests" all_tests

@@ -24,6 +24,7 @@ type stage <ocaml from="Stage"> = abstract
 type skill_stone <ocaml from="Skill_stone"> = abstract
 type weapon_class <ocaml from="Weapon_class"> = abstract
 type room_prefab <ocaml from="Room_prefab"> = abstract
+type achievement_def <ocaml from="Achievement"> = abstract
 
 type entity_index <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
   { index <cs usetype="uint">: int <ocaml valid="Validation.int_min 0">;
@@ -48,6 +49,16 @@ type entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializ
     parent_id: int <ocaml valid="Validation.int_min 0">;
     created_at: int <ocaml valid="Validation.int_min 0">;
     updated_at: int <ocaml valid="Validation.int_min 0">; *)
+  }
+
+type achievement_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<AchievementDef>" modifiers="partial"> =
+  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type"> <cs ignore="true">: entity_type;
+    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
+    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
+    id <cs ignore="true">: string;
+
+    entity: achievement_def;
   }
 
 type weapon_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Weapon>" modifiers="partial"> =
@@ -316,4 +327,5 @@ type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | SkillStone of skill_stone_entity_definition
   | WeaponClass of weapon_class_entity_definition
   | RoomPrefab of room_prefab_entity_definition
+  | Achievement of achievement_entity_definition
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml valid="Validation.validate_entity_definition_internal">

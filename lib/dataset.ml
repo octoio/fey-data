@@ -53,7 +53,8 @@ let entity_reference_of_entity_definition
   | `Stage { id; owner; entity_type; key; version; _ }
   | `SkillStone { id; owner; entity_type; key; version; _ }
   | `WeaponClass { id; owner; entity_type; key; version; _ }
-  | `RoomPrefab { id; owner; entity_type; key; version; _ } ->
+  | `RoomPrefab { id; owner; entity_type; key; version; _ }
+  | `Achievement { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -261,6 +262,22 @@ let extract_entity_reference_from_generator_spec (spec : Data.Generator_t.genera
       (Option.value spec.pinned ~default:[])
 ;;
 
+let rec extract_entity_reference_from_achievement_condition
+  (c : Data.Achievement_t.achievement_condition_internal)
+  =
+  match c with
+  | `Stat { subject; _ } -> extract_from_option_entity_reference subject
+  | `All { children; _ } | `Any { children; _ } ->
+    List.concat_map extract_entity_reference_from_achievement_condition children
+;;
+
+let extract_entity_reference_from_achievement (a : Data.Achievement_t.achievement_def) =
+  extract_entity_reference_from_achievement_condition a.condition
+  @ List.concat_map
+      (fun (u : Data.Achievement_t.unlock) -> extract_from_option_entity_reference u.target)
+      a.rewards
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -304,6 +321,7 @@ let extract_entity_reference_from_entity_definition
     @ (match entity.generator with
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)
+  | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
   | `QuestDifficulty _
   | `WeaponClass _
   | `RoomPrefab _
