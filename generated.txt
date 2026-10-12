@@ -216,6 +216,7 @@
 ../fey/Assets/Scripts/Data/Dto/SkillActionRequirementNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionProjectileNode.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionMoveNode.cs
+../fey/Assets/Scripts/Data/Dto/SkillActionInterruptNode.cs
 ../fey/Assets/Scripts/Data/Dto/ISkillActionNodeVisitor.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionNodeVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/SkillActionNodeConverter.cs
