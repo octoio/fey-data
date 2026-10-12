@@ -344,6 +344,20 @@ let float_min_if_some min (x : float option) =
   | Some x -> Float.is_finite x && float_min min x
 ;;
 
+(* An effect key (vfx.atd): lowercase words, digits and "-" in groups joined by "/". *)
+let vfx_key (k : string) =
+  let word_char c = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c = '-' in
+  k <> ""
+  && String.split_on_char '/' k
+     |> List.for_all (fun g -> g <> "" && String.for_all word_char g)
+;;
+
+let vfx_key_if_some (k : string option) =
+  match k with
+  | None -> true
+  | Some k -> vfx_key k
+;;
+
 let int_min_if_some min (x : int option) =
   match x with
   | None -> true

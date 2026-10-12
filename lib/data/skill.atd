@@ -6,6 +6,7 @@ type hit_type <ocaml from="Common"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
+type skill_vfx <ocaml from="Vfx"> = abstract
 type trigger <ocaml from="Trigger"> = abstract
 type status_duration <ocaml from="Effect"> = abstract
 type requirement_evaluation <ocaml from="Requirement"> = abstract
@@ -242,4 +243,6 @@ type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   (* seconds from the start of the cast to the hit, for skills with an attack cue: the client plays the attack clip at
      the rate (clip impact time / hit_delay) so the hit lands with the simulation's. Absent: the client's default *)
   ?hit_delay <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.05">;
+  (* visual effects by phase (see vfx.atd); presentation only *)
+  ?vfx <cs usetype="Optional<SkillVfx>">: skill_vfx option;
 }

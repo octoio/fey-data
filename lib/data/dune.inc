@@ -587,6 +587,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets vfx_j.ml vfx_j.mli)
+ (deps vfx.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets vfx_t.ml vfx_t.mli)
+ (deps vfx.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets vfx_v.ml vfx_v.mli)
+ (deps vfx.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets visual_j.ml visual_j.mli)
  (deps visual.atd)
  (mode fallback)
@@ -737,6 +758,9 @@
   trigger_j
   trigger_t
   trigger_v
+  vfx_j
+  vfx_t
+  vfx_v
   visual_j
   visual_t
   visual_v
