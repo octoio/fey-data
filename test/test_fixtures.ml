@@ -191,7 +191,8 @@ let minimal_skill =
     cancels_cast = None;
     charges = None;
     triggers = None;
-    hit_delay = None
+    hit_delay = None;
+    vfx = None
   }
 ;;
 
@@ -294,7 +295,8 @@ let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
     mechanic = `StatChange { Data.Status_t.mechanic_type = `StatChange; stat = `Vit };
     stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None };
-    triggers = None
+    triggers = None;
+    vfx = None
   }
 ;;
 
@@ -647,6 +649,7 @@ let minimal_projectile_homing =
     max_hit_count = 1;
     on_impact = [];
     on_end = [];
+    vfx = None;
     speed = 10.0;
     rotation_speed = 180.0
   }
@@ -723,7 +726,8 @@ let skill_with_projectile =
     cancels_cast = None;
     charges = None;
     triggers = None;
-    hit_delay = None
+    hit_delay = None;
+    vfx = None
   }
 ;;
 

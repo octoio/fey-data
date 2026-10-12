@@ -31,6 +31,9 @@ If linking fails against OpenSSL after a Homebrew upgrade, the `ssl` bindings we
 ## Map generation data
 `generator.atd` (spec, `anchor_binding`), `room_prefab.atd` (the `RoomPrefab` entity), `stage.atd` (`?generator`), `anchor.atd` (`?binding`, repeated in every variant). `lib/mapgen_check.ml` is a port of the Rust generator's `spec_problems`, `quest::demands` and `quest::apply_demands` (fey-rs `crates/fey_core/src/mapgen`); `Validate.generator_error_messages` applies it to every stage with a `generator`. Keep both sides in step. Tests: `test/test_mapgen.ml`. Ranges reuse `int_range` / `float_range`; there are no tuples or payload sums in these types because the C# generator does not take them.
 
+## Visual effects (not an entity)
+`vfx.atd` types the effect keys skills, projectiles and statuses name (`?vfx` on `skill`, on every `projectile` variant and on `status`): an element plus optional effect keys per phase (cast, release, impact, area for skills; body, trail, impact for projectiles; one effect for a status). Keys are `lowercase-words/groups` (`Validation.vfx_key`); the client owns the recipe behind a key, so the data holds no art and no colours.
+
 ## Sprite metadata (not an entity)
 `lib/data/sprite.atd` types the sprite pipeline output (`sprites.json` v3, `portraits.json`); every type is `<cs ignore>` (Rust only). `dune exec spritecheck -- <path>...` validates files against it (`lib/sprite_check.ml`). `(string * T) list <json repr="object">` is how JSON maps are declared (Rust `BTreeMap`). The pipeline lives in the private `fey-assets` repo; its `pipeline/build.sh` calls the checker when `../fey-data` is built.
 
