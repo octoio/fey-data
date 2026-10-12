@@ -305,7 +305,8 @@ let validate_entity_definition_internal
   | `SkillStone { owner; id; entity_type; key; version; _ }
   | `WeaponClass { owner; id; entity_type; key; version; _ }
   | `RoomPrefab { owner; id; entity_type; key; version; _ }
-  | `Achievement { owner; id; entity_type; key; version; _ } ->
+  | `Achievement { owner; id; entity_type; key; version; _ }
+  | `Expedition { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -549,4 +550,19 @@ let achievement_unlock_ok (u : Achievement_t.unlock) =
 
 let validate_achievement (a : Achievement_t.achievement_def) =
   achievement_condition_ok a.condition && List.for_all achievement_unlock_ok a.rewards
+;;
+
+(* Expeditions: 3 to 5 slots, the last one is the boss. Which stages the quests are played on is checked on the whole
+   dataset (Validate.expedition_error_messages). *)
+let expedition_slot_count (slots : Expedition_t.expedition_slot list) =
+  let n = List.length slots in
+  3 <= n && n <= 5
+;;
+
+let validate_expedition (e : Expedition_t.expedition_def) =
+  List.for_all
+    (fun (s : Expedition_t.expedition_slot) ->
+      list_min_length 1 s.quests
+      && List.length (List.sort_uniq compare s.quests) = List.length s.quests)
+    e.slots
 ;;

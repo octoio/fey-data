@@ -325,6 +325,51 @@ let minimal_achievement_entity_definition : Data.Entity_t.entity_definition_inte
     }
 ;;
 
+(* Minimal valid expedition: three slots of one quest each, rested at the minimal stage *)
+let minimal_expedition_quest_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Quest;
+    key = "MinimalQuest";
+    version = 1;
+    id = "ownr:Quest:MinimalQuest:1"
+  }
+;;
+
+let minimal_expedition_slot level_bonus =
+  { Data.Expedition_t.quests = [ minimal_expedition_quest_reference ];
+    level_bonus;
+    loot_tilt = 0.0
+  }
+;;
+
+let minimal_expedition_camp_reference =
+  { Data.Common_t.owner = "ownr";
+    entity_type = `Stage;
+    key = "MinimalStage";
+    version = 1;
+    id = "ownr:Stage:MinimalStage:1"
+  }
+;;
+
+let minimal_expedition =
+  { Data.Expedition_t.metadata = minimal_metadata;
+    camp = minimal_expedition_camp_reference;
+    slots = [ minimal_expedition_slot 0; minimal_expedition_slot 1; minimal_expedition_slot 2 ];
+    xp_multiplier = None
+  }
+;;
+
+let minimal_expedition_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Expedition
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Expedition;
+      key = "MinimalExpedition";
+      version = 1;
+      id = "ownr:Expedition:MinimalExpedition:1";
+      entity = minimal_expedition
+    }
+;;
+
 (* Minimal valid status *)
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;

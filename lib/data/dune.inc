@@ -251,6 +251,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets expedition_j.ml expedition_j.mli)
+ (deps expedition.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets expedition_t.ml expedition_t.mli)
+ (deps expedition.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets expedition_v.ml expedition_v.mli)
+ (deps expedition.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets generator_j.ml generator_j.mli)
  (deps generator.atd)
  (mode fallback)
@@ -710,6 +731,9 @@
   equipment_j
   equipment_t
   equipment_v
+  expedition_j
+  expedition_t
+  expedition_v
   generator_j
   generator_t
   generator_v

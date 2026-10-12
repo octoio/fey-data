@@ -56,6 +56,7 @@
 ../fey/Assets/Scripts/Data/Dto/EntityIndexContainer.cs
 ../fey/Assets/Scripts/Data/Dto/EntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/AchievementEntityDefinition.cs
+../fey/Assets/Scripts/Data/Dto/ExpeditionEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/WeaponEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/SkillEntityDefinition.cs
 ../fey/Assets/Scripts/Data/Dto/EquipmentEntityDefinition.cs
@@ -94,6 +95,8 @@
 ../fey/Assets/Scripts/Data/Dto/StatSheet.cs
 ../fey/Assets/Scripts/Data/Type/Image.cs
 ../fey/Assets/Scripts/Data/Dto/Image.cs
+../fey/Assets/Scripts/Data/Dto/ExpeditionSlot.cs
+../fey/Assets/Scripts/Data/Dto/ExpeditionDef.cs
 ../fey/Assets/Scripts/Data/Type/Requirement.cs
 ../fey/Assets/Scripts/Data/Type/RequirementOperator.cs
 ../fey/Assets/Scripts/Data/Dto/Requirement.cs
