@@ -713,9 +713,15 @@ let expedition_error_messages definitions =
                      | None -> []
                      | Some (quest : Data.Quest_t.quest) ->
                        let origin_errors =
-                         if quest.origin = `QuestBoard
+                         if quest.origin = `QuestBoard || quest.origin = `Quest
                          then []
-                         else [ Printf.sprintf "Expedition %s: slot %d quest %s is not a board quest" id i q.id ]
+                         else
+                           [ Printf.sprintf
+                               "Expedition %s: slot %d quest %s is neither a board quest nor a quest of the Quest origin"
+                               id
+                               i
+                               q.id
+                           ]
                        in
                        let stage_errors =
                          match List.assoc_opt quest.stage.id stages with
