@@ -290,6 +290,41 @@ let minimal_room_prefab_entity_definition : Data.Entity_t.entity_definition_inte
     }
 ;;
 
+(* Minimal valid achievement: a lifetime kill counter that opens a camp feature *)
+let minimal_achievement =
+  { Data.Achievement_t.metadata = minimal_metadata;
+    hidden = false;
+    condition =
+      `Stat
+        { Data.Achievement_t.condition_type = `Stat;
+          key = "kills";
+          subject = None;
+          subject_tag = None;
+          op = `Ge;
+          value = 1;
+          scope = `Lifetime
+        };
+    rewards =
+      [ { Data.Achievement_t.kind = `CampFeature;
+          target = None;
+          feature = Some `Merchant;
+          name = None
+        }
+      ]
+  }
+;;
+
+let minimal_achievement_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Achievement
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Achievement;
+      key = "MinimalAchievement";
+      version = 1;
+      id = "ownr:Achievement:MinimalAchievement:1";
+      entity = minimal_achievement
+    }
+;;
+
 (* Minimal valid status *)
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;

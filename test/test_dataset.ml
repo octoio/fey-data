@@ -666,19 +666,20 @@ let test_interact_needs_a_zone_anchor () =
   let portal =
     ( "data/json/anchor_file.json",
       `Anchor
-        { Data.Entity_t.owner = "ownr";
-          entity_type = `Anchor;
-          key = "MinimalAnchor";
-          version = 1;
-          id = "ownr:Anchor:MinimalAnchor:1";
-          entity =
-            `Portal
-              { Data.Anchor_t.anchor_type = `Portal;
-                metadata = minimal_metadata;
-                transform = minimal_transform;
-                binding = None
-              }
-        } )
+        ({ Data.Entity_t.owner = "ownr";
+           entity_type = `Anchor;
+           key = "MinimalAnchor";
+           version = 1;
+           id = "ownr:Anchor:MinimalAnchor:1";
+           entity =
+             `Portal
+               { Data.Anchor_t.anchor_type = `Portal;
+                 metadata = minimal_metadata;
+                 transform = minimal_transform;
+                 binding = None
+               }
+         }
+          : Data.Entity_t.anchor_entity_definition) )
   in
   let errors defs = List.length (interact_errors (TestFixtures.create_dataset_with_definitions defs)) in
   check int "a Zone anchor can be interacted with" 0 (errors [ zone; quest ]);
@@ -848,7 +849,8 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_anchor_entity_definition;
       minimal_stage_entity_definition;
       minimal_weapon_class_entity_definition;
-      minimal_room_prefab_entity_definition
+      minimal_room_prefab_entity_definition;
+      minimal_achievement_entity_definition
     ]
   in
   List.iter
