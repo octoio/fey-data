@@ -54,7 +54,8 @@ let entity_reference_of_entity_definition
   | `SkillStone { id; owner; entity_type; key; version; _ }
   | `WeaponClass { id; owner; entity_type; key; version; _ }
   | `RoomPrefab { id; owner; entity_type; key; version; _ }
-  | `Achievement { id; owner; entity_type; key; version; _ } ->
+  | `Achievement { id; owner; entity_type; key; version; _ }
+  | `Expedition { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -278,6 +279,13 @@ let extract_entity_reference_from_achievement (a : Data.Achievement_t.achievemen
       a.rewards
 ;;
 
+let extract_entity_reference_from_expedition (e : Data.Expedition_t.expedition_def) =
+  e.camp
+  :: List.concat_map
+       (fun (slot : Data.Expedition_t.expedition_slot) -> slot.quests)
+       e.slots
+;;
+
 let extract_entity_reference_from_entity_definition
   (entity_definition : Data.Entity_t.entity_definition_internal)
   =
@@ -322,6 +330,7 @@ let extract_entity_reference_from_entity_definition
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
+  | `Expedition { entity; _ } -> extract_entity_reference_from_expedition entity
   | `QuestDifficulty _
   | `WeaponClass _
   | `RoomPrefab _

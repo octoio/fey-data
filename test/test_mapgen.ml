@@ -543,6 +543,44 @@ let test_an_infeasible_spec_on_a_stage_is_a_build_error () =
     (mentions ~substring:"Stage ownr:Stage:GenStage:1 generator: boss must be at depth >= 20" (errors world))
 ;;
 
+let test_a_boss_slot_cannot_be_played_on_a_generated_stage () =
+  let expedition : Data.Entity_t.entity_definition_internal =
+    `Expedition
+      ({ Data.Entity_t.owner = "ownr";
+        entity_type = `Expedition;
+        key = "GenExpedition";
+        version = 1;
+        id = "ownr:Expedition:GenExpedition:1";
+        entity =
+          { minimal_expedition with
+            Data.Expedition_t.slots =
+              [ minimal_expedition_slot 0;
+                minimal_expedition_slot 1;
+                { (minimal_expedition_slot 2) with
+                  Data.Expedition_t.quests = [ (reference `Quest "GenQuest") ]
+                }
+              ]
+          }
+       }
+        : Data.Entity_t.expedition_entity_definition)
+  in
+  let boss_errors definitions =
+    List.filter
+      (fun m -> Base.String.is_substring m ~substring:"boss slot quest")
+      (Validate.expedition_error_messages definitions)
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    quest_definition
+      { minimal_quest with
+        stage = reference `Stage "GenStage"
+      }
+  in
+  check int "generated stage" 1
+    (List.length (boss_errors (prefabs @ [ stage_definition [] (Some crypt); quest; expedition ])));
+  check int "hand-made stage" 0
+    (List.length (boss_errors (prefabs @ [ stage_definition [] None; quest; expedition ])))
+;;
+
 let test_a_missing_prefab_is_an_error () =
   let world = [ stage_definition [] (Some crypt) ] in
   check
@@ -682,6 +720,7 @@ let () =
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
+          test_case "A boss slot is never on a generated stage" `Quick test_a_boss_slot_cannot_be_played_on_a_generated_stage;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
           test_case "A quest anchor without a binding is refused" `Quick test_a_quest_anchor_without_a_binding_is_refused;
           test_case "Room prefabs are checked" `Quick test_room_prefabs_are_checked;

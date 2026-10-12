@@ -695,6 +695,44 @@ let achievement_validation_tests =
   ]
 ;;
 
+module ExpeditionValidationTests = struct
+  let quest = make_entity_reference ~entity_type:`Quest ()
+
+  let slot ?(quests = [ quest ]) n : Data.Expedition_t.expedition_slot =
+    { Data.Expedition_t.quests; level_bonus = n; loot_tilt = 0.0 }
+  ;;
+
+  let expedition slots : Data.Expedition_t.expedition_def =
+    { Data.Expedition_t.metadata = { title = "T"; description = "D" };
+      camp = make_entity_reference ~entity_type:`Stage ();
+      slots;
+      xp_multiplier = None
+    }
+  ;;
+
+  let test_slot_count () =
+    check bool "three" true (expedition_slot_count [ slot 0; slot 1; slot 2 ]);
+    check bool "five" true (expedition_slot_count [ slot 0; slot 1; slot 2; slot 3; slot 4 ]);
+    check bool "two" false (expedition_slot_count [ slot 0; slot 1 ]);
+    check bool "six" false
+      (expedition_slot_count [ slot 0; slot 1; slot 2; slot 3; slot 4; slot 5 ])
+  ;;
+
+  let test_quests_are_distinct () =
+    check bool "sound" true (validate_expedition (expedition [ slot 0; slot 1; slot 2 ]));
+    check bool "a quest twice in a slot" false
+      (validate_expedition (expedition [ slot ~quests:[ quest; quest ] 0; slot 1; slot 2 ]));
+    check bool "an empty slot" false
+      (validate_expedition (expedition [ slot ~quests:[] 0; slot 1; slot 2 ]))
+  ;;
+end
+
+let expedition_validation_tests =
+  [ ("slot count", `Quick, ExpeditionValidationTests.test_slot_count);
+    ("quests are distinct", `Quick, ExpeditionValidationTests.test_quests_are_distinct)
+  ]
+;;
+
 module SummonControlValidationTests = struct
   let summon ?lifetime ?controlled () : Data.Skill_t.skill_action_summon_node =
     { skill_action_node_type = `Summon;
@@ -1359,7 +1397,8 @@ let () =
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests);
       ("Vfx Key Validation", vfx_key_tests);
-      ("Achievement Validation", achievement_validation_tests)
+      ("Achievement Validation", achievement_validation_tests);
+      ("Expedition Validation", expedition_validation_tests)
     ]
   in
   run "Validation Module Tests" all_tests
