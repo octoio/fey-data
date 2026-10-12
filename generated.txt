@@ -197,6 +197,7 @@
 ../fey/Assets/Scripts/Data/Type/SkillActionNode.cs
 ../fey/Assets/Scripts/Data/Type/SkillMoveMode.cs
 ../fey/Assets/Scripts/Data/Type/SkillIndicatorPosition.cs
+../fey/Assets/Scripts/Data/Type/SkillCastMovement.cs
 ../fey/Assets/Scripts/Data/Dto/SkillCost.cs
 ../fey/Assets/Scripts/Data/Dto/ProjectileSpawnPosition.cs
 ../fey/Assets/Scripts/Data/Dto/SkillActionNode.cs
