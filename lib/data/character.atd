@@ -12,6 +12,7 @@ type character_type <cs name="Character" namespace="Octoio.Fey.Data.Type"> =
   [ Adventurer
   | Slime
   | Boar
+  | Beast
   ]
 
 (* Whom a character sides with. Factions are separate from the controller: who steers a character (an AI brain or
