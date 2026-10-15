@@ -624,9 +624,7 @@ module AchievementValidationTests = struct
       }
   ;;
 
-  let unlock ?target ?feature ?name kind : Data.Achievement_t.unlock =
-    { Data.Achievement_t.kind; target; feature; name }
-  ;;
+  let unlock ~target kind : Data.Achievement_t.unlock = { Data.Achievement_t.kind; target }
 
   let achievement condition rewards : Data.Achievement_t.achievement_def =
     { Data.Achievement_t.metadata = { title = "T"; description = "D" };
@@ -636,7 +634,7 @@ module AchievementValidationTests = struct
     }
   ;;
 
-  let merchant = unlock ~feature:`Merchant `CampFeature
+  let skill_unlock = unlock ~target:(make_entity_reference ~entity_type:`Skill ()) `SkillPool
 
   let test_metric_keys () =
     check bool "snake case" true (achievement_metric_key "boss_kills");
@@ -647,12 +645,12 @@ module AchievementValidationTests = struct
 
   let test_subject_is_entity_or_tag () =
     let r = make_entity_reference ~entity_type:`Character () in
-    check bool "entity" true (validate_achievement (achievement (stat ~subject:r "kills") [ merchant ]));
+    check bool "entity" true (validate_achievement (achievement (stat ~subject:r "kills") [ skill_unlock ]));
     check bool "tag" true
-      (validate_achievement (achievement (stat ~subject_tag:"Boss" "kills_rank") [ merchant ]));
+      (validate_achievement (achievement (stat ~subject_tag:"Boss" "kills_rank") [ skill_unlock ]));
     check bool "both" false
       (validate_achievement
-         (achievement (stat ~subject:r ~subject_tag:"Boss" "kills_rank") [ merchant ]));
+         (achievement (stat ~subject:r ~subject_tag:"Boss" "kills_rank") [ skill_unlock ]));
     let all =
       `All
         ({ Data.Achievement_t.condition_type = `All; children = [ stat "kills" ] }
@@ -665,7 +663,7 @@ module AchievementValidationTests = struct
          }
           : Data.Achievement_t.achievement_condition_any)
     in
-    check bool "nested bad" false (validate_achievement (achievement bad [ merchant ]))
+    check bool "nested bad" false (validate_achievement (achievement bad [ skill_unlock ]))
   ;;
 
   let test_unlock_kinds () =
@@ -679,12 +677,7 @@ module AchievementValidationTests = struct
     check bool "item pool weapon" true
       (ok (unlock ~target:(make_entity_reference ~entity_type:`Weapon ()) `ItemPool));
     check bool "weapon class" true (ok (unlock ~target:class_ `WeaponClass));
-    check bool "camp feature" true (ok merchant);
-    check bool "camp feature without feature" false (ok (unlock `CampFeature));
-    check bool "kit by name" true (ok (unlock ~name:"Farmhand" `KitChoice));
-    check bool "kit with target" false (ok (unlock ~name:"Farmhand" ~target:skill `KitChoice));
-    check bool "vendor without name" false (ok (unlock `Vendor));
-    check bool "skill pool with extra name" false (ok (unlock ~target:skill ~name:"abc" `SkillPool))
+    check bool "weapon class wrong type" false (ok (unlock ~target:skill `WeaponClass))
   ;;
 end
 
@@ -692,44 +685,6 @@ let achievement_validation_tests =
   [ ("metric keys", `Quick, AchievementValidationTests.test_metric_keys);
     ("subject is an entity or a tag", `Quick, AchievementValidationTests.test_subject_is_entity_or_tag);
     ("unlock kinds", `Quick, AchievementValidationTests.test_unlock_kinds)
-  ]
-;;
-
-module ExpeditionValidationTests = struct
-  let quest = make_entity_reference ~entity_type:`Quest ()
-
-  let slot ?(quests = [ quest ]) n : Data.Expedition_t.expedition_slot =
-    { Data.Expedition_t.quests; level_bonus = n; loot_tilt = 0.0 }
-  ;;
-
-  let expedition slots : Data.Expedition_t.expedition_def =
-    { Data.Expedition_t.metadata = { title = "T"; description = "D" };
-      camp = make_entity_reference ~entity_type:`Stage ();
-      slots;
-      xp_multiplier = None
-    }
-  ;;
-
-  let test_slot_count () =
-    check bool "three" true (expedition_slot_count [ slot 0; slot 1; slot 2 ]);
-    check bool "five" true (expedition_slot_count [ slot 0; slot 1; slot 2; slot 3; slot 4 ]);
-    check bool "two" false (expedition_slot_count [ slot 0; slot 1 ]);
-    check bool "six" false
-      (expedition_slot_count [ slot 0; slot 1; slot 2; slot 3; slot 4; slot 5 ])
-  ;;
-
-  let test_quests_are_distinct () =
-    check bool "sound" true (validate_expedition (expedition [ slot 0; slot 1; slot 2 ]));
-    check bool "a quest twice in a slot" false
-      (validate_expedition (expedition [ slot ~quests:[ quest; quest ] 0; slot 1; slot 2 ]));
-    check bool "an empty slot" false
-      (validate_expedition (expedition [ slot ~quests:[] 0; slot 1; slot 2 ]))
-  ;;
-end
-
-let expedition_validation_tests =
-  [ ("slot count", `Quick, ExpeditionValidationTests.test_slot_count);
-    ("quests are distinct", `Quick, ExpeditionValidationTests.test_quests_are_distinct)
   ]
 ;;
 
@@ -1398,7 +1353,6 @@ let () =
       ("File Validation", file_validation_tests);
       ("Vfx Key Validation", vfx_key_tests);
       ("Achievement Validation", achievement_validation_tests);
-      ("Expedition Validation", expedition_validation_tests)
     ]
   in
   run "Validation Module Tests" all_tests

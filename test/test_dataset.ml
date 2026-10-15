@@ -686,79 +686,6 @@ let test_interact_needs_a_zone_anchor () =
   check int "a Portal cannot" 1 (errors [ portal; quest ])
 ;;
 
-(* Expeditions: the camp is hand-made and has a party spawn point *)
-let expedition_camp_world ~camp_spawn ~camp_generated =
-  let spawn : Data.Entity_t.entity_definition_internal =
-    `Anchor
-      { Data.Entity_t.owner = "ownr";
-        entity_type = `Anchor;
-        key = "MinimalAnchor";
-        version = 1;
-        id = "ownr:Anchor:MinimalAnchor:1";
-        entity =
-          `SpawnPoint
-            { Data.Anchor_t.anchor_type = `SpawnPoint;
-              metadata = minimal_metadata;
-              transform = minimal_transform;
-              binding = None;
-              team = (if camp_spawn then Some `Ally else None);
-              radius = None
-            }
-      }
-  in
-  let generator =
-    if camp_generated
-    then
-      match minimal_stage.generator with
-      | _ ->
-        Some
-          { Data.Generator_t.generator = `Crypt;
-            version = 1;
-            requirements = [];
-            connections =
-              { Data.Generator_t.main_path = { min = 3; max = 3 };
-                loops = { min = 0; max = 0 };
-                dead_ends = false;
-                branch_len = { min = 1; max = 1 }
-              };
-            forbidden_adjacent = None;
-            pinned = None;
-            party_size = None;
-            corridor_width = None;
-            fill = `Combat;
-            max_attempts = None;
-            candidates = None;
-            par = None;
-            seed_policy = `PerRun;
-            fixed_seed = None
-          }
-    else None
-  in
-  let stage : Data.Entity_t.entity_definition_internal =
-    `Stage
-      { Data.Entity_t.owner = "ownr";
-        entity_type = `Stage;
-        key = "MinimalStage";
-        version = 1;
-        id = "ownr:Stage:MinimalStage:1";
-        entity = { minimal_stage with generator }
-      }
-  in
-  [ spawn; stage; minimal_quest_entity_definition; minimal_expedition_entity_definition ]
-;;
-
-let test_an_expedition_camp_is_hand_made_and_has_a_party_spawn () =
-  let errors ~camp_spawn ~camp_generated =
-    Validate.expedition_error_messages (expedition_camp_world ~camp_spawn ~camp_generated)
-  in
-  check int "a sound camp" 0 (List.length (errors ~camp_spawn:true ~camp_generated:false));
-  check int "no party spawn point" 1 (List.length (errors ~camp_spawn:false ~camp_generated:false));
-  check bool "a generated camp" true
-    (List.exists
-       (fun m -> Base.String.is_substring m ~substring:"must be hand-made")
-       (errors ~camp_spawn:true ~camp_generated:true))
-;;
-
 let weapon_class_errors defs =
   let validated =
     Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
@@ -924,7 +851,6 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_weapon_class_entity_definition;
       minimal_room_prefab_entity_definition;
       minimal_achievement_entity_definition;
-      minimal_expedition_entity_definition
     ]
   in
   List.iter
@@ -1184,7 +1110,6 @@ let dataset_tests =
       `Quick
       test_kill_objective_concurrent_with_spawn_is_completable;
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
-    test_case "An expedition camp is hand-made and has a party spawn" `Quick test_an_expedition_camp_is_hand_made_and_has_a_party_spawn;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "Kill amount exceeding spawns is not completable"

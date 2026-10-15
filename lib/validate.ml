@@ -653,84 +653,6 @@ let generator_error_messages definitions =
   prefab_errors @ stage_errors
 ;;
 
-(* Expeditions: the camp stage has a place for the party to appear on, and every quest of the chain is a quest the
-   board plays on a stage of its own. The boss slot may be on a stage with a generator: the sim plays it on the
-   hand-made layout. *)
-let expedition_error_messages definitions =
-  let quests =
-    List.filter_map
-      (fun (definition : Data.Entity_t.entity_definition_internal) ->
-        match definition with
-        | `Quest { id; entity; _ } -> Some (id, entity)
-        | _ -> None)
-      definitions
-  in
-  let stages =
-    List.filter_map
-      (fun (definition : Data.Entity_t.entity_definition_internal) ->
-        match definition with
-        | `Stage { id; entity; _ } -> Some (id, entity)
-        | _ -> None)
-      definitions
-  in
-  let ally_spawns =
-    List.filter_map
-      (fun (definition : Data.Entity_t.entity_definition_internal) ->
-        match definition with
-        | `Anchor { id; entity = `SpawnPoint { team = Some `Ally; _ }; _ } -> Some id
-        | _ -> None)
-      definitions
-  in
-  List.concat_map
-    (fun (definition : Data.Entity_t.entity_definition_internal) ->
-      match definition with
-      | `Expedition { id; entity; _ } ->
-        let camp_errors =
-          match List.assoc_opt entity.camp.id stages with
-          | None -> []
-          | Some (stage : Data.Stage_t.stage) ->
-            let has_spawn =
-              List.exists
-                (fun (a : Data.Common_t.entity_reference) -> List.mem a.id ally_spawns)
-                stage.anchors
-            in
-            (if has_spawn
-             then []
-             else [ Printf.sprintf "Expedition %s: camp stage %s has no party spawn point" id entity.camp.id ])
-            @
-            if Option.is_some stage.generator
-            then [ Printf.sprintf "Expedition %s: camp stage %s must be hand-made" id entity.camp.id ]
-            else []
-        in
-        let slot_errors =
-          List.concat
-            (List.mapi
-               (fun i (slot : Data.Expedition_t.expedition_slot) ->
-                 List.concat_map
-                   (fun (q : Data.Common_t.entity_reference) ->
-                     match List.assoc_opt q.id quests with
-                     | None -> []
-                     | Some (quest : Data.Quest_t.quest) ->
-                       let origin_errors =
-                         if quest.origin = `QuestBoard || quest.origin = `Quest
-                         then []
-                         else
-                           [ Printf.sprintf
-                               "Expedition %s: slot %d quest %s is neither a board quest nor a quest of the Quest origin"
-                               id
-                               i
-                               q.id
-                           ]
-                       in
-                       origin_errors)
-                   slot.quests)
-               entity.slots)
-        in
-        camp_errors @ slot_errors
-      | _ -> [])
-    definitions
-;;
-
 let validate_entity_definitions dataset =
   let entity_definition_references = extract_entity_reference_definition dataset in
   let entity_reference_definitions_duplication_errors =
@@ -770,7 +692,6 @@ let validate_entity_definitions dataset =
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
-  let expedition_errors = expedition_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -787,8 +708,7 @@ let validate_entity_definitions dataset =
        @ drop_table_errors
        @ tier_errors
        @ weapon_class_errors
-       @ generator_errors
-       @ expedition_errors)
+       @ generator_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
