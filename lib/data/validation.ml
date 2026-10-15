@@ -305,8 +305,7 @@ let validate_entity_definition_internal
   | `SkillStone { owner; id; entity_type; key; version; _ }
   | `WeaponClass { owner; id; entity_type; key; version; _ }
   | `RoomPrefab { owner; id; entity_type; key; version; _ }
-  | `Achievement { owner; id; entity_type; key; version; _ }
-  | `Expedition { owner; id; entity_type; key; version; _ } ->
+  | `Achievement { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -526,43 +525,15 @@ let rec achievement_condition_ok (c : Achievement_t.achievement_condition_intern
     List.for_all achievement_condition_ok children
 ;;
 
-let unlock_name_regex = Re.Perl.compile_pat "^[a-zA-Z0-9_]{3,64}$"
-
-(* An unlock carries exactly the field its kind needs. *)
+(* An unlock's target is an entity of the pool its kind fills. *)
 let achievement_unlock_ok (u : Achievement_t.unlock) =
-  let target_is types =
-    match u.target with
-    | Some { entity_type; _ } -> List.mem entity_type types
-    | None -> false
-  in
-  let named =
-    match u.name with
-    | Some n -> Re.execp unlock_name_regex n
-    | None -> false
-  in
+  let target_is types = List.mem u.target.entity_type types in
   match u.kind with
-  | `ItemPool -> target_is [ `Equipment; `Weapon ] && u.feature = None && u.name = None
-  | `WeaponClass -> target_is [ `WeaponClass ] && u.feature = None && u.name = None
-  | `SkillPool -> target_is [ `Skill ] && u.feature = None && u.name = None
-  | `CampFeature -> u.feature <> None && u.target = None && u.name = None
-  | `KitChoice | `Expedition | `Vendor -> named && u.target = None && u.feature = None
+  | `ItemPool -> target_is [ `Equipment; `Weapon ]
+  | `WeaponClass -> target_is [ `WeaponClass ]
+  | `SkillPool -> target_is [ `Skill ]
 ;;
 
 let validate_achievement (a : Achievement_t.achievement_def) =
   achievement_condition_ok a.condition && List.for_all achievement_unlock_ok a.rewards
-;;
-
-(* Expeditions: 3 to 5 slots, the last one is the boss. Which stages the quests are played on is checked on the whole
-   dataset (Validate.expedition_error_messages). *)
-let expedition_slot_count (slots : Expedition_t.expedition_slot list) =
-  let n = List.length slots in
-  3 <= n && n <= 5
-;;
-
-let validate_expedition (e : Expedition_t.expedition_def) =
-  List.for_all
-    (fun (s : Expedition_t.expedition_slot) ->
-      list_min_length 1 s.quests
-      && List.length (List.sort_uniq compare s.quests) = List.length s.quests)
-    e.slots
 ;;

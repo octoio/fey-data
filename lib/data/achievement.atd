@@ -69,33 +69,19 @@ type unlock_kind <cs name="UnlockKind" namespace="Octoio.Fey.Data.Type"> =
   [ ItemPool
   | WeaponClass
   | SkillPool
-  | KitChoice
-  | CampFeature
-  | Expedition
-  | Vendor
   ]
 
-type camp_feature <cs name="CampFeature" namespace="Octoio.Fey.Data.Type"> =
-  [ Merchant
-  | NextQuestReroll
-  | SharedStash
-  ]
-
-(* One option an achievement opens. ItemPool (an Equipment or Weapon), WeaponClass and SkillPool name their entity in
-   [target]; CampFeature names its [feature]; KitChoice, Expedition and Vendor name their option by [name] (an id)
-   until those get entity types of their own. The unlocks are recorded when the achievement is earned and applied at
-   the next run start. *)
+(* One entry an achievement adds to a drop pool: ItemPool an Equipment or Weapon, WeaponClass a WeaponClass, SkillPool a
+   Skill. The unlocks are recorded when the achievement is earned and apply from the next run on. *)
 type unlock <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
   kind <cs usetype="Type.UnlockKind">: unlock_kind;
-  ?target <cs usetype="Optional<EntityReference>">: entity_reference option;
-  ?feature <cs usetype="Optional<Type.CampFeature>">: camp_feature option;
-  ?name <cs usetype="Optional<string>">: string option;
+  target: entity_reference;
 }
 
-(* [hidden]: the client lists it only once earned. *)
+(* [hidden]: the client lists it only once earned. [rewards] may be empty: the achievement is then a trophy only. *)
 type achievement_def <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;System.Collections.Generic"> = {
   metadata: metadata;
   hidden: bool;
   condition <cs usetype="AchievementCondition">: achievement_condition_internal;
-  rewards <cs usetype="List<Unlock>">: unlock list <ocaml valid="Validation.list_min_length 1">;
+  rewards <cs usetype="List<Unlock>">: unlock list;
 } <ocaml valid="Validation.validate_achievement">
