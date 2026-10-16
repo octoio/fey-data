@@ -571,6 +571,89 @@ let test_quest_tiers () =
     (List.length (tier_errors [ normal; hard (plain_tier 1); tier_definition "Insane" `Insane (plain_tier 2); table ]))
 ;;
 
+(* The run ending: at least one board quest ends the run, and the board can reach it from the start. A quest
+   is offered once the party owns any one of its required flags; clearing a quest grants its flag. *)
+let ending_errors definitions =
+  let dataset =
+    TestFixtures.create_dataset_with_definitions
+      (List.mapi (fun i d -> Printf.sprintf "data/json/ending%d.json" i, d) definitions)
+  in
+  let validated = Validate.validate_entity_definitions dataset in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"Run ending"
+      | None -> false)
+    validated.errors
+;;
+
+let ending_quest ?(origin = `QuestBoard) ?(ends_run = false) key grants requires
+  : Data.Entity_t.entity_definition_internal
+  =
+  `Quest
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Quest;
+      key;
+      version = 1;
+      id = "ownr:Quest:" ^ key ^ ":1";
+      entity =
+        { minimal_quest with
+          Data.Quest_t.origin;
+          achievement_on_complete = grants;
+          required_achievements = requires;
+          ends_run = (if ends_run then Some true else None)
+        }
+    }
+;;
+
+let test_run_ending () =
+  let forest = ending_quest "Forest" `SlimeExterminator [ `None ] in
+  let farm = ending_quest "Farm" `BoarDefender [ `SlimeExterminator ] in
+  let hollow = ending_quest "Hollow" `ActTwoCleared [ `SlimeExterminator ] in
+  let crypt = ending_quest ~ends_run:true "Crypt" `None [ `BoarDefender; `ActTwoCleared ] in
+  check
+    int
+    "a chain to an ending, where any one flag opens it, is valid"
+    0
+    (List.length (ending_errors [ forest; farm; hollow; crypt ]));
+  check
+    int
+    "an ending that one of its flags can open is valid whatever the others"
+    0
+    (List.length (ending_errors [ forest; hollow; crypt ]));
+  check
+    int
+    "a board without an ending quest is reported"
+    1
+    (List.length (ending_errors [ forest; farm; hollow ]));
+  check
+    int
+    "an ending no quest grants a flag for is unreachable"
+    1
+    (List.length (ending_errors [ forest; crypt ]));
+  check
+    int
+    "an ending that requires its own flag is unreachable"
+    1
+    (List.length
+       (ending_errors
+          [ forest; ending_quest ~ends_run:true "Loop" `ActTwoCleared [ `ActTwoCleared ] ]));
+  check
+    int
+    "an ending that is not a board quest is unreachable"
+    1
+    (List.length
+       (ending_errors [ forest; ending_quest ~origin:`Stage ~ends_run:true "End" `None [ `None ] ]));
+  check
+    int
+    "a dataset without board quests has nothing to end"
+    0
+    (List.length (ending_errors []))
+;;
+
 (* Quest completability: KillSpecific objectives need preceding spawns *)
 let completability_errors dataset =
   let validated = Validate.validate_entity_definitions dataset in
@@ -1092,6 +1175,7 @@ let dataset_tests =
       `Quick
       test_drop_guarantee_needs_a_matching_entry;
     test_case "Quest tiers" `Quick test_quest_tiers;
+    test_case "Run ending" `Quick test_run_ending;
     (* Quest Completability *)
     test_case
       "Kill objective without spawn is not completable"

@@ -314,5 +314,11 @@ type quest <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" impor
   root <cs usetype="QuestNode">: quest_node_internal;
   is_repeatable: bool;
   achievement_on_complete <cs usetype="Type.Achievement">: achievement_type;
+  (* the board offers the quest to a party whose every member owns ANY ONE of these (None is no requirement).
+     The flags are run state: they are granted by clearing a quest and start over with the run (fey-rs
+     docs/design/runs.md) *)
   required_achievements <cs usetype="List<Type.Achievement>">: achievement_type list <ocaml valid="Validation.list_min_length 1">;
+  (* absent = false: clearing this quest ends the run as a win (the party goes home with the starting kit and
+     the quest chain starts over). At least one board quest must end the run and be reachable from the start *)
+  ?ends_run <cs usetype="Optional<bool>">: bool option;
 } <ocaml valid="Validation.validate_quest">
