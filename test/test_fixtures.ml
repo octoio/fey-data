@@ -830,7 +830,8 @@ let minimal_quest =
     root = `Objective minimal_quest_objective_node;
     is_repeatable = false;
     achievement_on_complete = `None;
-    required_achievements = [ `None ]
+    required_achievements = [ `None ];
+    ends_run = None
   }
 ;;
 

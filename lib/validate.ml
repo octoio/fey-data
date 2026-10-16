@@ -447,6 +447,56 @@ let tier_error_messages definitions =
   duplicate_errors @ base_errors @ gate_errors
 ;;
 
+(* The run ending (fey-rs docs/design/runs.md): a board with quests must have a way to finish a run, so at least one
+   board quest has [ends_run] and the board can reach it from the start. Reachability follows the rules of the
+   board: a quest is offered once the party owns ANY ONE of its required flags ([None] is always owned), and
+   clearing a quest grants its flag. A quest that is not on the board (origin other than QuestBoard) is never
+   offered, so it cannot be the way out. *)
+let run_ending_error_messages definitions =
+  let board =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Quest { id; entity; _ } when entity.Data.Quest_t.origin = `QuestBoard ->
+          Some (id, entity)
+        | _ -> None)
+      definitions
+  in
+  let offered owned (quest : Data.Quest_t.quest) =
+    List.exists (fun flag -> flag = `None || List.mem flag owned) quest.required_achievements
+  in
+  let rec flags_earned owned =
+    let grown =
+      List.fold_left
+        (fun acc (_, (quest : Data.Quest_t.quest)) ->
+          if offered owned quest && not (List.mem quest.achievement_on_complete acc)
+          then quest.achievement_on_complete :: acc
+          else acc)
+        owned
+        board
+    in
+    if List.length grown = List.length owned then owned else flags_earned grown
+  in
+  let reachable = flags_earned [] in
+  let endings =
+    List.filter (fun (_, (q : Data.Quest_t.quest)) -> q.ends_run = Some true) board
+  in
+  match board, endings with
+  | [], _ -> []
+  | _, [] -> [ "Run ending: no quest of the board has ends_run, so a run could never be won" ]
+  | _, _ ->
+    List.filter_map
+      (fun (id, quest) ->
+        if offered reachable quest
+        then None
+        else
+          Some
+            (Printf.sprintf
+               "Run ending: quest %s ends the run but the board never offers it (none of its required achievements can be earned)"
+               id))
+      endings
+;;
+
 (* A weapon category belongs to at most one weapon class, so a weapon finds its animation set without a tie *)
 let weapon_class_error_messages definitions =
   let classes =
@@ -692,6 +742,7 @@ let validate_entity_definitions dataset =
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
+  let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -708,7 +759,8 @@ let validate_entity_definitions dataset =
        @ drop_table_errors
        @ tier_errors
        @ weapon_class_errors
-       @ generator_errors)
+       @ generator_errors
+       @ run_ending_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
