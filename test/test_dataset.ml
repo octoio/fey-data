@@ -158,6 +158,49 @@ let test_extract_entity_reference_from_skill_with_projectile () =
   check bool "Skill contains projectile entity reference" true has_projectile_ref
 ;;
 
+let test_extract_entity_reference_from_skill_with_interrupt_status () =
+  let open Data.Skill_v in
+  let open Data.Requirement_v in
+  let status_ref =
+    { minimal_entity_reference with
+      Data.Common_t.entity_type = `Status;
+      key = "Stun";
+      id = "ownr:Status:Stun:1"
+    }
+  in
+  let interrupt =
+    `Interrupt
+      { Data.Skill_t.skill_action_node_type = `Interrupt;
+        name = "interrupt";
+        target_mechanic = `Selected { mechanic_type = `Selected };
+        target = `Enemy;
+        on_interrupt =
+          Some
+            { Data.Effect_t.target_mechanic = `Selected { mechanic_type = `Selected };
+              target = `Enemy;
+              durations = [];
+              scalers = [];
+              status = status_ref;
+              dispel = None
+            }
+      }
+  in
+  let root =
+    create_skill_action_requirement_node
+      ~skill_action_node_type:`Requirement
+      ~name:"root"
+      ~requirements:(create_requirement_evaluation ~operator:`All ~requirements:[] ())
+      ~child:interrupt
+      ()
+  in
+  let refs =
+    Dataset.extract_entity_reference_from_skill_entity
+      { skill_with_projectile with Data.Skill_t.execution_root = root }
+  in
+  check bool "the status of an interrupt is a reference" true
+    (List.exists (fun r -> r.Data.Common_t.key = "Stun") refs)
+;;
+
 let test_extract_entity_reference_from_quest () =
   let quest_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -1137,6 +1180,10 @@ let dataset_tests =
       "Extract entity reference from skill with projectile"
       `Quick
       test_extract_entity_reference_from_skill_with_projectile;
+    test_case
+      "Extract entity reference from skill with an interrupt status"
+      `Quick
+      test_extract_entity_reference_from_skill_with_interrupt_status;
     test_case
       "Extract entity reference from quest"
       `Quick

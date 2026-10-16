@@ -751,6 +751,53 @@ module MoveNodeValidationTests = struct
   ;;
 end
 
+module InterruptNodeValidationTests = struct
+  let status_on mechanic ?dispel () : Data.Effect_t.status_effect =
+    { target_mechanic = mechanic;
+      target = `Enemy;
+      durations = [];
+      scalers = [];
+      status = make_entity_reference ~entity_type:`Status ();
+      dispel
+    }
+  ;;
+
+  let selected : Data.Effect_t.effect_target_mechanic_internal =
+    `Selected { mechanic_type = `Selected }
+  ;;
+
+  let node on_interrupt : Data.Skill_t.skill_action_interrupt_node =
+    { skill_action_node_type = `Interrupt;
+      name = "interrupt";
+      target_mechanic = selected;
+      target = `Enemy;
+      on_interrupt
+    }
+  ;;
+
+  let test_validate_interrupt_node () =
+    check bool "a plain interrupt" true (validate_interrupt_node (node None));
+    check bool "a status on the interrupted" true
+      (validate_interrupt_node (node (Some (status_on selected ()))));
+    check bool "a status on an area" false
+      (validate_interrupt_node
+         (node
+            (Some
+               (status_on
+                  (`Circle { mechanic_type = `Circle; hit_count = 1; radius = 1. })
+                  ()))));
+    check bool "a dispel" false
+      (validate_interrupt_node (node (Some (status_on selected ~dispel:true ()))))
+  ;;
+end
+
+let interrupt_node_validation_tests =
+  [ ( "validate_interrupt_node",
+      `Quick,
+      InterruptNodeValidationTests.test_validate_interrupt_node )
+  ]
+;;
+
 module ObstacleValidationTests = struct
   let obstacle shape radius half_x half_z : Data.Stage_t.obstacle =
     { kind = `Rock; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None; blocks_sight = None; prop = None }
@@ -986,7 +1033,14 @@ module ReviveHitValidationTests = struct
     `Selected { mechanic_type = `Selected }
   ;;
 
-  let effect ?(hit_type = `Revive) ?(target = `Ally) ?(mechanic = selected) ?school scalers
+  let effect
+    ?(hit_type = `Revive)
+    ?(target = `Ally)
+    ?(mechanic = selected)
+    ?school
+    ?execute
+    ?knockback
+    scalers
     : Data.Effect_t.hit_effect
     =
     { hit_type;
@@ -996,7 +1050,9 @@ module ReviveHitValidationTests = struct
       hit_sound = make_entity_reference ~entity_type:`Sound ();
       can_crit = false;
       can_miss = false;
-      school
+      school;
+      execute;
+      knockback
     }
   ;;
 
@@ -1042,10 +1098,42 @@ module ReviveHitValidationTests = struct
       false
       (validate_hit_effect (effect ~school:`Magical [ scaler 50. ]))
   ;;
+
+  let bonus below factor : Data.Effect_t.execute_bonus = { below; factor }
+
+  let test_execute_and_knockback () =
+    let damage = effect ~hit_type:`Damage ~target:`Enemy in
+    check bool "an execute bonus on a damage hit" true
+      (validate_hit_effect (damage ~execute:(bonus 0.3 2.) [ scaler 5. ]));
+    check bool "a knockback on a damage hit" true
+      (validate_hit_effect (damage ~knockback:2.5 [ scaler 5. ]));
+    check bool "no knockback distance" false
+      (validate_hit_effect (damage ~knockback:0. [ scaler 5. ]));
+    check bool "a negative knockback (a pull)" false
+      (validate_hit_effect (damage ~knockback:(-1.) [ scaler 5. ]));
+    check bool "an execute on a heal" false
+      (validate_hit_effect
+         (effect ~hit_type:`Heal ~target:`Ally ~execute:(bonus 0.3 2.) [ scaler 5. ]));
+    check bool "a knockback on a threat hit" false
+      (validate_hit_effect (effect ~hit_type:`Threat ~target:`Enemy ~knockback:1. []));
+    check bool "a knockback on a revive" false
+      (validate_hit_effect (effect ~knockback:1. [ scaler 50. ]))
+  ;;
+
+  let test_validate_execute_bonus () =
+    check bool "30 percent, double" true (validate_execute_bonus (bonus 0.3 2.));
+    check bool "the whole health" true (validate_execute_bonus (bonus 1. 1.));
+    check bool "no health" false (validate_execute_bonus (bonus 0. 2.));
+    check bool "over the whole health" false (validate_execute_bonus (bonus 1.2 2.));
+    check bool "a penalty" false (validate_execute_bonus (bonus 0.3 0.5))
+  ;;
 end
 
 let revive_hit_validation_tests =
-  [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect ]
+  [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect;
+    "execute and knockback", `Quick, ReviveHitValidationTests.test_execute_and_knockback;
+    "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus
+  ]
 ;;
 
 module EnrageValidationTests = struct
@@ -1204,7 +1292,9 @@ module TriggerValidationTests = struct
       hit_sound = make_entity_reference ~entity_type:`Sound ();
       can_crit = true;
       can_miss = true;
-      school = None
+      school = None;
+      execute = None;
+      knockback = None
     }
   ;;
 
@@ -1342,6 +1432,7 @@ let () =
       ("Summon Control Validation", summon_control_validation_tests);
       ("Projectile Kind Validation", projectile_kind_validation_tests);
       ("Move Node Validation", move_node_validation_tests);
+      ("Interrupt Node Validation", interrupt_node_validation_tests);
       ("Obstacle Validation", obstacle_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);

@@ -172,13 +172,16 @@ type skill_action_move_node <cs extends="SkillActionNode" namespace="Octoio.Fey.
 } <ocaml valid="Validation.validate_move_node">
 
 (* Cancels the running cast of each character the mechanic and team pick. The cost and cooldown of the target's
-   cast are spent. Leaves no status behind *)
+   cast are spent. Leaves no status behind, except [on_interrupt]: a status applied to each character whose cast
+   was really cancelled (an idle one is untouched). Its target mechanic must be Selected, which stands for the
+   interrupted character *)
 type skill_action_interrupt_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
   skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
   name <cs ignore="true">: string;
   target_mechanic <cs usetype="EffectTargetMechanic">: effect_target_mechanic_internal;
   target: effect_target;
-}
+  ?on_interrupt <cs usetype="Optional<StatusEffect>">: status_effect option;
+} <ocaml valid="Validation.validate_interrupt_node">
 
 type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=SkillActionNode),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=SkillActionNode)"> = 
   [ Sequence of skill_action_sequence_node
