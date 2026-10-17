@@ -5,7 +5,7 @@ type entity_reference <ocaml from="Common"> = abstract
    shown; which clip/rig plays it is decided by each engine's adapter, never by
    data. [variant] selects one of several alternatives for the same cue
    (0-based; adapters wrap or clamp when they own fewer clips). *)
-type animation_cue <cs name="AnimationCue" namespace="Octoio.Fey.Data.Type"> =
+type animation_cue =
   [ AttackGeneric
   | AttackUnarmed
   | AttackStab
@@ -33,15 +33,15 @@ type animation_cue <cs name="AnimationCue" namespace="Octoio.Fey.Data.Type"> =
   | Death
   ]
 
-type animation_source <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System" modifiers="partial"> = {
-  cue <cs usetype="Type.AnimationCue">: animation_cue;
+type animation_source = {
+  cue: animation_cue;
   variant: int <ocaml valid="Validation.int_min 0">;
   original_duration: float <ocaml valid="Validation.float_min 0.">;
   looping: bool;
   requires_sheath_weapon: bool;
 }
 
-type animation <cs namespace="Octoio.Fey.Data.Dto"> = {
+type animation = {
   metadata: metadata;
   duration: float <ocaml valid="Validation.float_min 0.">;
   sources: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `AnimationSource">;

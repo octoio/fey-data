@@ -6,7 +6,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type trigger <ocaml from="Trigger"> = abstract
 type visual_layer <ocaml from="Visual"> = abstract
 
-type equipment_category <cs namespace="Octoio.Fey.Data.Type"> = 
+type equipment_category = 
     [ Head
     | Eyes
     | Earings
@@ -23,18 +23,18 @@ type equipment_category <cs namespace="Octoio.Fey.Data.Type"> =
     | Feet
     ]
 
-type equipment <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+type equipment = {
     metadata: metadata;
     category: equipment_category;
-    quality <cs usetype="Data.Type.Quality">: quality_type;
+    quality: quality_type;
     icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
     base_stat_affixes: stat_affix list;
     random_stat_affix_count: int_range <ocaml valid="Validation.int_range_between {min=0; max=100}">;
     random_stat_affixes: stat_affix list;
     (* effects that fire on something happening to the wearer while the item is worn (see trigger.atd) *)
-    ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+    ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
     (* character level needed to equip it; absent = any *)
-    ?min_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 2">;
+    ?min_level: int option <ocaml valid="Validation.int_min_if_some 2">;
     (* the sprite layer drawn for it, see visual.atd; it replaces the base layer of the category's slot *)
-    ?visual <cs usetype="Optional<VisualLayer>">: visual_layer option;
+    ?visual: visual_layer option;
 }

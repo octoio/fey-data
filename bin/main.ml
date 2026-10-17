@@ -28,42 +28,15 @@ let get_all_atd_files () =
     file)
 ;;
 
-let write_cs_file cs_file =
-  Csharp.Output.write_cs_file
-    Config.Constants.base_script_folder
-    Config.Constants.base_namespace
-    cs_file
-;;
-
-let remove_all_previously_generated_files () =
-  let remove_file filename =
-    Gamedata.Io.print_info @@ Printf.sprintf "Removing file: %s" filename;
-    Gamedata.Io.remove_file filename;
-    Gamedata.Io.print_success "File removed"
-  in
-  Gamedata.Io.print_info "Removing previously generated files...";
-  Gamedata.Io.create_file_if_not_exists Config.Constants.generated_file;
-  List.iter remove_file (Gamedata.Io.read_all_lines Config.Constants.generated_file)
-;;
-
-let create_generated_files_reference (file_paths : string list) : unit =
-  Gamedata.Io.write_file Config.Constants.generated_file @@ String.concat "\n" file_paths
-;;
-
-(* The Rust crate is optional: skip when fey-rs is not checked out next to fey-data *)
 let generate_rust_types atd_files =
-  let out_dir = Config.Constants.rust_output_path in
-  if not (Sys.file_exists (Filename.dirname out_dir))
-  then
-    Gamedata.Io.print_warning
-    @@ Printf.sprintf "Skipping Rust generation: %s does not exist" (Filename.dirname out_dir)
-  else (
-    Gamedata.Io.print_info "Generating Rust files...";
-    let modules =
-      List.map (fun file -> (file, snd (Rust.Utils.parse_atd_file file))) atd_files
-    in
-    Rust.Main.generate_rust modules |> Rust.Output.write_rs_files out_dir |> ignore;
-    Gamedata.Io.print_success "Rust files written.")
+  Gamedata.Io.print_info "Generating Rust files...";
+  let modules =
+    List.map (fun file -> (file, snd (Rust.Utils.parse_atd_file file))) atd_files
+  in
+  Rust.Main.generate_rust modules
+  |> Rust.Output.write_rs_files Config.Constants.rust_output_path
+  |> ignore;
+  Gamedata.Io.print_success "Rust files written."
 ;;
 
 let () =
@@ -75,17 +48,7 @@ let () =
   | Ok dataset ->
     Gamedata.Io.print_success "Validation successful";
     write_entity_index dataset;
-    remove_all_previously_generated_files ();
     Gamedata.Io.print_info "Reading ATD files...";
-    let atd_files = get_all_atd_files () in
-    Gamedata.Io.print_info "Parsing ATD files...";
-    let atd_modules = List.map Csharp.Utils.parse_atd_file atd_files in
-    let module_bodies = List.map snd atd_modules in
-    Gamedata.Io.print_info "Generating C# files...";
-    Gamedata.Io.print_info "Writing C# files to disk...";
-    Csharp.Main.generate_csharp module_bodies
-    |> List.map write_cs_file
-    |> create_generated_files_reference;
-    generate_rust_types atd_files;
+    generate_rust_types (get_all_atd_files ());
     Gamedata.Io.print_success "Process completed successfully."
 ;;

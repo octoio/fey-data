@@ -32,7 +32,7 @@ let size_between
 
 let data_file_exist_starting_with prefix path =
   string_starts_with prefix path
-  && (Sys.file_exists @@ Filename.concat Config.Constants.data_folder path)
+  && (Sys.file_exists @@ Filename.concat Config.Constants.media_folder path)
 ;;
 
 let validate_file prefix extension path =

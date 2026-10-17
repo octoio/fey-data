@@ -6,7 +6,7 @@ type quality_type <ocaml from="Quality"> = abstract
 type model_anchor_set <ocaml from="Model"> = abstract
 type visual_layer <ocaml from="Visual"> = abstract
 
-type weapon_category <cs namespace="Octoio.Fey.Data.Type"> = 
+type weapon_category = 
     [ None
     | OneHandMace
     | TwoHandMace
@@ -23,34 +23,34 @@ type weapon_category <cs namespace="Octoio.Fey.Data.Type"> =
     | Spear
     ]
 
-type weapon_equip_index <cs namespace="Octoio.Fey.Data.Type"> =
+type weapon_equip_index =
     [ MainHand
     | OffHand
     | TwoHand
     ]
 
-type weapon_sheathe_location <cs namespace="Octoio.Fey.Data.Type"> = 
+type weapon_sheathe_location = 
     [ Hips
     | Back
     ]
 
-type weapon <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+type weapon = {
     metadata: metadata;
     category: weapon_category;
     (* which equip slot the weapon occupies; explicit data, not derived from the category *)
     hand: weapon_equip_index;
-    quality <cs usetype="Data.Type.Quality">: quality_type;
+    quality: quality_type;
     sheathe_location: weapon_sheathe_location;
     icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
     base_stat_affixes: stat_affix list;
     random_stat_affix_count: int_range <ocaml valid="Validation.int_range_between {min=0; max=100}">;
     random_stat_affixes: stat_affix list;
-    ?basic_attack <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Skill">;
+    ?basic_attack: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Skill">;
     model_anchor_set: model_anchor_set;
     (* character level needed to equip it; absent = any *)
-    ?min_level <cs usetype="Optional<int>">: int option <ocaml valid="Validation.int_min_if_some 2">;
+    ?min_level: int option <ocaml valid="Validation.int_min_if_some 2">;
     (* the weapon class whose animation set it uses, when not the one listing its category (a spear thrust with a sword category) *)
-    ?weapon_class <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
+    ?weapon_class: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
     (* the sprite layer drawn for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
-    ?visual <cs usetype="Optional<VisualLayer>">: visual_layer option;
+    ?visual: visual_layer option;
 }

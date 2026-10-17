@@ -4,19 +4,19 @@ type entity_reference <ocaml from="Common"> = abstract
 type generator_spec <ocaml from="Generator"> = abstract
 
 (* Legacy enums; retired once stages are addressed by entity index everywhere *)
-type stage_type <cs name="Stage" namespace="Octoio.Fey.Data.Type"> =
+type stage_type =
   [ None
   | TheVillage
   | TheForest
   | TheFarm
   ]
 
-type portal_type <cs name="Portal" namespace="Octoio.Fey.Data.Type"> =
+type portal_type =
   [ Primary
   ]
 
 (* What an obstacle looks like on the client; the simulation never reads it. *)
-type obstacle_kind <cs name="ObstacleKind" namespace="Octoio.Fey.Data.Type"> =
+type obstacle_kind =
   [ Rock
   | Tree
   | Wall
@@ -28,7 +28,7 @@ type obstacle_kind <cs name="ObstacleKind" namespace="Octoio.Fey.Data.Type"> =
   ]
 
 (* A circle (pillar, tree, rock: [radius]) or an oriented box (wall, ruin: [half_x], [half_z], turned by [yaw] degrees) *)
-type obstacle_shape <cs name="ObstacleShape" namespace="Octoio.Fey.Data.Type"> =
+type obstacle_shape =
   [ Circle
   | Box
   ]
@@ -36,47 +36,47 @@ type obstacle_shape <cs name="ObstacleShape" namespace="Octoio.Fey.Data.Type"> =
 (* A solid piece of level geometry on the ground plane, in stage coordinates (the same frame as the anchors).
    Characters cannot enter it and walk round it; pathfinding plans round it; unless [blocks_sight] is false (default true:
    low water, a bush) skillshots stop at it and unit-target casts need a line of sight past it. [kind] is presentation only. *)
-type obstacle <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
-  kind <cs usetype="Type.ObstacleKind">: obstacle_kind;
-  shape <cs usetype="Type.ObstacleShape">: obstacle_shape;
+type obstacle = {
+  kind: obstacle_kind;
+  shape: obstacle_shape;
   x: float;
   z: float;
-  ?radius <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
-  ?half_x <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
-  ?half_z <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.1">;
-  ?yaw <cs usetype="Optional<float>">: float option;
-  ?blocks_sight <cs usetype="Optional<bool>">: bool option;
+  ?radius: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_x: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_z: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?yaw: float option;
+  ?blocks_sight: bool option;
   (* The prop that dresses it, by kind (`lamp`, `fence`, `barrel`, ...) or by model key or id (`NTree3`,
      `Octoio:Model:NTree3:1`): the client's pack catalog resolves it to a model (key or id first, then the kind)
      and scales it to the shape. Absent: the catalog picks a model for [kind] and the stage's theme. Presentation only. *)
-  ?prop <cs usetype="Optional<string>">: string option <ocaml valid="Validation.validate_prop_name_if_some">;
+  ?prop: string option <ocaml valid="Validation.validate_prop_name_if_some">;
 }
 
 (* Scenery that is not in the way: a prop standing at ([x], [z]) turned by [yaw] degrees and scaled by [scale] (default 1;
    the model's own size, the catalog does not fit it to a footprint). Nothing collides with it and the simulation never
    reads it. [prop] is resolved like an obstacle's: a kind or a model key or id, not found = nothing is drawn. A lantern
    or a street lamp brings the light its model carries. *)
-type stage_prop <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
-  prop <cs usetype="string">: string <ocaml valid="Validation.validate_prop_name">;
+type stage_prop = {
+  prop: string <ocaml valid="Validation.validate_prop_name">;
   x: float;
   z: float;
-  ?yaw <cs usetype="Optional<float>">: float option;
-  ?scale <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_prop_scale">;
+  ?yaw: float option;
+  ?scale: float option <ocaml valid="Validation.validate_prop_scale">;
 }
 
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
-type stage <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine;System.Collections.Generic"> = {
+type stage = {
   metadata: metadata;
   scene_name: string;
   theme_color: color;
-  ?thumbnail_reference <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Image">;
+  ?thumbnail_reference: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Image">;
   anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Anchor">;
-  ?quest <cs usetype="Optional<EntityReference>">: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
-  ?obstacles <cs usetype="Optional<Obstacle[]>">: obstacle list option <ocaml valid="Validation.validate_obstacles">;
+  ?quest: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Quest">;
+  ?obstacles: obstacle list option <ocaml valid="Validation.validate_obstacles">;
   (* Non-colliding scenery, see [stage_prop] *)
-  ?decor <cs usetype="Optional<StageProp[]>">: stage_prop list option <ocaml valid="Validation.validate_stage_props">;
+  ?decor: stage_prop list option <ocaml valid="Validation.validate_stage_props">;
   (* The stage can be generated: the map generator (Rust only) builds a layout from this spec and gives every anchor
      its position by the anchor's [binding]. The stage's own [obstacles] and anchor transforms stay as the hand-made
      version, used while generation is off. Every anchor of a stage with a generator must have a binding. *)
-  ?generator <cs usetype="Optional<GeneratorSpec>">: generator_spec option;
+  ?generator: generator_spec option;
 }

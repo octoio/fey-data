@@ -17,7 +17,7 @@ type effect_scaling <ocaml from="Effect"> = abstract
 type effect_target <ocaml from="Effect"> = abstract
 type character_team <ocaml from="Effect"> = abstract
 
-type skill_category <cs namespace="Octoio.Fey.Data.Type"> = 
+type skill_category = 
   [ None
   | All
   | Offense
@@ -28,11 +28,11 @@ type skill_category <cs namespace="Octoio.Fey.Data.Type"> =
   | Mobility
   ]
 
-type skill_cost <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+type skill_cost = {
   mana: int <ocaml valid="Validation.int_min 0">;
 }
 
-type skill_target_type <cs name="SkillTarget" namespace="Octoio.Fey.Data.Type"> = 
+type skill_target_type = 
   [ Self
   | Ally
   | Enemy
@@ -42,18 +42,18 @@ type skill_target_type <cs name="SkillTarget" namespace="Octoio.Fey.Data.Type"> 
   | DeadAlly  (* a dead teammate of the caster: the only skills that target a corpse, and they target nothing else *)
   ]
 
-type projectile_spawn_position_type <cs name="ProjectileSpawnPosition" namespace="Octoio.Fey.Data.Type"> = 
+type projectile_spawn_position_type = 
   [ Character
   | World
   ]
 
-type projectile_spawn_position <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine"> = {
-  position_type <json name="type"> <cs usetype="Type.ProjectileSpawnPosition">: projectile_spawn_position_type;
+type projectile_spawn_position = {
+  position_type <json name="type">: projectile_spawn_position_type;
   position: vector3;
   offset: vector3;
 }
 
-type skill_action_node_type <cs name="SkillActionNode" namespace="Octoio.Fey.Data.Type"> = 
+type skill_action_node_type = 
   [ Sequence
   | Parallel
   | Delay
@@ -68,28 +68,28 @@ type skill_action_node_type <cs name="SkillActionNode" namespace="Octoio.Fey.Dat
   | Interrupt
   ]
 
-type skill_action_node <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
-  skill_action_node_type <json name="type"> <cs usetype="Type.SkillActionNode">: skill_action_node_type;
+type skill_action_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
   name: string;
 }
 
-type skill_action_sequence_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
-  children <cs usetype="SkillActionNode[]">: skill_action_node_internal list;
+type skill_action_sequence_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
+  children: skill_action_node_internal list;
   loop: int <ocaml valid="Validation.int_min 1">;
 }
 
-type skill_action_parallel_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
-  children <cs usetype="SkillActionNode[]">: skill_action_node_internal list;
+type skill_action_parallel_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
+  children: skill_action_node_internal list;
   loop: int <ocaml valid="Validation.int_min 1">;
 }
 
-type skill_action_delay_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_delay_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   delay: float;
 }
 
@@ -97,55 +97,55 @@ type skill_action_delay_node <cs extends="SkillActionNode" namespace="Octoio.Fey
    the action blocks the caster and whether a cast bar is shown). [animations] are PRESENTATION
    cues only (Fey-owned AnimationSource entities); the sim passes the refs through unchanged and
    each engine adapter decides what, if anything, to play. *)
-type skill_action_animation_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_animation_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   show_progress: bool;
   duration: float <ocaml valid="Validation.float_min 0.">;
   animations: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `AnimationSource">;
 }
 
-type skill_action_sound_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-    skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-    name <cs ignore="true">: string;
+type skill_action_sound_node = {
+    skill_action_node_type <json name="type">: skill_action_node_type;
+    name: string;
     sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
 }
 
-type skill_action_hit_effect_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_hit_effect_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   hit_effect: hit_effect;
 }
 
-type skill_action_status_effect_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_status_effect_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   status_effect: status_effect;
 }
 
-type skill_action_summon_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_summon_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   summon_entity: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   position_offset: vector3;
   (* Seconds the summon lives; absent = until it dies, its summoner dies or the stage changes *)
-  ?lifetime <cs usetype="Optional<float>">: float option;
+  ?lifetime: float option;
   (* How many summons of this entity one summoner may have alive; absent = unlimited *)
-  ?max_alive <cs usetype="Optional<int>">: int option;
+  ?max_alive: int option;
   (* The summoner steers the summon for its `lifetime` (which is then required) while its own body stands idle and vulnerable *)
-  ?controlled <cs usetype="Optional<bool>">: bool option;
+  ?controlled: bool option;
 } <ocaml valid="Validation.validate_summon_control">
 
-type skill_action_requirement_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_requirement_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   requirements: requirement_evaluation;
-  child <cs usetype="SkillActionNode">: skill_action_node_internal;
+  child: skill_action_node_internal;
 }
 
-type skill_action_projectile_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
+type skill_action_projectile_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
   projectile: entity_reference <ocaml valid="Validation.entity_reference_of_type `Projectile">;
   spawn_position: projectile_spawn_position;
   direction: vector3;
@@ -156,17 +156,17 @@ type skill_action_projectile_node <cs extends="SkillActionNode" namespace="Octoi
    point, at most [distance] units away. [ShadowStep] appears [distance] units behind the selected target (on the
    far side from the caster). [Swap] trades places with the selected character. The instant modes take no duration;
    Swap takes no distance *)
-type skill_move_mode <cs name="SkillMoveMode" namespace="Octoio.Fey.Data.Type"> =
+type skill_move_mode =
   [ Dash
   | Blink
   | ShadowStep
   | Swap
   ]
 
-type skill_action_move_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
-  mode <cs usetype="Type.SkillMoveMode">: skill_move_mode;
+type skill_action_move_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
+  mode: skill_move_mode;
   distance: float <ocaml valid="Validation.float_min 0.">;
   duration: float <ocaml valid="Validation.float_min 0.">;
 } <ocaml valid="Validation.validate_move_node">
@@ -175,15 +175,15 @@ type skill_action_move_node <cs extends="SkillActionNode" namespace="Octoio.Fey.
    cast are spent. Leaves no status behind, except [on_interrupt]: a status applied to each character whose cast
    was really cancelled (an idle one is untouched). Its target mechanic must be Selected, which stands for the
    interrupted character *)
-type skill_action_interrupt_node <cs extends="SkillActionNode" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  skill_action_node_type <json name="type"> <cs ignore="true">: skill_action_node_type;
-  name <cs ignore="true">: string;
-  target_mechanic <cs usetype="EffectTargetMechanic">: effect_target_mechanic_internal;
+type skill_action_interrupt_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
+  target_mechanic: effect_target_mechanic_internal;
   target: effect_target;
-  ?on_interrupt <cs usetype="Optional<StatusEffect>">: status_effect option;
+  ?on_interrupt: status_effect option;
 } <ocaml valid="Validation.validate_interrupt_node">
 
-type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=SkillActionNode),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=SkillActionNode)"> = 
+type skill_action_node_internal = 
   [ Sequence of skill_action_sequence_node
   | Parallel of skill_action_parallel_node
   | Delay of skill_action_delay_node
@@ -198,13 +198,13 @@ type skill_action_node_internal <cs generators="visitor(namespace=Octoio.Fey.Dat
   | Interrupt of skill_action_interrupt_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-type skill_indicator_position <cs namespace="Octoio.Fey.Data.Type"> = 
+type skill_indicator_position = 
   [ Character
   | Mouse
   | FromCharacterToMouse
   ]
  
-type skill_indicator <ocaml attr="deriving eq,show"> <cs namespace="Octoio.Fey.Data.Dto" imports="UnityEngine;Octoio.Fey.Data.Type"> = {
+type skill_indicator <ocaml attr="deriving eq,show"> = {
   model_reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
   position: skill_indicator_position;
   scale: vector3;
@@ -214,49 +214,49 @@ type skill_indicator <ocaml attr="deriving eq,show"> <cs namespace="Octoio.Fey.D
    levels follow [chart]. A skill without this table earns no XP. Each level above 1 makes the skill's Damage and Heal
    hits [power_per_level] stronger (default 0.05) and its cooldown [cooldown_per_level] shorter (default 0.01),
    counting at most 10 levels above 1 (so at most +50% power and -10% cooldown by default). *)
-type skill_experience <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+type skill_experience = {
   xp_per_use: float <ocaml valid="Validation.float_min 0.">;
   chart: xp_chart;
-  ?max_level <cs usetype="Optional<int>">: int option;
-  ?power_per_level <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_growth">;
-  ?cooldown_per_level <cs usetype="Optional<float>">: float option <ocaml valid="Validation.validate_cooldown_per_level">;
+  ?max_level: int option;
+  ?power_per_level: float option <ocaml valid="Validation.validate_growth">;
+  ?cooldown_per_level: float option <ocaml valid="Validation.validate_cooldown_per_level">;
 }
 
 (* Movement during a cast. [Root]: the caster cannot walk for the cast window; move inputs are ignored. [Free]: movement
    skills and buffs the caster may walk through. [CancelOnMove]: the caster stands still while casting, but a move
    input before the window ends cancels the cast (mana and cooldown come back when nothing has landed) *)
-type skill_cast_movement <cs name="SkillCastMovement" namespace="Octoio.Fey.Data.Type"> =
+type skill_cast_movement =
   [ Root
   | Free
   | CancelOnMove
   ]
 
-type skill <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+type skill = {
   metadata: metadata;
-  quality <cs usetype="Type.Quality">: quality_type;
+  quality: quality_type;
   icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
   categories: skill_category list;
   cost: skill_cost;
   cooldown: float;
-  target_type <cs usetype="SkillTarget">: skill_target_type;
-  execution_root <cs usetype="SkillActionRequirementNode">: skill_action_requirement_node;
-  cast_distance: float_range <cs validate="Validation.float_range_min {min=0.0; max=100.0}">;
+  target_type: skill_target_type;
+  execution_root: skill_action_requirement_node;
+  cast_distance: float_range;
   indicators: skill_indicator list;
-  ?experience <cs usetype="Optional<SkillExperience>">: skill_experience option;
+  ?experience: skill_experience option;
   (* What a move input does to the caster while this skill is cast (docs/design/skill-audit.md in fey-rs). Absent = Root.
      The cast window runs from the start of the cast to the end of its last Animation node (to the end of the tree
      when it has none), so a zone that keeps burning after the cast does not hold the caster. *)
-  ?cast_movement <cs usetype="Optional<Type.SkillCastMovement>">: skill_cast_movement option;
+  ?cast_movement: skill_cast_movement option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
-  ?cancels_cast <cs usetype="Optional<bool>">: bool option;
+  ?cancels_cast: bool option;
   (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
      be cast twice in a row and then every [cooldown] seconds *)
-  ?charges <cs usetype="Optional<int>">: int option <ocaml valid="Validation.validate_charges">;
+  ?charges: int option <ocaml valid="Validation.validate_charges">;
   (* effects that fire on something happening to a character that knows the skill (see trigger.atd) *)
-  ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+  ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
   (* seconds from the start of the cast to the hit, for skills with an attack cue: the client plays the attack clip at
      the rate (clip impact time / hit_delay) so the hit lands with the simulation's. Absent: the client's default *)
-  ?hit_delay <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.05">;
+  ?hit_delay: float option <ocaml valid="Validation.float_min_if_some 0.05">;
   (* visual effects by phase (see vfx.atd); presentation only *)
-  ?vfx <cs usetype="Optional<SkillVfx>">: skill_vfx option;
+  ?vfx: skill_vfx option;
 }

@@ -1,7 +1,7 @@
 type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 
-type stat_type <cs name="Stat" namespace="Octoio.Fey.Data.Type"> =
+type stat_type =
     [ Vit
     | Str
     | Int
@@ -28,14 +28,14 @@ type stat_type <cs name="Stat" namespace="Octoio.Fey.Data.Type"> =
     | LifeSteal
     ]
 
-type stat <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+type stat = {
     metadata: metadata;
-    stat_type <json name="type"> <cs usetype="Type.Stat">: stat_type;
+    stat_type <json name="type">: stat_type;
     color: color;
 }
 
 
-type stat_sheet <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+type stat_sheet = {
     vit: int <ocaml valid="Validation.int_min 0">;
     str: int <ocaml valid="Validation.int_min 0">;
     _int <json name="int">: int <ocaml valid="Validation.int_min 0">;

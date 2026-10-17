@@ -46,11 +46,6 @@
  (libraries gamedata alcotest test_fixtures gamedata.data gamedata.util))
 
 (test
- (name test_csharp)
- (modules test_csharp)
- (libraries gamedata gamedata.csharp alcotest test_fixtures))
-
-(test
  (name test_rust)
  (modules test_rust)
  (libraries gamedata gamedata.rust alcotest test_fixtures))

@@ -1,12 +1,12 @@
 # Fey Data
 
-A type-safe data pipeline for game development that converts JSON entity definitions into Unity C# classes and Rust serde types.
+A type-safe data pipeline for game development that validates JSON entity definitions and generates the Rust serde types of the game.
 
 ## What it does
 
-This OCaml-based tool processes JSON game data files (weapons, characters, skills, etc.) and generates corresponding C# classes for Unity and serde types for the Rust port, while validating entity relationships and ensuring data integrity.
+This OCaml-based tool processes JSON game data files (weapons, characters, skills, etc.) and generates the serde types of the Rust game (`fey-rs`), while validating entity relationships and ensuring data integrity.
 
-**Input:** JSON entity definitions → **Output:** Unity C# classes + Rust serde types + validation
+**Input:** JSON entity definitions (in `fey-rs/data/json`) → **Output:** validation + Rust serde types + the entity reference index
 
 ## Quick Start
 
@@ -17,7 +17,7 @@ eval $(opam env --set-switch)
 opam install . --deps-only
 
 # Configure paths (edit fey-data.config as needed)
-# game_root defaults to ../fey (the game); rust_output_path points into ../fey-rs
+# the paths default to the sibling repos fey-rs (the JSON, the index, the Rust output) and fey-assets (the media)
 
 # Run the pipeline
 dune exec gamedata
@@ -29,10 +29,10 @@ fish watch.fish
 ## How it works
 
 ```
-JSON Files → Validation → Entity Processing → C# + Rust Generation → Unity / Rust assets
+JSON Files → Validation → Entity Processing → Rust Generation → fey-rs
 ```
 
-1. **JSON Input**: Game entities in `<game_root>/Assets/StreamingAssets/json/` (`../fey/Assets/StreamingAssets/json/` with the default config)
+1. **JSON Input**: Game entities in `json_path` (`../fey-rs/data/json/` with the default config)
    - Format: `<name>.<type>.json` (e.g., `sword.weapon.json`)
    - Types: weapon, character, skill, equipment, audio, animation, etc.
 
@@ -40,13 +40,11 @@ JSON Files → Validation → Entity Processing → C# + Rust Generation → Uni
    - Schema validation
    - Cross-reference checking
    - Type safety
+   - The media files an entity names (images, audio, models) exist in `media_path` (`../fey-assets/game-media/`, private repo)
 
-3. **C# Generation**: Creates Unity-compatible classes
-   - Output: `<game_root>/Assets/Scripts/Data/{Dto,Type,Mapper}/` (the folder follows the namespace `Octoio.Fey.Data.*`; the list of written files goes to `generated.txt`)
-   - Includes `[Serializable]` attributes
-   - Generates entity reference indices
+3. **Entity reference index**: written to `entity_index_path` (`../fey-rs/data/entity-reference-indices.json`).
 
-4. **Rust Generation**: serde types written to `rust_output_path` (default `../fey-rs/crates/fey_data/src/generated`; skipped with a warning when that parent directory is missing). See `lib/rust/README.md`.
+4. **Rust Generation**: serde types written to `rust_output_path` (default `../fey-rs/crates/fey_data/src/generated`). See `lib/rust/README.md`.
 
 ## Repository Structure
 
@@ -61,7 +59,6 @@ JSON Files → Validation → Entity Processing → C# + Rust Generation → Uni
 │   ├── util/               # Generic utilities
 │   │   ├── string.ml      # Util.String.*
 │   │   └── entity.ml      # (placeholder)
-│   ├── csharp/             # C# code generation
 │   ├── rust/               # Rust (serde) code generation
 │   ├── processing.ml       # Main pipeline orchestrator
 │   ├── dataset.ml          # Data management
@@ -89,22 +86,14 @@ The codebase follows a clean modular architecture:
 The `fey-data.config` file allows customization of input/output paths:
 
 ```
-# Game project root, relative to this file
-game_root = "../fey"
-
-# StreamingAssets folder location
-streaming_assets_path = "Assets/StreamingAssets"
-
-# JSON data subfolder
-json_path = "json"
-
-# Legacy C# folder setting; the generator currently writes the C# under
-# <game_root>/Assets/Scripts (Data/Dto, Data/Type, Data/Mapper) whatever this says
-scripts_path = "Assets/Scripts/Octoio/Fey/Data/Dto"
-
-# Rust output directory (relative to this file); skipped when its parent is missing
+# All paths are relative to this file
+json_path = "../fey-rs/data/json"
+media_path = "../fey-assets/game-media"
+entity_index_path = "../fey-rs/data/entity-reference-indices.json"
 rust_output_path = "../fey-rs/crates/fey_data/src/generated"
 ```
+
+The pipeline reads and writes the sibling repos `fey-rs` and `fey-assets` (the latter is private; without it the media check fails).
 
 ## Entity Types
 
@@ -121,7 +110,7 @@ Each type has its own ATD schema defining structure and validation rules.
 A stage may carry a `generator` spec (`lib/data/generator.atd`: room requirements, connection rules, forbidden adjacencies,
 pinned prefabs with an optional fixed position and door side, par rules, seed policy), its anchors a `binding` (slot and
 ordinal) and `RoomPrefab` entities (`room_prefab.atd`) the hand-made rooms. The generator itself lives in Rust only
-(`fey-rs`, `fey_core::mapgen`); Unity never generates, it only stores the data. `lib/mapgen_check.ml` ports the generator's
+(`fey-rs`, `fey_core::mapgen`). `lib/mapgen_check.ml` ports the generator's
 static checks, so an infeasible spec or a quest the spec cannot hold is a build error (`dune exec gamedata`): spec
 feasibility (counts against the main path, farthest and chokepoint rules, spacing, prefabs that exist and match the
 generator, impossible pins, seed policy, par), every anchor of a generated stage bound with contiguous ordinals, the quest
@@ -132,7 +121,7 @@ prefab ids unique and slots inside the room. The Rust code is the reference; cha
 ### Sprite pipeline metadata
 
 `lib/data/sprite.atd` is not an entity: it is the schema of the sprite pipeline's output (`sprites.json`, version 3, trimmed
-atlases, and `portraits/portraits.json`). It generates the Rust types (`fey_data::sprite`) and no C#. Validate the files with
+atlases, and `portraits/portraits.json`). It generates the Rust types (`fey_data::sprite`). Validate the files with
 
 ```bash
 dune exec spritecheck -- <sprites.json | portraits.json | directory>...
@@ -147,7 +136,7 @@ which reads the shape through the generated reader (unknown fields are refused) 
 - **Modular Architecture**: Clean separation of concerns
 - **Validation**: Comprehensive error checking and reporting
 - **Hot Reload**: File watcher for immediate feedback
-- **Unity Integration**: Generated C# classes with proper attributes
+- **Rust Integration**: Generated serde types for the game
 - **Entity References**: Validates cross-entity relationships
 - **Performance**: Efficient indexing and hashing
 

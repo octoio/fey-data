@@ -5,23 +5,23 @@ type generator_kind <ocaml from="Generator"> = abstract
 type anchor_slot <ocaml from="Generator"> = abstract
 
 (* An anchor slot inside a prefab, in room coordinates. [area]: the spawn area / zone radius it needs (default 0). *)
-type prefab_slot <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
-  slot <cs usetype="Type.AnchorSlot">: anchor_slot;
+type prefab_slot = {
+  slot: anchor_slot;
   x: float;
   z: float;
-  ?area <cs usetype="Optional<float>">: float option <ocaml valid="Validation.float_min_if_some 0.">;
+  ?area: float option <ocaml valid="Validation.float_min_if_some 0.">;
 }
 
 (* A hand-made room for the map generator. [prefab_id] is the stable id layouts and replays carry (dotted, lower case,
    `crypt.hollow_nest`); [size] is the interior between the wall centre lines; doors are cut wherever the room is
    connected, within [door_band] of the middle of a wall, so keep that band free of props. [obstacles] and [slots] are
    in room coordinates, centre at 0, 0. *)
-type room_prefab <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type;UnityEngine"> = {
+type room_prefab = {
   metadata: metadata;
-  generator <cs usetype="Type.GeneratorKind">: generator_kind;
+  generator: generator_kind;
   prefab_id: string <ocaml valid="Validation.validate_prefab_id">;
   size: plane_point;
   door_band: float <ocaml valid="Validation.float_min 0.">;
-  ?obstacles <cs usetype="Optional<Obstacle[]>">: obstacle list option <ocaml valid="Validation.validate_obstacles">;
+  ?obstacles: obstacle list option <ocaml valid="Validation.validate_obstacles">;
   slots: prefab_slot list;
 }

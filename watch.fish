@@ -1,12 +1,12 @@
 #!/opt/homebrew/bin/fish
 echo "Game Data Watcher Init"
 
-# Read game root from config file
-set game_root (grep "^game_root" fey-data.config | cut -d'=' -f2 | string trim | string trim -c '"')
-if test -z "$game_root"
-    set game_root "../fey-game-mock"
+# Read the JSON folder from the config file
+set json_path (grep "^json_path" fey-data.config | cut -d'=' -f2 | string trim | string trim -c '"')
+if test -z "$json_path"
+    set json_path "../fey-rs/data/json"
 end
-echo "Using game root: $game_root"
+echo "Using JSON folder: $json_path"
 
 opam switch create . 5.2.0
 opam switch
@@ -47,7 +47,7 @@ while true
     # -e            exclude filter (important, default behavior is to include all files not hit by any filter)
     # [folders]     folders to watch
     # debug pipe    | xargs -0 -n1 echo
-    fswatch --no-defer -1 -E -i ".*/json/.*.json" -i "(bin|lib|test)/*.(ml|atd)" -e ".*(_build|Temp|Library|ProjectSettings|git).*" -e ".*(cs|meta|png|fish|py|uss|entity-reference-indices.json|txt)" . "$game_root/Assets/StreamingAssets" - | xargs -0 -n1 echo
+    fswatch --no-defer -1 -E -i ".*/json/.*.json" -i "(bin|lib|test)/*.(ml|atd)" -e ".*(_build|Temp|Library|ProjectSettings|git).*" -e ".*(png|fish|py|entity-reference-indices.json|txt)" . "$json_path" - | xargs -0 -n1 echo
     
     echo (set_color cyan)"📁 File change detected, rebuilding..."(set_color normal)
     run_tests_and_build

@@ -3,13 +3,13 @@ type hit_type <ocaml from="Common"> = abstract
 type stat_type <ocaml from="Stat"> = abstract
 type float_range <ocaml from="Common"> = abstract
 
-type character_team <cs namespace="Octoio.Fey.Data.Type"> = 
+type character_team = 
   [ Ally
   | Enemy
   | Neutral
   ]
 
-type effect_target_mechanic_type <cs namespace="Octoio.Fey.Data.Type"> =
+type effect_target_mechanic_type =
   [ Self
   | Team
   | Selected
@@ -17,37 +17,37 @@ type effect_target_mechanic_type <cs namespace="Octoio.Fey.Data.Type"> =
   | Rectangle
   ]
 
-type effect_target_mechanic <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="abstract,partial"> = {
+type effect_target_mechanic = {
   mechanic_type <json name="type">: effect_target_mechanic_type;
 }
 
-type effect_target_mechanic_self <cs extends="EffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: effect_target_mechanic_type;
+type effect_target_mechanic_self = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
 }
 
-type effect_target_mechanic_team <cs extends="EffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: effect_target_mechanic_type;
+type effect_target_mechanic_team = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
   team: character_team;
 }
 
-type effect_target_mechanic_selected <cs extends="EffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: effect_target_mechanic_type;
+type effect_target_mechanic_selected = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
 }
 
-type effect_target_mechanic_circle <cs extends="EffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: effect_target_mechanic_type;
+type effect_target_mechanic_circle = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
   hit_count: int <ocaml valid="Validation.int_min 1">;
   radius: float;
 }
 
-type effect_target_mechanic_rectangle <cs extends="EffectTargetMechanic" namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type" modifiers="partial"> = {
-  mechanic_type <json name="type"> <cs ignore="true">: effect_target_mechanic_type;
+type effect_target_mechanic_rectangle = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
   hit_count: int <ocaml valid="Validation.int_min 1">;
   width: float;
   height: float;
 }
 
-type effect_target_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EffectTargetMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EffectTargetMechanic,enumname=Type.EffectTargetMechanicType)"> =
+type effect_target_mechanic_internal =
   [ Self of effect_target_mechanic_self
   | Team of effect_target_mechanic_team
   | Selected of effect_target_mechanic_selected
@@ -55,27 +55,27 @@ type effect_target_mechanic_internal <cs generators="visitor(namespace=Octoio.Fe
   | Rectangle of effect_target_mechanic_rectangle
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-type effect_target <cs namespace="Octoio.Fey.Data.Type"> = 
+type effect_target = 
   [ Ally
   | Enemy
   | Any
   ]
 
-type effect_scaling <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+type effect_scaling = {
   base: float;
   scaling: float_range;
-  stat <cs usetype="Type.Stat">: stat_type;
+  stat: stat_type;
 }
 
 (* A damage bonus on a weak target: a Damage hit on a target whose health is below [below] (a fraction of its
    maximum health, in (0, 1]) deals [factor] times the damage (at least 1) *)
-type execute_bonus <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+type execute_bonus = {
   below: float;
   factor: float;
 } <ocaml valid="Validation.validate_execute_bonus">
 
 (* The resistance a damage hit is mitigated by: Armor (Physical) or MagicResist (Magical) *)
-type damage_school <cs namespace="Octoio.Fey.Data.Type"> =
+type damage_school =
   [ Physical
   | Magical
   ]
@@ -86,38 +86,38 @@ type damage_school <cs namespace="Octoio.Fey.Data.Type"> =
    never mitigated; its school only labels the breakdown. Any other hit type with a school is an error.
    [execute] (Damage hits only): see execute_bonus. [knockback] (Damage hits only): units a target that survives the
    hit is pushed straight away from the caster, stopped by obstacles and the stage bounds (positive). *)
-type hit_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
-  hit_type <cs usetype="Type.Hit">: hit_type;
+type hit_effect = {
+  hit_type: hit_type;
   scalers: effect_scaling list;
-  target_mechanic <cs usetype="EffectTargetMechanic">: effect_target_mechanic_internal;
+  target_mechanic: effect_target_mechanic_internal;
   target: effect_target;
   hit_sound: entity_reference;
   can_crit: bool;
   can_miss: bool;
-  ?school <cs usetype="Optional<Type.DamageSchool>">: damage_school option;
-  ?execute <cs usetype="Optional<ExecuteBonus>">: execute_bonus option;
-  ?knockback <cs usetype="Optional<float>">: float option;
+  ?school: damage_school option;
+  ?execute: execute_bonus option;
+  ?knockback: float option;
 } <ocaml valid="Validation.validate_hit_effect">
 
 (* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
-type status_duration_type <cs name="StatusDuration" namespace="Octoio.Fey.Data.Type"> =
+type status_duration_type =
     [ Chrono
     | Logical
     | Room
     | Dungeon
     ]
 
-type status_duration <cs namespace="Octoio.Fey.Data.Dto"> = {
-    duration <json name="type"> <cs usetype="Type.StatusDuration">: status_duration_type;
+type status_duration = {
+    duration <json name="type">: status_duration_type;
     value: float <ocaml valid="Validation.float_min 0.">;
 }
 
-type status_effect <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type"> = {
-  target_mechanic <cs usetype="EffectTargetMechanic">: effect_target_mechanic_internal;
+type status_effect = {
+  target_mechanic: effect_target_mechanic_internal;
   target: effect_target;
   durations: status_duration list;
   scalers: effect_scaling list;
   status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
   (* true: remove the status from the targets instead of applying it (a dispel or cleanse); durations and scalers must then be empty *)
-  ?dispel <cs usetype="Optional<bool>">: bool option;
+  ?dispel: bool option;
 } <ocaml valid="Validation.validate_status_effect">

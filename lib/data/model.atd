@@ -1,20 +1,20 @@
 type transform <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 
-type shadow_casting_mode <cs ignore="true"> = 
+type shadow_casting_mode = 
   [ Off
   | On
   | TwoSided
   | ShadowsOnly
   ]
 
-type model <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine.Rendering"> =
+type model =
   { path : string <ocaml valid="Validation.validate_file \"model/\" \".glb\"">;
     transform : transform;
     shadow_casting_mode: shadow_casting_mode;
   }
 
-type model_anchor_position <cs namespace="Octoio.Fey.Data.Type"> = 
+type model_anchor_position = 
     [ None
     | HeadAnchor
     | EyesAnchor
@@ -40,18 +40,18 @@ type model_anchor_position <cs namespace="Octoio.Fey.Data.Type"> =
     | HipRightAnchor
     ]
 
-type model_variant <cs namespace="Octoio.Fey.Data.Type"> =
+type model_variant =
     [ Primary
     | Sheathed
     ]
 
-type model_anchor <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+type model_anchor = {
     position: model_anchor_position;
     local_transform: transform;
     variant: model_variant;
 }
 
-type model_anchor_set <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
+type model_anchor_set = {
     model_reference: entity_reference <ocaml valid="Validation.entity_reference_of_type `Model">;
     anchors: model_anchor list;
 }

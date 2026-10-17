@@ -7,9 +7,9 @@ type skill_category <ocaml from="Skill"> = abstract
    pick one of three skills (drawn on use, never owned already). [category] restricts the offer to
    skills tagged with it; absent = any skill. [quality] is the rarity: the stone offers skills up
    to that quality and always tries to include one of the highest quality available. *)
-type skill_stone <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
+type skill_stone = {
   metadata: metadata;
-  quality <cs usetype="Type.Quality">: quality_type;
+  quality: quality_type;
   icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
-  ?category <cs usetype="Optional<SkillCategory>">: skill_category option;
+  ?category: skill_category option;
 }
