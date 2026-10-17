@@ -20,6 +20,7 @@ type weapon_category <cs namespace="Octoio.Fey.Data.Type"> =
     | Staff
     | Wand
     | Shield
+    | Spear
     ]
 
 type weapon_equip_index <cs namespace="Octoio.Fey.Data.Type"> =

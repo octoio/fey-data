@@ -128,18 +128,33 @@ let validate_charges = function
   | None -> true
 ;;
 
+(* The status of an interrupt lands on the interrupted character: the Selected one, never a dispel *)
+let validate_interrupt_node (n : Skill_t.skill_action_interrupt_node) =
+  match n.on_interrupt with
+  | None -> true
+  | Some { target_mechanic = `Selected _; dispel; _ } -> dispel <> Some true
+  | Some _ -> false
+;;
+
+(* An execute bonus: below a fraction of the health in (0, 1], a factor of at least 1 *)
+let validate_execute_bonus (b : Effect_t.execute_bonus) = b.below > 0. && b.below <= 1. && b.factor >= 1.
+
 (* A revive stands up the selected dead ally: one scaler whose base is the percent (above 0, at most 100) of its
-   maximum health and mana it returns with *)
+   maximum health and mana it returns with. Only a Damage hit executes or knocks back, a knockback is a positive
+   distance *)
 let validate_hit_effect (effect : Effect_t.hit_effect) =
+  let damage_only = effect.execute = None && effect.knockback = None in
   match effect.hit_type with
   | `Revive ->
     effect.school = None
+    && damage_only
     &&
     (match effect.target_mechanic, effect.target, effect.scalers with
      | `Selected _, `Ally, [ { base; _ } ] -> base > 0. && base <= 100.
      | _ -> false)
-  | `Damage | `Heal -> true
-  | `Threat | `Mana -> effect.school = None
+  | `Damage -> Option.fold ~none:true ~some:(fun d -> d > 0.) effect.knockback
+  | `Heal -> damage_only
+  | `Threat | `Mana -> effect.school = None && damage_only
 ;;
 
 (* A dispel removes a status; there is nothing to scale or time *)

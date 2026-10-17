@@ -206,6 +206,7 @@
 ../fey/Assets/Scripts/Data/Dto/EffectTargetMechanicVisitables.cs
 ../fey/Assets/Scripts/Data/Mapper/EffectTargetMechanicConverter.cs
 ../fey/Assets/Scripts/Data/Dto/EffectScaling.cs
+../fey/Assets/Scripts/Data/Dto/ExecuteBonus.cs
 ../fey/Assets/Scripts/Data/Dto/HitEffect.cs
 ../fey/Assets/Scripts/Data/Dto/StatusDuration.cs
 ../fey/Assets/Scripts/Data/Dto/StatusEffect.cs

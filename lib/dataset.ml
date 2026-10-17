@@ -86,7 +86,9 @@ let extract_entity_reference_from_skill_entity
     | `Status { status_effect; _ } -> [ status_effect.status ]
     | `Summon { summon_entity; _ } -> [ summon_entity ]
     | `Projectile { projectile; _ } -> [ projectile ]
-    | `Move _ | `Interrupt _ -> []
+    | `Move _ -> []
+    | `Interrupt { on_interrupt; _ } ->
+      Option.fold ~none:[] ~some:(fun (e : Data.Effect_t.status_effect) -> [ e.status ]) on_interrupt
   in
   [ icon_reference ]
   @ List.map
