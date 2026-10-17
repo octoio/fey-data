@@ -24,28 +24,19 @@ let read_config_value key default_value =
   | Sys_error _ -> default_value
 ;;
 
-(* Configuration constants *)
-let game_root = read_config_value "game_root" "../fey-game-mock"
-let streaming_assets_path = read_config_value "streaming_assets_path" "Assets/StreamingAssets"
-let json_path = read_config_value "json_path" "json"
-let scripts_path = read_config_value "scripts_path" "Assets/Scripts/Octoio/Fey/Data/Dto"
+(* Configuration constants: every path is relative to the fey-data folder *)
+let json_folder = read_config_value "json_path" "../fey-rs/data/json"
+
+(* The media files (images, audio, models) the entity JSON names; validation checks they exist *)
+let media_folder = read_config_value "media_path" "../fey-assets/game-media"
+
+let entity_reference_indices_file =
+  read_config_value "entity_index_path" "../fey-rs/data/entity-reference-indices.json"
+;;
 
 let rust_output_path =
   read_config_value "rust_output_path" "../fey-rs/crates/fey_data/src/generated"
-
-(* Derived paths *)
-let base_asset_folder = Filename.concat game_root "Assets"
-let streaming_assets_folder = Filename.concat game_root streaming_assets_path
-let base_script_folder = Filename.concat game_root "Assets/Scripts"
-let json_folder = Filename.concat streaming_assets_folder json_path
-let script_output_folder = Filename.concat game_root scripts_path
-
-(* Legacy constants *)
-let json_sub_folder = "/json"
-let generated_file = "generated.txt"
-let base_namespace = "Octoio.Fey"
-let data_folder = Filename.concat streaming_assets_folder "/data"
-
-let entity_reference_indices_file =
-  Filename.concat streaming_assets_folder "entity-reference-indices.json"
 ;;
+
+(* Dataset paths are kept from the first "/json" on *)
+let json_sub_folder = "/json"

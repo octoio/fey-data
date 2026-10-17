@@ -26,23 +26,23 @@ type weapon_class <ocaml from="Weapon_class"> = abstract
 type room_prefab <ocaml from="Room_prefab"> = abstract
 type achievement_def <ocaml from="Achievement"> = abstract
 
-type entity_index <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
-  { index <cs usetype="uint">: int <ocaml valid="Validation.int_min 0">;
+type entity_index =
+  { index: int <ocaml valid="Validation.int_min 0">;
     hash: string;
     reference: entity_reference;
     file_path: string;
   }
   
-type entity_index_container <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type entity_index_container =
   { indices: entity_index list
   }
 
 
-type entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System" modifiers="abstract,partial"> =
+type entity_definition =
   { owner: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs usetype="Type.Entity"> : entity_type;
+    entity_type <json name="type"> : entity_type;
     key: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs usetype="uint">: int <ocaml valid="Validation.int_min 0">;
+    version: int <ocaml valid="Validation.int_min 0">;
     id: string;
     (* notes: string;
     schema_version: int <ocaml valid="Validation.int_min 0">;
@@ -51,258 +51,258 @@ type entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializ
     updated_at: int <ocaml valid="Validation.int_min 0">; *)
   }
 
-type achievement_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<AchievementDef>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type achievement_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
     entity: achievement_def;
   }
 
-type weapon_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Weapon>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type weapon_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: weapon;
   }
 
-type skill_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Skill>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type skill_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: skill;
   }
 
-type equipment_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Equipment>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type equipment_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: equipment;
   }
 
-type status_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Status>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type status_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: status;
   }
 
-type model_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Model>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type model_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: model;
   }
 
-type image_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Image>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type image_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: image;
   }
 
-type cursor_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Cursor>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type cursor_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: cursor;
   }
 
-type stat_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Stat>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type stat_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: stat;
   }
 
-type quality_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Quality>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type quality_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: quality;
   }
 
-type audio_clip_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<AudioClip>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type audio_clip_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: audio_clip;
   }
 
-type sound_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Sound>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type sound_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: sound;
   }
 
-type sound_bank_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<SoundBank>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type sound_bank_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: sound_bank;
   }
 
-type drop_table_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<DropTable>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type drop_table_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: drop_table;
   }
 
-type character_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Character>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type character_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: character;
   }
 
 
-type animation_source_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<AnimationSource>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type animation_source_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
-    entity <cs usetype="AnimationSource">: animation_source;
+    entity: animation_source;
   }
 
-type animation_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Animation>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type animation_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
-    entity <cs usetype="Animation">: animation;
+    entity: animation;
   }
 
-type projectile_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Projectile>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type projectile_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
-    entity <cs usetype="Projectile">: projectile_internal;
+    entity: projectile_internal;
   }
 
-type quest_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Quest>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type quest_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
     entity: quest;
   }
 
-type quest_difficulty_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<QuestDifficulty>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type quest_difficulty_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
     entity: quest_difficulty;
   }
 
-type anchor_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Anchor>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type anchor_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
-    entity <cs usetype="Anchor">: anchor_internal;
+    entity: anchor_internal;
   }
 
-type stage_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<Stage>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type stage_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
     entity: stage;
   }
 
-type skill_stone_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<SkillStone>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type skill_stone_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: skill_stone;
   }
 
-type weapon_class_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<WeaponClass>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type weapon_class_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
     
     entity: weapon_class;
   }
 
-type room_prefab_entity_definition <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Interface" extends="EntityDefinition, IEntityDefinition<RoomPrefab>" modifiers="partial"> =
-  { owner <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    entity_type <json name="type"> <cs ignore="true">: entity_type;
-    key <cs ignore="true">: string <ocaml valid="Validation.string_length_between 3 64">;
-    version <cs ignore="true">: int <ocaml valid="Validation.int_min 0">;
-    id <cs ignore="true">: string;
+type room_prefab_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
 
     entity: room_prefab;
   }
 
-type entity_definition_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=EntityDefinition),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=EntityDefinition,enumname=Type.Entity)"> =
+type entity_definition_internal =
   [ Weapon of weapon_entity_definition
   | Skill of skill_entity_definition
   | Equipment of equipment_entity_definition

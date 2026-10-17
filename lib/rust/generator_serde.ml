@@ -4,7 +4,7 @@
 
 (* serde's derived enums use `{"Tag": payload}`; atdgen uses `["Tag", payload]`, or the
    `{"type": "Tag", ...}` object form with the Type_field adapter. Both are written by hand
-   here, in the same spirit as the C# converters. *)
+   here. *)
 
 open Types
 open Generator_types

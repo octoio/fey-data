@@ -2,7 +2,7 @@
  (public_name gamedata)
  (name main)
  (modules main)
- (libraries gamedata gamedata.csharp gamedata.rust gamedata.data gamedata.config))
+ (libraries gamedata gamedata.rust gamedata.data gamedata.config))
 
 (executable
  (public_name server)

@@ -1,6 +1,6 @@
 # Rust code generation
 
-Emits serde types into `fey-rs/crates/fey_data/src/generated` (path: `rust_output_path` in `fey-data.config`; skipped with a warning when `fey-rs` is not checked out). Mirrors `lib/csharp/`.
+Emits serde types into `fey-rs/crates/fey_data/src/generated` (path: `rust_output_path` in `fey-data.config`).
 
 | Module | Role |
 |---|---|
@@ -21,5 +21,5 @@ Emits serde types into `fey-rs/crates/fey_data/src/generated` (path: `rust_outpu
 - `(string * T) list <json repr="object">` -> `BTreeMap<String, T>` (a JSON object; keys come out sorted).
 - Unsupported (fails loudly): type parameters, anonymous nested records/sums, `inherit`, other JSON adapters.
 
-## `<rs ...>` annotations (C# `<cs ...>` equivalents; `<cs ...>` is ignored)
+## `<rs ...>` annotations
 `ignore="true"` (type or field), `name="Foo"` (type), `usetype="Foo"` (field), `attributes="#[a];#[b]"`, `derive="Eq,Hash"`.

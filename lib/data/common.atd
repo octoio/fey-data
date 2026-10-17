@@ -1,56 +1,56 @@
-type vector2 <cs ignore="true"> =
+type vector2 =
   { x : float;
     y : float
   }
 
-type vector3 <cs ignore="true"> =
+type vector3 =
   { x : float;
     y : float;
     z : float
   }
 
-type float_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type float_range =
   { min : float;
     max : float
   }
 
 (* An experience curve: XP to leave level 1 is [base]; leaving level n costs
    base + sum_{k=0}^{n-2} floor(increment * growth^k). *)
-type xp_chart <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type xp_chart =
   { base: int <ocaml valid="Validation.int_min 1">;
     increment: float <ocaml valid="Validation.float_min 0.">;
     growth: float <ocaml valid="Validation.float_min 0.">
   }
 
-type int_range <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type int_range =
   { min : int;
     max : int
   }
 
-type metadata <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type metadata =
   { title : string;
     description : string
   }
 
-type size <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> =
+type size =
   { width : int;
     height : int
   }
 
-type color <cs ignore="true"> =
+type color =
   { r : float <ocaml valid="Validation.float_between 0. 1.">;
     g : float <ocaml valid="Validation.float_between 0. 1.">;
     b : float <ocaml valid="Validation.float_between 0. 1.">;
     a : float <ocaml valid="Validation.float_between 0. 1.">
   }
 
-type transform <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> =
+type transform =
   { position : vector3;
     rotation : vector3;
     scale : vector3
   }
 
-type entity_type <cs name="Entity" namespace="Octoio.Fey.Data.Type"> = 
+type entity_type = 
   [ Model
   | Skill
   | Weapon
@@ -78,15 +78,15 @@ type entity_type <cs name="Entity" namespace="Octoio.Fey.Data.Type"> =
   | Achievement
   ]
 
-type entity_reference <cs namespace="Octoio.Fey.Data.Dto" imports="System;Octoio.Fey.Data.Type;Octoio.Fey.Data.Interface" extends="IEntityReference"> =
+type entity_reference =
   { owner: string;
-    entity_type <json name="type"> <cs usetype="Entity"> : entity_type;
+    entity_type <json name="type"> : entity_type;
     key: string;
-    version <cs usetype="uint">: int;
+    version: int;
     id: string;
   } <ocaml valid="Validation.validate_entity_reference">
 
-type hit_type <cs name="Hit" namespace="Octoio.Fey.Data.Type"> =
+type hit_type =
   [ Damage
   | Heal
   | Threat
@@ -95,7 +95,7 @@ type hit_type <cs name="Hit" namespace="Octoio.Fey.Data.Type"> =
   ]
 
   (* TODO: remove this from the weapon file *)
-type skill_type <cs name="Skill" namespace="Octoio.Fey.Data.Type"> = 
+type skill_type = 
   [ None
   | HealingZone
   | DoubleSlash
@@ -122,12 +122,12 @@ type skill_type <cs name="Skill" namespace="Octoio.Fey.Data.Type"> =
   | TuskStrike
   ]
 
-type highlight_type <cs name="Highlight" namespace="Octoio.Fey.Data.Type"> =
+type highlight_type =
   [ MouseOver
   | Selected
   ]
 
-type target_type <cs name="Target" namespace="Octoio.Fey.Data.Type"> =
+type target_type =
   [ Character
   | Drop
   | DeadCharacter
@@ -135,7 +135,7 @@ type target_type <cs name="Target" namespace="Octoio.Fey.Data.Type"> =
   | Portal
   ]
 
-type zone_type <cs name="Zone" namespace="Octoio.Fey.Data.Type"> =
+type zone_type =
   [ StartQuestZone
   | StayInZone
   ]

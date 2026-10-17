@@ -1,6 +1,6 @@
 (* Metadata of the sprite pipeline output: [<family>/sprites.json] (version 3, trimmed atlases) and
    [<family>/portraits/portraits.json] next to the sheet PNGs. These are pipeline outputs, not game
-   entities: nothing here is a data file of the game, and no C# is generated for it. The schema
+   entities: nothing here is a data file of the game. The schema
    keeps the pipeline and the clients (Rust types in fey_data) honest about one shape; the checks
    that need several fields at once (rects inside the sheet, layers naming existing sheets, ...)
    are in [lib/sprite_check.ml]. Run them with [dune exec spritecheck -- <file or directory>...]. *)
@@ -10,13 +10,13 @@ type weapon_equip_index <ocaml from="Weapon"> = abstract
 type weapon_sheathe_location <ocaml from="Weapon"> = abstract
 
 (* Hero: the layered paper doll (equipment and weapon layers); Monster: a creature family (own skeleton, body layers) *)
-type sprite_kind <cs ignore="true"> =
+type sprite_kind =
   [ Hero <json name="hero">
   | Monster <json name="monster">
   ]
 
 (* What a clip shows, for the client to pick it for a state (idle, walking, a cast, ...) *)
-type sprite_animation_kind <cs ignore="true"> =
+type sprite_animation_kind =
   [ Idle <json name="idle">
   | Move <json name="move">
   | Attack <json name="attack">
@@ -27,7 +27,7 @@ type sprite_animation_kind <cs ignore="true"> =
   | Death <json name="death">
   ]
 
-type sprite_camera <cs ignore="true"> = {
+type sprite_camera = {
   yaw_deg: float;
   pitch_deg: float;
   ortho_height_per_distance: float <ocaml valid="Validation.float_min 0.0001">;
@@ -37,13 +37,13 @@ type sprite_camera <cs ignore="true"> = {
 }
 
 (* One low-res texel is [world_units_per_pixel] world units; [character_height_world] is the rendered subject *)
-type sprite_scale <cs ignore="true"> = {
+type sprite_scale = {
   pixels_per_world_unit: float <ocaml valid="Validation.float_min 0.0001">;
   world_units_per_pixel: float <ocaml valid="Validation.float_min 0.0001">;
   character_height_world: float <ocaml valid="Validation.float_min 0.0001">;
 }
 
-type sprite_depth_encoding <cs ignore="true"> = {
+type sprite_depth_encoding = {
   format: string;
   formula: string;
   half_range_world: float <ocaml valid="Validation.float_min 0.0001">;
@@ -51,19 +51,19 @@ type sprite_depth_encoding <cs ignore="true"> = {
 }
 
 (* The palette the albedo was quantised to (a snapshot of the client palette) *)
-type sprite_palette <cs ignore="true"> = {
+type sprite_palette = {
   source: string;
   colors: int <ocaml valid="Validation.int_min 1">;
 }
 
-type sprite_quantize <cs ignore="true"> = {
+type sprite_quantize = {
   mode: string;
   colors: int <ocaml valid="Validation.int_min 1">;
   pre_gain: float;
 }
 
 (* The frame ranges of an attack clip, inclusive [first, last] frame indices of its [frames] *)
-type sprite_phases <cs ignore="true"> = {
+type sprite_phases = {
   windup: (int * int);
   impact: (int * int);
   recovery: (int * int);
@@ -72,7 +72,7 @@ type sprite_phases <cs ignore="true"> = {
 (* One clip, sampled to [frames] frames at [sample_fps]. An attack names the frame of its hit:
    [impact_time] seconds into the clip (of [duration]), [impact_frame] the sampled frame, [phases]
    the ranges around it; the client plays the clip at [impact_time / hit_delay] so the hit lands on the simulation's. *)
-type sprite_animation <cs ignore="true"> = {
+type sprite_animation = {
   clip: string;
   kind: sprite_animation_kind;
   loop: bool;
@@ -91,7 +91,7 @@ type sprite_animation <cs ignore="true"> = {
 
 (* One layer of a character: a slot (body, head, chest, weapon, ...) filled by one variant (a colour, an item).
    A weapon layer also names the weapon it shows and the clip its Attack plays. *)
-type sprite_layer <cs ignore="true"> = {
+type sprite_layer = {
   slot: string;
   variant: string;
   (* the key of the item the layer shows; null for a body part or a colour variant *)
@@ -107,36 +107,36 @@ type sprite_layer <cs ignore="true"> = {
   ?attack_animation: string option;
 }
 
-type sprite_slot <cs ignore="true"> = {
+type sprite_slot = {
   order: int;
   (* variant -> layer id *)
   layers: (string * string) list <json repr="object">;
 }
 
-type sprite_files <cs ignore="true"> = {
+type sprite_files = {
   albedo: string;
   normal: string;
   depth: string;
 }
 
 (* [x, y, w, h, ox, oy]: the rect in the atlas and the offset of its top left inside the cell (the pivot is [pivot_px] of the cell) *)
-type sprite_frame <cs ignore="true"> = (int * int * int * int * int * int)
+type sprite_frame = (int * int * int * int * int * int)
 
 (* The atlas of one layer and one animation: [frames.(direction).(frame)], null for an empty frame *)
-type sprite_sheet <cs ignore="true"> = {
+type sprite_sheet = {
   files: sprite_files;
   size: (int * int);
   frames: sprite_frame nullable list list;
 }
 
 (* A colour variant of a monster: the body scale and the palette colour it is drawn with *)
-type sprite_variant <cs ignore="true"> = {
+type sprite_variant = {
   scale: float <ocaml valid="Validation.float_min 0.0001">;
   palette: string;
   unity_color: float list <ocaml valid="Validation.list_min_length 3">;
 }
 
-type sprite_meta <cs ignore="true"> = {
+type sprite_meta = {
   version: int <ocaml valid="Validation.int_min 3">;
   kind: sprite_kind;
   ?family: string option;
@@ -165,13 +165,13 @@ type sprite_meta <cs ignore="true"> = {
   ?weapon_order: string list option;
 }
 
-type portrait_camera <cs ignore="true"> = {
+type portrait_camera = {
   yaw_deg: float;
   pitch_deg: float;
 }
 
 (* A portrait atlas of one layer: [frames.(frame)] = [x, y, w, h, ox, oy], one direction *)
-type portrait_layer <cs ignore="true"> = {
+type portrait_layer = {
   files: sprite_files;
   size: (int * int);
   frames: sprite_frame list;
@@ -183,7 +183,7 @@ type portrait_layer <cs ignore="true"> = {
 }
 
 (* "full" is the character portrait, "frame" the small unit-frame one *)
-type portrait <cs ignore="true"> = {
+type portrait = {
   cell_px: (int * int);
   pivot_px: (float * float);
   camera: portrait_camera;
@@ -199,7 +199,7 @@ type portrait <cs ignore="true"> = {
   layers: (string * portrait_layer) list <json repr="object">;
 }
 
-type portrait_meta <cs ignore="true"> = {
+type portrait_meta = {
   full: portrait;
   frame: portrait;
 }

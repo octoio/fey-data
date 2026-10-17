@@ -4,7 +4,7 @@
    how they move and fade) and tints it with the element's colour, so the data carries no licensed content and
    no colours. A key the client does not know draws nothing. *)
 
-type vfx_element <cs namespace="Octoio.Fey.Data.Type"> =
+type vfx_element =
   [ Physical
   | Fire
   | Frost
@@ -22,24 +22,24 @@ type vfx_element <cs namespace="Octoio.Fey.Data.Type"> =
    - [release]: on the caster at the landing tick (a dash or blink: at the point it left from)
    - [impact]: on every character this skill hits (a blink or dash: at the arrival point)
    - [area]: on the ground over the telegraphed area when it lands (centre and radius of the telegraph) *)
-type skill_vfx <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
-  element <cs usetype="Type.VfxElement">: vfx_element;
-  ?cast <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
-  ?release <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
-  ?impact <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
-  ?area <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
+type skill_vfx = {
+  element: vfx_element;
+  ?cast: string option <ocaml valid="Validation.vfx_key_if_some">;
+  ?release: string option <ocaml valid="Validation.vfx_key_if_some">;
+  ?impact: string option <ocaml valid="Validation.vfx_key_if_some">;
+  ?area: string option <ocaml valid="Validation.vfx_key_if_some">;
 }
 
 (* Effects of a projectile (coloured by the element of the skill that fired it). [body] rides the projectile,
    [trail] streams behind it, [impact] plays where it hits a body or lands. *)
-type projectile_vfx <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System"> = {
-  ?body <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
-  ?trail <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
-  ?impact <cs usetype="Optional<string>">: string option <ocaml valid="Validation.vfx_key_if_some">;
+type projectile_vfx = {
+  ?body: string option <ocaml valid="Validation.vfx_key_if_some">;
+  ?trail: string option <ocaml valid="Validation.vfx_key_if_some">;
+  ?impact: string option <ocaml valid="Validation.vfx_key_if_some">;
 }
 
 (* The effect on a character while it has the status (from StatusApplied until StatusEnded). *)
-type status_vfx <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;Octoio.Fey.Data.Type"> = {
-  element <cs usetype="Type.VfxElement">: vfx_element;
+type status_vfx = {
+  element: vfx_element;
   effect: string <ocaml valid="Validation.vfx_key">;
 }

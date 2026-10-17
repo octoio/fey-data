@@ -1,7 +1,7 @@
 type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 
-type quality_type <cs name="Quality" namespace="Octoio.Fey.Data.Type"> = 
+type quality_type = 
     [ None
     | Common
     | Uncommon
@@ -10,9 +10,9 @@ type quality_type <cs name="Quality" namespace="Octoio.Fey.Data.Type"> =
     | Legendary
     ]
 
-type quality <cs namespace="Octoio.Fey.Data.Dto" attributes="[Serializable]" imports="System;UnityEngine"> = {
+type quality = {
     metadata: metadata;
-    quality_type <json name="type"> <cs usetype="Type.Quality">: quality_type;
+    quality_type <json name="type">: quality_type;
     color: color;
     text_color: color;
     text_over_color: color;

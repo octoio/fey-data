@@ -2,7 +2,7 @@
 (* ANNOTATIONS                                                                 *)
 (* ============================================================================ *)
 
-(* Rust-specific annotations live in `<rs ...>` sections, like `<cs ...>` for C#:
+(* Rust-specific annotations live in `<rs ...>` sections:
      ignore="true"       skip the type or record field
      name="Foo"          Rust name of a type
      usetype="Foo"       Rust type of a record field

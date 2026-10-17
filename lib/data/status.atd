@@ -5,7 +5,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type trigger <ocaml from="Trigger"> = abstract
 type status_vfx <ocaml from="Vfx"> = abstract
 
-type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octoio.Fey.Data.Type"> =
+type status_effect_mechanic_type =
     [ StatChange
     | HitOverTime
     | Control
@@ -13,16 +13,16 @@ type status_effect_mechanic_type <cs name="StatusEffectMechanic" namespace="Octo
     | Shield
     ]
 
-type status_effect_mechanic <cs namespace="Octoio.Fey.Data.Dto" modifiers="abstract,partial"> = {
-    mechanic_type <json name="type"> <cs usetype="Type.StatusEffectMechanic">: status_effect_mechanic_type;
+type status_effect_mechanic = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
 }
 
-type status_effect_mechanic_stat_change <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
-    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
-    stat <cs usetype="Type.Stat">: stat_type;
+type status_effect_mechanic_stat_change = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
+    stat: stat_type;
 }
 
-type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fey.Data.Dto,nameprefix=StatusEffectMechanic),converter(namespace=Octoio.Fey.Data.Mapper,nameprefix=StatusEffectMechanic)"> =
+type status_effect_mechanic_internal =
     [ StatChange of status_effect_mechanic_stat_change
     | HitOverTime of status_effect_mechanic_hit_over_time
     | Control of status_effect_mechanic_control
@@ -32,66 +32,66 @@ type status_effect_mechanic_internal <cs generators="visitor(namespace=Octoio.Fe
 
 (* A damage-absorbing pool: the status effect's scaler is the pool size; damage is soaked before health,
    oldest application first, and a drained shield ends (EndReason Consumed) *)
-type status_effect_mechanic_shield <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
-    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
+type status_effect_mechanic_shield = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
 }
 
-type status_effect_mechanic_hit_over_time <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
-    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
-    hit <cs usetype="Type.Hit">: hit_type;
+type status_effect_mechanic_hit_over_time = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
+    hit: hit_type;
     tick_rate: float <ocaml valid="Validation.float_min 0.1">;
 }
 
 (* How a Control status moves controllers while it lasts (the Chrono duration of the status effect is the time) *)
-type status_control_mode <cs namespace="Octoio.Fey.Data.Type"> =
+type status_control_mode =
     [ Shuffle         (* the controllers of the afflicted characters rotate among them *)
     | SwapWithSource  (* the caster and the first afflicted character exchange controllers *)
     | Dominate        (* the caster takes control of the afflicted character; a player caster's own body idles *)
     ]
 
-type status_effect_mechanic_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
-    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
-    mode <cs usetype="Type.StatusControlMode">: status_control_mode;
+type status_effect_mechanic_control = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
+    mode: status_control_mode;
 }
 
 (* What a CrowdControl status takes away from the afflicted while it lasts. A slow is not one of these: it is a StatChange on MovementSpeedModifier (a percentage). *)
-type crowd_control_effect <cs namespace="Octoio.Fey.Data.Type"> =
+type crowd_control_effect =
     [ Stun     (* cannot move or cast; a running cast is interrupted when it lands *)
     | Root     (* cannot move; casting is unaffected *)
     | Silence  (* cannot cast, a running cast is interrupted when it lands; movement is unaffected *)
     | Taunt    (* an AI-controlled afflicted character must attack the source of the status; it can still do everything *)
     ]
 
-type status_effect_mechanic_crowd_control <cs namespace="Octoio.Fey.Data.Dto" extends="StatusEffectMechanic" modifiers="partial"> = {
-    mechanic_type <json name="type"> <cs ignore="true">: status_effect_mechanic_type;
-    effect <cs usetype="Type.CrowdControlEffect">: crowd_control_effect;
+type status_effect_mechanic_crowd_control = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
+    effect: crowd_control_effect;
 }
 
-type status_stack_scaling_strategy <cs namespace="Octoio.Fey.Data.Type"> =
+type status_stack_scaling_strategy =
     [ Additive
     | Multiplicative
     ]
 
 (* What happens when a status already at its maximum stack size is applied again. *)
-type status_full_stack_rule <cs namespace="Octoio.Fey.Data.Type"> =
+type status_full_stack_rule =
     [ RefreshAll       (* no stack is replaced; the duration of the whole stack is reset (the default) *)
     | ReplaceOldest    (* the oldest application drops and the new one is added *)
     | ReplaceWeakest   (* the weakest stack is swapped for the new one, only if the new one is stronger *)
     ]
 
-type status_stack <cs namespace="Octoio.Fey.Data.Dto"> = {
-    size <cs usetype="uint">: int <ocaml valid="Validation.int_min 1">;
-    scaling_strategy <cs usetype="Type.StatusStackScalingStrategy">: status_stack_scaling_strategy;
+type status_stack = {
+    size: int <ocaml valid="Validation.int_min 1">;
+    scaling_strategy: status_stack_scaling_strategy;
     (* absent means RefreshAll *)
-    ?full_stack <cs usetype="Optional<Type.StatusFullStackRule>">: status_full_stack_rule option;
+    ?full_stack: status_full_stack_rule option;
 }
 
-type status <cs namespace="Octoio.Fey.Data.Dto"> = {
+type status = {
     metadata: metadata;
-    mechanic <cs usetype="StatusEffectMechanic">: status_effect_mechanic_internal;
+    mechanic: status_effect_mechanic_internal;
     stack: status_stack;
     (* effects that fire on something happening to the afflicted character while it has the status (see trigger.atd) *)
-    ?triggers <cs usetype="Optional<Trigger[]>">: trigger list option <ocaml valid="Validation.validate_triggers">;
+    ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
   (* the effect on the afflicted character while the status lasts (see vfx.atd) *)
-  ?vfx <cs usetype="Optional<StatusVfx>">: status_vfx option;
+  ?vfx: status_vfx option;
 }
