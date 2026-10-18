@@ -51,6 +51,6 @@ type weapon = {
     ?min_level: int option <ocaml valid="Validation.int_min_if_some 2">;
     (* the weapon class whose animation set it uses, when not the one listing its category (a spear thrust with a sword category) *)
     ?weapon_class: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
-    (* the sprite layer drawn for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
+    (* the look layer shown for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
     ?visual: visual_layer option;
 }

@@ -11,7 +11,7 @@
  (libraries gamedata gamedata.data))
 
 (executable
- (public_name spritecheck)
- (name spritecheck)
- (modules spritecheck)
+ (public_name portraitcheck)
+ (name portraitcheck)
+ (modules portraitcheck)
  (libraries gamedata gamedata.data))

@@ -416,7 +416,7 @@ let minimal_character =
     level = None;
     level_growth = None;
     rank = None;
-    sprite_family = None;
+    model_family = None;
     visual_layers = None
   }
 ;;

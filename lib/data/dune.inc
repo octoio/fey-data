@@ -314,6 +314,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets portrait_j.ml portrait_j.mli)
+ (deps portrait.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets portrait_t.ml portrait_t.mli)
+ (deps portrait.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets portrait_v.ml portrait_v.mli)
+ (deps portrait.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets projectile_j.ml projectile_j.mli)
  (deps projectile.atd)
  (mode fallback)
@@ -477,27 +498,6 @@
 (rule
  (targets spawn_v.ml spawn_v.mli)
  (deps spawn.atd)
- (mode fallback)
- (action
-  (run atdgen -v %{deps} -deriving-conv "eq,show")))
-
-(rule
- (targets sprite_j.ml sprite_j.mli)
- (deps sprite.atd)
- (mode fallback)
- (action
-  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
-
-(rule
- (targets sprite_t.ml sprite_t.mli)
- (deps sprite.atd)
- (mode fallback)
- (action
-  (run atdgen -t %{deps} -deriving-conv "eq,show")))
-
-(rule
- (targets sprite_v.ml sprite_v.mli)
- (deps sprite.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -719,6 +719,9 @@
   model_j
   model_t
   model_v
+  portrait_j
+  portrait_t
+  portrait_v
   projectile_j
   projectile_t
   projectile_v
@@ -743,9 +746,6 @@
   spawn_j
   spawn_t
   spawn_v
-  sprite_j
-  sprite_t
-  sprite_v
   stage_j
   stage_t
   stage_v

@@ -35,8 +35,8 @@ If linking fails against OpenSSL after a Homebrew upgrade, the `ssl` bindings we
 ## Visual effects (not an entity)
 `vfx.atd` types the effect keys skills, projectiles and statuses name (`?vfx` on `skill`, on every `projectile` variant and on `status`): an element plus optional effect keys per phase (cast, release, impact, area for skills; body, trail, impact for projectiles; one effect for a status). Keys are `lowercase-words/groups` (`Validation.vfx_key`); the client owns the recipe behind a key, so the data holds no art and no colours.
 
-## Sprite metadata (not an entity)
-`lib/data/sprite.atd` types the sprite pipeline output (`sprites.json` v3, `portraits.json`); `dune exec spritecheck -- <path>...` validates files against it (`lib/sprite_check.ml`). `(string * T) list <json repr="object">` is how JSON maps are declared (Rust `BTreeMap`). The pipeline lives in the private `fey-assets` repo; its `pipeline/build.sh` calls the checker when `../fey-data` is built.
+## Portrait metadata (not an entity)
+`lib/data/portrait.atd` types the portrait pipeline output (`portraits.json`); `dune exec portraitcheck -- <path>...` validates files against it (`lib/portrait_check.ml`). `(string * T) list <json repr="object">` is how JSON maps are declared (Rust `BTreeMap`). The pipeline lives in the private `fey-assets` repo; its `pipeline/build.py` calls the checker when `../fey-data` is present. Characters are 3D models: the `model_family` of a character (`character.atd`) is the family of its model in a pack.
 
 ## Rules
 - Public repo: no personal details, absolute home paths or licensed content names (vendor names only) in code, docs or commits.

@@ -107,9 +107,10 @@ type character =
        absent = nothing *)
     ?starting_equipment: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Equipment">;
     ?starting_weapons: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Weapon">;
-    (* Sprite look of a monster: the family (its own skeleton and clips, the directory of its sheets) and the layers
-       drawn, usually a single body sheet. Absent: the client draws the character's default look. A weapon class is
-       not needed, the attack cue comes from the skill. *)
-    ?sprite_family: string option <ocaml valid="Validation.validate_sprite_family_if_some">;
+    (* 3D look of a monster: the model family (its own skeleton and clips; the pack's model key is the family, or
+       "<family>-<variant>" when the first fixed layer is a "body_<variant>" colour) and the layers shown, usually a
+       single body layer. Absent: the client draws the character's default look. A weapon class is not needed, the
+       attack cue comes from the skill. *)
+    ?model_family: string option <ocaml valid="Validation.validate_model_family_if_some">;
     ?visual_layers: visual_layer list option;
   }

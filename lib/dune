@@ -8,7 +8,7 @@
   parity
   processing
   server
-  sprite_check
+  portrait_check
   validate)
  (libraries atd atdgen-runtime re dream lwt digestif base config util data)
  (preprocess

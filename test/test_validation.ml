@@ -831,14 +831,14 @@ module PresentationValidationTests = struct
     check bool "bad if present" false (validate_sheet_id_if_some (Some "Slime"))
   ;;
 
-  let test_sprite_family () =
-    check bool "plain" true (validate_sprite_family "wolf");
-    check bool "low poly" true (validate_sprite_family "lp-rat");
-    check bool "absent" true (validate_sprite_family_if_some None);
-    check bool "upper case" false (validate_sprite_family "Wolf");
-    check bool "leading dash" false (validate_sprite_family "-rat");
-    check bool "trailing dash" false (validate_sprite_family "rat-");
-    check bool "path" false (validate_sprite_family "lp/rat");
+  let test_model_family () =
+    check bool "plain" true (validate_model_family "wolf");
+    check bool "low poly" true (validate_model_family "lp-rat");
+    check bool "absent" true (validate_model_family_if_some None);
+    check bool "upper case" false (validate_model_family "Wolf");
+    check bool "leading dash" false (validate_model_family "-rat");
+    check bool "trailing dash" false (validate_model_family "rat-");
+    check bool "path" false (validate_model_family "lp/rat");
     check bool "sheet ids keep their rule" false (validate_sheet_id "lp-rat")
   ;;
 
@@ -889,7 +889,7 @@ end
 
 let presentation_validation_tests =
   [ "validate_sheet_id", `Quick, PresentationValidationTests.test_sheet_id;
-    "validate_sprite_family", `Quick, PresentationValidationTests.test_sprite_family;
+    "validate_model_family", `Quick, PresentationValidationTests.test_model_family;
     "validate_prop_name", `Quick, PresentationValidationTests.test_prop_name;
     "validate_stage_props", `Quick, PresentationValidationTests.test_stage_props;
     "validate_weapon_class_categories", `Quick, PresentationValidationTests.test_weapon_class_categories;
