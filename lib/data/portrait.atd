@@ -1,0 +1,60 @@
+(* Metadata of the character portraits the asset pipeline renders: [<family>/portraits/portraits.json] next to the
+   portrait PNGs. It is a pipeline output, not a game entity: nothing here is a data file of the game. The schema
+   keeps the pipeline and the clients (Rust types in fey_data) honest about one shape; the checks that need
+   several fields at once (rects inside their atlas, slots naming existing layers, ...) are in
+   [lib/portrait_check.ml]. Run them with [dune exec portraitcheck -- <file or directory>...]. *)
+
+(* [x, y, w, h, ox, oy]: the rect in the atlas and the offset of its top left inside the cell *)
+type portrait_frame = (int * int * int * int * int * int)
+
+type portrait_files = {
+  albedo: string;
+  normal: string;
+  depth: string;
+}
+
+(* One slot (body, head, chest, ...) of the picture: the layer each of its variants (a colour, an item) draws *)
+type portrait_slot = {
+  order: int;
+  (* variant -> layer id *)
+  layers: (string * string) list <json repr="object">;
+}
+
+type portrait_camera = {
+  yaw_deg: float;
+  pitch_deg: float;
+}
+
+(* A portrait atlas of one layer: [frames.(frame)] = [x, y, w, h, ox, oy], one direction *)
+type portrait_layer = {
+  files: portrait_files;
+  size: (int * int);
+  frames: portrait_frame list;
+  ?world_units_per_pixel: float option;
+  ?texel_scale: float option;
+  ?subject_extent_world: float option;
+  (* the bone the portrait was framed on *)
+  ~anchor: string nullable;
+}
+
+(* "full" is the character portrait, "frame" the small unit-frame one *)
+type portrait = {
+  cell_px: (int * int);
+  pivot_px: (float * float);
+  camera: portrait_camera;
+  ?world_units_per_pixel: float option;
+  ?texel_scale: float option;
+  ?subject_height_world: float option;
+  direction: int <ocaml valid="Validation.int_min 0">;
+  clip: string;
+  fps: float <ocaml valid="Validation.float_min 0.0001">;
+  frames: int <ocaml valid="Validation.int_min 1">;
+  loop: bool;
+  slots: (string * portrait_slot) list <json repr="object">;
+  layers: (string * portrait_layer) list <json repr="object">;
+}
+
+type portrait_meta = {
+  full: portrait;
+  frame: portrait;
+}

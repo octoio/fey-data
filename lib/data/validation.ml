@@ -436,7 +436,7 @@ let validate_obstacles (obstacles : Stage_t.obstacle list option) =
   Option.fold ~none:true ~some:(List.for_all validate_obstacle) obstacles
 
 
-(* The id of a sprite sheet family or layer: lower case letters, digits, '_' and '.', starting with a letter *)
+(* The id of a layer of a character's look: lower case letters, digits, '_' and '.', starting with a letter *)
 let validate_sheet_id (id : string) =
   String.length id > 0
   && String.length id <= 64
@@ -449,15 +449,15 @@ let validate_sheet_id_if_some (id : string option) =
   Option.fold ~none:true ~some:validate_sheet_id id
 ;;
 
-(* The id of a sprite family (the directory of its sheets): a sheet id that may also hold '-' between words
+(* The id of a model family (the key of its model in a pack): a layer id that may also hold '-' between words
    (the low-poly animal families are named lp-rat, lp-wolf, ...) *)
-let validate_sprite_family (id : string) =
+let validate_model_family (id : string) =
   validate_sheet_id (String.map (function '-' -> '_' | c -> c) id)
   && not (String.starts_with ~prefix:"-" id || String.ends_with ~suffix:"-" id)
 ;;
 
-let validate_sprite_family_if_some (id : string option) =
-  Option.fold ~none:true ~some:validate_sprite_family id
+let validate_model_family_if_some (id : string option) =
+  Option.fold ~none:true ~some:validate_model_family id
 ;;
 
 (* A prop is named by kind (lamp), model key (NTree3) or model id (Octoio:Model:NTree3:1) *)

@@ -35,6 +35,6 @@ type equipment = {
     ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
     (* character level needed to equip it; absent = any *)
     ?min_level: int option <ocaml valid="Validation.int_min_if_some 2">;
-    (* the sprite layer drawn for it, see visual.atd; it replaces the base layer of the category's slot *)
+    (* the look layer shown for it, see visual.atd; it replaces the base layer of the category's slot *)
     ?visual: visual_layer option;
 }

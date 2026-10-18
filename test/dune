@@ -61,6 +61,6 @@
  (libraries gamedata alcotest test_fixtures gamedata.data))
 
 (test
- (name test_sprite)
- (modules test_sprite)
+ (name test_portrait)
+ (modules test_portrait)
  (libraries gamedata gamedata.data alcotest str))
