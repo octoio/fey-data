@@ -299,7 +299,8 @@ let test_nest_and_escalation_name_their_references () =
              nest = reference `Character;
              spawn = reference `Character;
              interval = 60.;
-             cap = 12
+             cap = 12;
+             rewards = false
            }));
   check int "a spawn at remains names both characters" 2
     (refs

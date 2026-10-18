@@ -204,13 +204,15 @@ type quest_action_enable_quest_board_quest = {
 (* The nests breed: while any living character of [nest] stands, they spawn one [spawn] each [interval] seconds
    between them (a standing nest makes one per interval; the monsters walk towards the party and are not leashed),
    never more than [cap] alive at once. Breaking a nest stops its share. The numbers are a spawn budget that grows
-   with time (fey-rs docs/systems/quests.md, "Escalation"). The escalation ends with the stage. *)
+   with time (fey-rs docs/systems/quests.md, "Escalation"). The escalation ends with the stage. The [spawn]
+   monsters give XP and loot only when [rewards]: a quest that punishes slowness must not become a farm. *)
 type quest_action_start_escalation = {
   action_type <json name="type">: quest_action_type;
   nest: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   spawn: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   interval: float <ocaml valid="Validation.float_min 1.">;
   cap: int <ocaml valid="Validation.int_min 1">;
+  rewards: bool;
 }
 
 (* [character] rises where the latest dead [remains_of] character fell (its body is still on the stage) *)
