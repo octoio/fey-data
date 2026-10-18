@@ -202,8 +202,8 @@ type quest_action_enable_quest_board_quest = {
 }
 
 (* The nests breed: while any living character of [nest] stands, they spawn one [spawn] each [interval] seconds
-   between them (a standing nest makes one per interval; the monsters walk towards the party and are not leashed),
-   never more than [cap] alive at once. Breaking a nest stops its share. The numbers are a spawn budget that grows
+   between them (a standing nest makes one per interval; a bred monster stays at the nest that bred it, in its area),
+   never more than [cap] alive per nest. Breaking a nest stops its share. The numbers are a spawn budget that grows
    with time (fey-rs docs/systems/quests.md, "Escalation"). The escalation ends with the stage. The [spawn]
    monsters give XP and loot only when [rewards]: a quest that punishes slowness must not become a farm. *)
 type quest_action_start_escalation = {
