@@ -331,16 +331,6 @@ type quest_node_internal =
   | Action of quest_action_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
-(* The skill stone budget of a quest (fey-rs docs/systems/loot.md, #149): a stone is a build choice, so the supply is
-   a design number that does not grow with the kill count. The kills that can drop a stone are counted in windows of
-   [per_kills]; one kill of each window, drawn from the seeded Supply stream, drops a stone, until [stones] have
-   dropped. The boss's stone is a drop table guarantee and not part of this budget. A quest without it drops no
-   stone from its monsters. *)
-type quest_stone_supply = {
-  stones: int <ocaml valid="Validation.int_min 1">;
-  per_kills: int <ocaml valid="Validation.int_min 1">;
-}
-
 type quest = {
   metadata: metadata;
   origin: quest_origin;
@@ -357,5 +347,4 @@ type quest = {
   (* absent = false: clearing this quest ends the run as a win (the party goes home with the starting kit and
      the quest chain starts over). At least one board quest must end the run and be reachable from the start *)
   ?ends_run: bool option;
-  ?stone_supply: quest_stone_supply option;
 } <ocaml valid="Validation.validate_quest">
