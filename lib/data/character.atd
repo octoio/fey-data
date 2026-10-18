@@ -75,6 +75,16 @@ type level_growth = {
   ?magic_resist: float option <ocaml valid="Validation.validate_growth">;
 }
 
+(* A breeding nest: a monster-side object the party breaks. It is placed on its anchor point (never scattered), has no
+   brain and does not move or attack; a quest breeds from it (the StartEscalation action). When its health falls to
+   [burst_at] (a fraction of the maximum, 0 to 1) it bursts once: [burst_count] monsters of [burst] come out of it
+   and go for the party. *)
+type nest = {
+  burst_at: float <ocaml valid="Validation.float_between 0.05 0.95">;
+  burst: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  burst_count: int <ocaml valid="Validation.int_min 1">;
+}
+
 type character =
   { metadata: metadata;
     character_type <json name="type">: character_type;
@@ -103,6 +113,8 @@ type character =
     (* true: the monster goes for whoever in reach carries a healing skill instead of the threat holder
        (a taunt still wins) *)
     ?hunts_healers: bool option;
+    (* Present: the character is a breeding nest, see [nest] *)
+    ?nest: nest option;
     (* Player characters: the equipment and weapons a new character starts with (equipped on creation);
        absent = nothing *)
     ?starting_equipment: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Equipment">;

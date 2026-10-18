@@ -27,6 +27,8 @@ type anchor_slot =
   | Shrine
   | Chest
   | ObjectiveZone
+  (* the middle of a path between two rooms: no room is asked for, one anchor exists per path *)
+  | TrailSpawn
   ]
 
 (* The theme turns it into units *)

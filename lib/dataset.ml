@@ -229,6 +229,8 @@ let extract_entity_reference_from_quest_action
   | `DeactivateAnchor { anchor; _ }
   | `ActivatePortalToQuestStage { anchor; _ } -> [ anchor ]
   | `ActivatePortalToStage { anchor; destination; _ } -> [ anchor; destination ]
+  | `StartEscalation { nest; spawn; _ } -> [ nest; spawn ]
+  | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Message _ | `EnableQuestBoardQuest _ -> []
 ;;
 
@@ -311,6 +313,9 @@ let extract_entity_reference_from_entity_definition
        | None -> []
        | Some { effects; _ } ->
          List.map (fun (e : Data.Effect_t.status_effect) -> e.status) effects)
+    @ (match entity.nest with
+       | None -> []
+       | Some { burst; _ } -> [ burst ])
   | `Animation { entity; _ } -> entity.sources
   | `Projectile { entity; _ } -> extract_entity_reference_from_projectile_entity entity
   | `Quest { entity; _ } -> extract_entity_reference_from_quest_entity entity

@@ -416,6 +416,7 @@ let minimal_character =
     level = None;
     level_growth = None;
     rank = None;
+    nest = None;
     model_family = None;
     visual_layers = None
   }
@@ -831,7 +832,8 @@ let minimal_quest =
     is_repeatable = false;
     achievement_on_complete = `None;
     required_achievements = [ `None ];
-    ends_run = None
+    ends_run = None;
+    stone_supply = None
   }
 ;;
 

@@ -273,6 +273,45 @@ let test_teleport_pick_and_interact_conditions_name_their_references () =
            { Data.Quest_t.condition_type = `Interact; anchor = reference `Anchor }))
 ;;
 
+let test_nest_and_escalation_name_their_references () =
+  let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
+  let nest : Data.Character_t.nest =
+    { burst_at = 0.5; burst = reference `Character; burst_count = 3 }
+  in
+  let character nest : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Character;
+        key = "Nest";
+        version = 1;
+        id = "ownr:Character:Nest:1";
+        entity = { minimal_character with Data.Character_t.nest }
+      }
+  in
+  let n d = List.length (Dataset.extract_entity_reference_from_entity_definition d) in
+  check int "a nest names the monster that bursts out" (n (character None) + 1)
+    (n (character (Some nest)));
+  let refs a = List.length (Dataset.extract_entity_reference_from_quest_action a) in
+  check int "an escalation names the nest and what it breeds" 2
+    (refs
+       (`StartEscalation
+           { Data.Quest_t.action_type = `StartEscalation;
+             nest = reference `Character;
+             spawn = reference `Character;
+             interval = 60.;
+             cap = 12;
+             rewards = false
+           }));
+  check int "a spawn at remains names both characters" 2
+    (refs
+       (`SpawnAtRemains
+           { Data.Quest_t.action_type = `SpawnAtRemains;
+             character = reference `Character;
+             remains_of = reference `Character;
+             target_adventurer_on_spawn = true
+           }))
+;;
+
 let test_character_starting_kit_is_a_reference () =
   let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
   let kit : Data.Entity_t.entity_definition_internal =
@@ -1196,6 +1235,10 @@ let dataset_tests =
       "Teleport, pick and interact conditions name their references"
       `Quick
       test_teleport_pick_and_interact_conditions_name_their_references;
+    test_case
+      "Nests and escalations name their references"
+      `Quick
+      test_nest_and_escalation_name_their_references;
     test_case "Interact needs a Zone anchor" `Quick test_interact_needs_a_zone_anchor;
     test_case
       "Character starting kit is a reference"
