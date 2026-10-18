@@ -832,7 +832,8 @@ let minimal_quest =
     is_repeatable = false;
     achievement_on_complete = `None;
     required_achievements = [ `None ];
-    ends_run = None
+    ends_run = None;
+    stone_supply = None
   }
 ;;
 
