@@ -416,6 +416,7 @@ let minimal_character =
     level = None;
     level_growth = None;
     rank = None;
+    nest = None;
     model_family = None;
     visual_layers = None
   }

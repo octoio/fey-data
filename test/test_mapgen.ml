@@ -388,6 +388,15 @@ let test_demands_raise_the_requirements () =
   check bool "objective room added" true (added.role = `Objective && added.path = Some `Branch)
 ;;
 
+let test_a_trail_demand_asks_for_no_room () =
+  let raised =
+    Mapgen_check.apply_demands
+      crypt
+      [ { slot = `TrailSpawn; count = 5; optional = false } ]
+  in
+  check bool "requirements unchanged" true (raised.requirements = crypt.requirements)
+;;
+
 (* ---- dataset rules ---- *)
 
 let anchor_definition key binding : Data.Entity_t.entity_definition_internal =
@@ -673,7 +682,8 @@ let () =
         [ test_case "Demands count slots by ordinal" `Quick test_demands_count_slots_by_ordinal;
           test_case "Unbound anchors are reported" `Quick test_unbound_anchors_are_reported;
           test_case "Optional objectives ask for a branch" `Quick test_optional_objectives_ask_for_a_branch;
-          test_case "Demands raise the requirements" `Quick test_demands_raise_the_requirements
+          test_case "Demands raise the requirements" `Quick test_demands_raise_the_requirements;
+          test_case "A trail demand asks for no room" `Quick test_a_trail_demand_asks_for_no_room
         ] );
       ( "Dataset rules",
         [ test_case "A sound generated stage has no errors" `Quick test_a_sound_generated_stage_has_no_errors;

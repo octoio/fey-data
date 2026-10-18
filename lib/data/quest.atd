@@ -152,6 +152,8 @@ type quest_action_type =
   | ActivatePortalToQuestStage
   | Message
   | EnableQuestBoardQuest
+  | StartEscalation
+  | SpawnAtRemains
   ]
 
 type quest_action = {
@@ -199,6 +201,26 @@ type quest_action_enable_quest_board_quest = {
   action_type <json name="type">: quest_action_type;
 }
 
+(* The nests breed: while any living character of [nest] stands, they spawn one [spawn] each [interval] seconds
+   between them (a standing nest makes one per interval; the monsters walk towards the party and are not leashed),
+   never more than [cap] alive at once. Breaking a nest stops its share. The numbers are a spawn budget that grows
+   with time (fey-rs docs/systems/quests.md, "Escalation"). The escalation ends with the stage. *)
+type quest_action_start_escalation = {
+  action_type <json name="type">: quest_action_type;
+  nest: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  spawn: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  interval: float <ocaml valid="Validation.float_min 1.">;
+  cap: int <ocaml valid="Validation.int_min 1">;
+}
+
+(* [character] rises where the latest dead [remains_of] character fell (its body is still on the stage) *)
+type quest_action_spawn_at_remains = {
+  action_type <json name="type">: quest_action_type;
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  remains_of: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  target_adventurer_on_spawn: bool;
+}
+
 type quest_action_internal =
   [ Spawn of quest_action_spawn
   | StartSpawnSequence of quest_action_start_spawn_sequence
@@ -208,6 +230,8 @@ type quest_action_internal =
   | ActivatePortalToQuestStage of quest_action_activate_portal_to_quest_stage
   | Message of quest_action_message
   | EnableQuestBoardQuest of quest_action_enable_quest_board_quest
+  | StartEscalation of quest_action_start_escalation
+  | SpawnAtRemains of quest_action_spawn_at_remains
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Execution tree — mirrors the skill action node pattern.

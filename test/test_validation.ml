@@ -1222,6 +1222,25 @@ let enrage_validation_tests =
   ]
 ;;
 
+module NestValidationTests = struct
+  let nest burst_at burst_count : Data.Character_t.nest =
+    { burst_at; burst = make_entity_reference ~entity_type:`Character (); burst_count }
+  ;;
+
+  let valid n = Data.Character_v.validate_nest [] n = None
+
+  let test_generated_nest () =
+    check bool "half" true (valid (nest 0.5 3));
+    check bool "never bursts" false (valid (nest 0. 3));
+    check bool "bursts at full health" false (valid (nest 1. 3));
+    check bool "bursts out nothing" false (valid (nest 0.5 0))
+  ;;
+end
+
+let nest_validation_tests =
+  [ "generated nest", `Quick, NestValidationTests.test_generated_nest ]
+;;
+
 module DropValidationTests = struct
   let test_gate () =
     let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
@@ -1438,6 +1457,7 @@ let () =
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
+      ("Nest Validation", nest_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);
