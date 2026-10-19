@@ -686,7 +686,8 @@ let ending_quest ?(origin = `QuestBoard) ?(ends_run = false) key grants requires
           Data.Quest_t.origin;
           achievement_on_complete = grants;
           required_achievements = requires;
-          ends_run = (if ends_run then Some true else None)
+          ends_run = (if ends_run then Some true else None);
+          act = None
         }
     }
 ;;

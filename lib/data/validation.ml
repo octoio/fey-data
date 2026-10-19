@@ -380,6 +380,12 @@ let int_min_if_some min (x : int option) =
   | Some x -> int_min min x
 ;;
 
+let int_between_if_some min max (x : int option) =
+  match x with
+  | None -> true
+  | Some x -> int_between min max x
+;;
+
 (* A drop gate asks for something: a level from 1, a tier from 1 (tier 0 is every quest), and a rank of
    Elite or above (Normal is the default and would be a no-op); the lower-rank weight needs a rank to be
    below and is at least 1 *)

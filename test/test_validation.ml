@@ -528,7 +528,8 @@ module QuestNodeIdValidationTests = struct
       is_repeatable = false;
       achievement_on_complete = `None;
       required_achievements = [ `None ];
-      ends_run = None
+      ends_run = None;
+      act = None
     }
   ;;
 
@@ -1294,7 +1295,11 @@ module DropValidationTests = struct
     check bool "epic tier guarantee" true (validate_guarantee_quality_if_some (Some `Epic));
     check bool "bare tier guarantee" false (validate_guarantee_quality_if_some (Some `None));
     check bool "no bonus" true (int_min_if_some 0 None);
-    check bool "negative bonus" false (int_min_if_some 0 (Some (-1)))
+    check bool "negative bonus" false (int_min_if_some 0 (Some (-1)));
+    check bool "no act" true (int_between_if_some 1 3 None);
+    check bool "act 3" true (int_between_if_some 1 3 (Some 3));
+    check bool "act 0" false (int_between_if_some 1 3 (Some 0));
+    check bool "act 4" false (int_between_if_some 1 3 (Some 4))
   ;;
 end
 
