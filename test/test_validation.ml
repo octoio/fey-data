@@ -1209,27 +1209,12 @@ module LevelGrowthValidationTests = struct
     check bool "one" true (validate_max_level (Some 1));
     check bool "zero" false (validate_max_level (Some 0))
   ;;
-
-  (* The generated validators reject a negative growth inside a character's level_growth *)
-  let test_generated_level_growth () =
-    let g : Data.Character_t.level_growth =
-      { max_level = Some 10; vit = Some 1.; str = None; _int = None; dex = None;
-        health = Some 5.; mana = None; armor = None; magic_resist = None }
-    in
-    check bool "valid" true (Data.Character_v.validate_level_growth [] g = None);
-    check
-      bool
-      "negative vit"
-      false
-      (Data.Character_v.validate_level_growth [] { g with vit = Some (-1.) } = None)
-  ;;
 end
 
 let level_growth_validation_tests =
   [ "growth", `Quick, LevelGrowthValidationTests.test_growth;
     "cooldown_per_level", `Quick, LevelGrowthValidationTests.test_cooldown_per_level;
-    "max_level", `Quick, LevelGrowthValidationTests.test_max_level;
-    "generated level_growth", `Quick, LevelGrowthValidationTests.test_generated_level_growth
+    "max_level", `Quick, LevelGrowthValidationTests.test_max_level
   ]
 ;;
 

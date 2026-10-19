@@ -178,7 +178,7 @@ let validate_enrage_effects (effects : Effect_t.status_effect list) =
        effects
 ;;
 
-(* Per-level growth of a stat or of a skill's power: never negative (a level never weakens) *)
+(* Per-level growth of a skill's power: never negative (a level never weakens) *)
 let validate_growth (x : float option) = Option.fold ~none:true ~some:(float_min 0.) x
 let validate_cooldown_per_level (x : float option) =
   Option.fold ~none:true ~some:(float_between 0. 0.1) x
