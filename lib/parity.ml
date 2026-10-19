@@ -65,10 +65,10 @@ let test_stat_sheet_parity
   | `Str -> str
   | `Int -> _int
   | `Dex -> dex
-  | `Armor -> armor
-  | `MagicResist -> magic_resist
-  | `Health -> health
-  | `Mana -> mana
+  | `Armor -> Int.of_float armor
+  | `MagicResist -> Int.of_float magic_resist
+  | `Health -> Int.of_float health
+  | `Mana -> Int.of_float mana
   | `DamageTakenModifier -> Int.of_float damage_taken_modifier
   | `DamageModifier -> Int.of_float damage_modifier
   | `MovementSpeed -> Int.of_float movement_speed
