@@ -818,6 +818,24 @@ let obstacle_validation_tests =
   [ "validate_obstacles", `Quick, ObstacleValidationTests.test_validate_obstacles ]
 ;;
 
+module GroundValidationTests = struct
+  let zone shape radius half_x half_z : Data.Stage_t.ground_zone =
+    { kind = `Water; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None }
+  ;;
+
+  let test_validate_ground_zones () =
+    check bool "absent" true (validate_ground_zones None);
+    check bool "circle" true (validate_ground_zones (Some [ zone `Circle (Some 1.) None None ]));
+    check bool "circle needs a radius" false (validate_ground_zones (Some [ zone `Circle None None None ]));
+    check bool "box" true (validate_ground_zones (Some [ zone `Box None (Some 2.) (Some 0.5) ]));
+    check bool "box needs both half extents" false (validate_ground_zones (Some [ zone `Box None (Some 2.) None ]))
+  ;;
+end
+
+let ground_validation_tests =
+  [ "validate_ground_zones", `Quick, GroundValidationTests.test_validate_ground_zones ]
+;;
+
 module PresentationValidationTests = struct
   let test_sheet_id () =
     check bool "family" true (validate_sheet_id "body_green");
@@ -1453,6 +1471,7 @@ let () =
       ("Move Node Validation", move_node_validation_tests);
       ("Interrupt Node Validation", interrupt_node_validation_tests);
       ("Obstacle Validation", obstacle_validation_tests);
+      ("Ground Validation", ground_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);

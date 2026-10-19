@@ -19,6 +19,7 @@ let role_name : room_role -> string = function
 let generator_name : generator_kind -> string = function
   | `Crypt -> "Crypt"
   | `Forest -> "Forest"
+  | `Swamp -> "Swamp"
 ;;
 
 let hard (r : room_requirement) = Option.value r.hard ~default:true
@@ -184,6 +185,8 @@ let slot_order : anchor_slot -> int = function
   | `Chest -> 6
   | `ObjectiveZone -> 7
   | `TrailSpawn -> 8
+  | `WaterSpawn -> 9
+  | `Cocoon -> 10
 ;;
 
 type slot_demand =
@@ -265,7 +268,7 @@ let role_of_slot : anchor_slot -> room_role option = function
   | `Shrine -> Some `Rest
   | `Chest -> Some `Treasure
   | `ObjectiveZone -> Some `Objective
-  | `PlayerSpawn | `EntryPortal | `TrailSpawn -> None
+  | `PlayerSpawn | `EntryPortal | `TrailSpawn | `WaterSpawn | `Cocoon -> None
 ;;
 
 let new_requirement role n size : room_requirement =

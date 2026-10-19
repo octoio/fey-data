@@ -113,6 +113,8 @@ type character =
     (* true: the monster goes for whoever in reach carries a healing skill instead of the threat holder
        (a taunt still wins) *)
     ?hunts_healers: bool option;
+    (* true: the character is not slowed by water ground (stage [ground_zone]). Absent = false. *)
+    ?swims: bool option;
     (* Present: the character is a breeding nest, see [nest] *)
     ?nest: nest option;
     (* Player characters: the equipment and weapons a new character starts with (equipped on creation);

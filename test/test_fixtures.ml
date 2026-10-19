@@ -411,6 +411,7 @@ let minimal_character =
     xp_chart = None;
     enrage = None;
     hunts_healers = None;
+    swims = None;
     starting_equipment = None;
     starting_weapons = None;
     level = None;
@@ -974,6 +975,7 @@ let minimal_stage =
     anchors = [ minimal_anchor_reference ];
     quest = None;
     obstacles = None;
+    ground = None;
     decor = None;
     generator = None
   }

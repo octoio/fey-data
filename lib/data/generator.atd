@@ -29,6 +29,10 @@ type anchor_slot =
   | ObjectiveZone
   (* the middle of a path between two rooms: no room is asked for, one anchor exists per path *)
   | TrailSpawn
+  (* in the water beside a path between two rooms (swamp): one anchor per path *)
+  | WaterSpawn
+  (* a spot of the side grove of a swamp: the room's cocoons *)
+  | Cocoon
   ]
 
 (* The theme turns it into units *)
@@ -50,6 +54,7 @@ type path_rule =
 type generator_kind =
   [ Crypt
   | Forest
+  | Swamp
   ]
 
 (* PerRun: the layout seed is derived from the master seed, the stage and the run counter (a new layout every run).
