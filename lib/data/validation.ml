@@ -140,10 +140,10 @@ let validate_interrupt_node (n : Skill_t.skill_action_interrupt_node) =
 let validate_execute_bonus (b : Effect_t.execute_bonus) = b.below > 0. && b.below <= 1. && b.factor >= 1.
 
 (* A revive stands up the selected dead ally: one scaler whose base is the percent (above 0, at most 100) of its
-   maximum health and mana it returns with. Only a Damage hit executes or knocks back, a knockback is a positive
-   distance *)
+   maximum health and mana it returns with. Only a Damage hit executes, knocks back or pulls, a knockback or a pull
+   is a positive distance and a hit has not both *)
 let validate_hit_effect (effect : Effect_t.hit_effect) =
-  let damage_only = effect.execute = None && effect.knockback = None in
+  let damage_only = effect.execute = None && effect.knockback = None && effect.pull = None in
   match effect.hit_type with
   | `Revive ->
     effect.school = None
@@ -152,7 +152,9 @@ let validate_hit_effect (effect : Effect_t.hit_effect) =
     (match effect.target_mechanic, effect.target, effect.scalers with
      | `Selected _, `Ally, [ { base; _ } ] -> base > 0. && base <= 100.
      | _ -> false)
-  | `Damage -> Option.fold ~none:true ~some:(fun d -> d > 0.) effect.knockback
+  | `Damage ->
+    let positive = Option.fold ~none:true ~some:(fun d -> d > 0.) in
+    positive effect.knockback && positive effect.pull && (effect.knockback = None || effect.pull = None)
   | `Heal -> damage_only
   | `Threat | `Mana -> effect.school = None && damage_only
 ;;
