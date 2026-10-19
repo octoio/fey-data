@@ -528,8 +528,7 @@ module QuestNodeIdValidationTests = struct
       is_repeatable = false;
       achievement_on_complete = `None;
       required_achievements = [ `None ];
-      ends_run = None;
-      stone_supply = None
+      ends_run = None
     }
   ;;
 
