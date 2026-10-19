@@ -435,6 +435,19 @@ let validate_obstacle (o : Stage_t.obstacle) =
 let validate_obstacles (obstacles : Stage_t.obstacle list option) =
   Option.fold ~none:true ~some:(List.for_all validate_obstacle) obstacles
 
+(* Same shape rule as an obstacle: a circle needs a radius, a box both half extents *)
+let validate_ground_zone (z : Stage_t.ground_zone) =
+  let pos = function Some x -> Float.is_finite x && x > 0. | None -> false in
+  Float.is_finite z.x && Float.is_finite z.z
+  && Option.fold ~none:true ~some:Float.is_finite z.yaw
+  &&
+  match z.shape with
+  | `Circle -> pos z.radius
+  | `Box -> pos z.half_x && pos z.half_z
+
+let validate_ground_zones (zones : Stage_t.ground_zone list option) =
+  Option.fold ~none:true ~some:(List.for_all validate_ground_zone) zones
+
 
 (* The id of a layer of a character's look: lower case letters, digits, '_' and '.', starting with a letter *)
 let validate_sheet_id (id : string) =

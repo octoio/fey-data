@@ -64,6 +64,27 @@ type stage_prop = {
   ?scale: float option <ocaml valid="Validation.validate_prop_scale">;
 }
 
+(* Which ground a ground zone is. Water is walkable but slows everyone inside it to 60% speed (unless the character
+   swims); Dry is the ground under a boardwalk or on an island. *)
+type ground_kind =
+  [ Water
+  | Dry
+  ]
+
+(* A patch of ground, in stage coordinates: a circle ([radius]) or an oriented box ([half_x], [half_z], turned by [yaw]
+   degrees), like an obstacle. Where zones overlap the LAST one in the list wins; a point no zone covers is dry. A ground
+   zone is not an obstacle: nothing is blocked. *)
+type ground_zone = {
+  kind: ground_kind;
+  shape: obstacle_shape;
+  x: float;
+  z: float;
+  ?radius: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_x: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?half_z: float option <ocaml valid="Validation.float_min_if_some 0.1">;
+  ?yaw: float option;
+}
+
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
 type stage = {
   metadata: metadata;
@@ -75,6 +96,8 @@ type stage = {
   ?obstacles: obstacle list option <ocaml valid="Validation.validate_obstacles">;
   (* Non-colliding scenery, see [stage_prop] *)
   ?decor: stage_prop list option <ocaml valid="Validation.validate_stage_props">;
+  (* Ground that is not plain dry floor, see [ground_zone]. Absent = all dry. *)
+  ?ground: ground_zone list option <ocaml valid="Validation.validate_ground_zones">;
   (* The stage can be generated: the map generator (Rust only) builds a layout from this spec and gives every anchor
      its position by the anchor's [binding]. The stage's own [obstacles] and anchor transforms stay as the hand-made
      version, used while generation is off. Every anchor of a stage with a generator must have a binding. *)
