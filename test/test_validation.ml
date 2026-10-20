@@ -1059,6 +1059,7 @@ module ReviveHitValidationTests = struct
     ?school
     ?execute
     ?knockback
+    ?pull
     scalers
     : Data.Effect_t.hit_effect
     =
@@ -1071,7 +1072,8 @@ module ReviveHitValidationTests = struct
       can_miss = false;
       school;
       execute;
-      knockback
+      knockback;
+      pull
     }
   ;;
 
@@ -1139,6 +1141,22 @@ module ReviveHitValidationTests = struct
       (validate_hit_effect (effect ~knockback:1. [ scaler 50. ]))
   ;;
 
+  let test_pull () =
+    let damage = effect ~hit_type:`Damage ~target:`Enemy in
+    check bool "a pull on a damage hit" true
+      (validate_hit_effect (damage ~pull:3. [ scaler 5. ]));
+    check bool "no pull distance" false
+      (validate_hit_effect (damage ~pull:0. [ scaler 5. ]));
+    check bool "a negative pull" false
+      (validate_hit_effect (damage ~pull:(-1.) [ scaler 5. ]));
+    check bool "a pull and a knockback" false
+      (validate_hit_effect (damage ~pull:3. ~knockback:2. [ scaler 5. ]));
+    check bool "a pull on a heal" false
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Ally ~pull:3. [ scaler 5. ]));
+    check bool "a pull on a revive" false
+      (validate_hit_effect (effect ~pull:3. [ scaler 50. ]))
+  ;;
+
   let test_validate_execute_bonus () =
     check bool "30 percent, double" true (validate_execute_bonus (bonus 0.3 2.));
     check bool "the whole health" true (validate_execute_bonus (bonus 1. 1.));
@@ -1151,6 +1169,7 @@ end
 let revive_hit_validation_tests =
   [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect;
     "execute and knockback", `Quick, ReviveHitValidationTests.test_execute_and_knockback;
+    "pull", `Quick, ReviveHitValidationTests.test_pull;
     "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus
   ]
 ;;
@@ -1333,7 +1352,8 @@ module TriggerValidationTests = struct
       can_miss = true;
       school = None;
       execute = None;
-      knockback = None
+      knockback = None;
+      pull = None
     }
   ;;
 

@@ -435,6 +435,7 @@ let minimal_character =
     enrage = None;
     hunts_healers = None;
     swims = None;
+    lurks = None;
     starting_equipment = None;
     starting_weapons = None;
     level = None;
