@@ -247,14 +247,9 @@ let rec extract_entity_reference_from_quest_node
 ;;
 
 let extract_entity_reference_from_quest_entity
-  Data.Quest_t.{ difficulty; stage; root; monster_levels; _ }
+  Data.Quest_t.{ difficulty; stage; root; _ }
   =
-  difficulty
-  :: stage
-  :: (extract_entity_reference_from_quest_node root
-      @ List.map
-          (fun (l : Data.Quest_t.monster_level) -> l.character)
-          (Option.value monster_levels ~default:[]))
+  difficulty :: stage :: extract_entity_reference_from_quest_node root
 ;;
 
 (* The weapon classes a visual layer is limited to *)

@@ -93,14 +93,6 @@ let rec quest_optional_placement_ok ~in_parallel (node : Quest_t.quest_node_inte
   | `Objective _ | `Action _ -> true
 ;;
 
-(* A quest writes the level of a monster definition once *)
-let validate_monster_levels (levels : Quest_t.monster_level list option) =
-  let keys =
-    List.map (fun (l : Quest_t.monster_level) -> l.character.key) (Option.value levels ~default:[])
-  in
-  List.length (List.sort_uniq String.compare keys) = List.length keys
-;;
-
 let validate_quest (quest : Quest_t.quest) =
   validate_quest_node_ids quest && quest_optional_placement_ok ~in_parallel:false quest.root
 ;;

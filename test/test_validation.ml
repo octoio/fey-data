@@ -528,8 +528,7 @@ module QuestNodeIdValidationTests = struct
       is_repeatable = false;
       achievement_on_complete = `None;
       required_achievements = [ `None ];
-      ends_run = None;
-      monster_levels = None
+      ends_run = None
     }
   ;;
 
@@ -1264,22 +1263,6 @@ let nest_validation_tests =
   [ "generated nest", `Quick, NestValidationTests.test_generated_nest ]
 ;;
 
-module MonsterLevelsValidationTests = struct
-  let level key : Data.Quest_t.monster_level =
-    { character = make_entity_reference ~entity_type:`Character ~key (); level = 3 }
-  ;;
-
-  let test_monster_levels () =
-    check bool "absent" true (validate_monster_levels None);
-    check bool "distinct monsters" true (validate_monster_levels (Some [ level "Boar"; level "Wolf" ]));
-    check bool "a monster written twice" false (validate_monster_levels (Some [ level "Boar"; level "Boar" ]))
-  ;;
-end
-
-let monster_levels_validation_tests =
-  [ "monster levels", `Quick, MonsterLevelsValidationTests.test_monster_levels ]
-;;
-
 module DropValidationTests = struct
   let test_gate () =
     let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
@@ -1499,7 +1482,6 @@ let () =
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Nest Validation", nest_validation_tests);
-      ("Monster Levels Validation", monster_levels_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);
