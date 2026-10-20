@@ -1,0 +1,15 @@
+type metadata <ocaml from="Common"> = abstract
+
+(* The global balance knobs: one entity, key Global. Every multiplier scales a whole quantity of one side at
+   once (1.0 = no change). The party side is every adventurer; the monster side is every hostile, after the
+   level curves (fey-rs docs/systems/balance.md). Health and mana multiply the maximum, damage multiplies
+   every damage dealt. *)
+type balance = {
+  metadata: metadata;
+  party_health: float <ocaml valid="Validation.float_min 0.01">;
+  party_damage: float <ocaml valid="Validation.float_min 0.01">;
+  party_mana: float <ocaml valid="Validation.float_min 0.01">;
+  monster_health: float <ocaml valid="Validation.float_min 0.01">;
+  monster_damage: float <ocaml valid="Validation.float_min 0.01">;
+  monster_mana: float <ocaml valid="Validation.float_min 0.01">;
+}

@@ -331,6 +331,14 @@ type quest_node_internal =
   | Action of quest_action_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
+(* The written level of one monster definition in a quest: the quest's hostiles of that definition are spawned
+   at this level instead of the level their character carries, so a shared monster can be a different
+   opponent in each quest (fey-rs docs/systems/balance.md) *)
+type monster_level = {
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  level: int <ocaml valid="Validation.int_min 1">;
+}
+
 type quest = {
   metadata: metadata;
   origin: quest_origin;
@@ -347,7 +355,7 @@ type quest = {
   (* absent = false: clearing this quest ends the run as a win (the party goes home with the starting kit and
      the quest chain starts over). At least one board quest must end the run and be reachable from the start *)
   ?ends_run: bool option;
-  (* the act of the run the quest belongs to, 1 to 3: the monsters of its stage grow by the act's factor
-     (fey-rs docs/systems/tiers.md, "Acts"); absent = no act, factor 1 *)
-  ?act: int option <ocaml valid="Validation.int_between_if_some 1 3">;
+  (* the written level of the monsters of this quest, by definition (one entry per character); a monster not
+     listed keeps the level of its definition *)
+  ?monster_levels: monster_level list option <ocaml valid="Validation.validate_monster_levels">;
 } <ocaml valid="Validation.validate_quest">

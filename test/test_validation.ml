@@ -529,7 +529,7 @@ module QuestNodeIdValidationTests = struct
       achievement_on_complete = `None;
       required_achievements = [ `None ];
       ends_run = None;
-      act = None
+      monster_levels = None
     }
   ;;
 
@@ -1245,6 +1245,22 @@ let nest_validation_tests =
   [ "generated nest", `Quick, NestValidationTests.test_generated_nest ]
 ;;
 
+module MonsterLevelsValidationTests = struct
+  let level key : Data.Quest_t.monster_level =
+    { character = make_entity_reference ~entity_type:`Character ~key (); level = 3 }
+  ;;
+
+  let test_monster_levels () =
+    check bool "absent" true (validate_monster_levels None);
+    check bool "distinct monsters" true (validate_monster_levels (Some [ level "Boar"; level "Wolf" ]));
+    check bool "a monster written twice" false (validate_monster_levels (Some [ level "Boar"; level "Boar" ]))
+  ;;
+end
+
+let monster_levels_validation_tests =
+  [ "monster levels", `Quick, MonsterLevelsValidationTests.test_monster_levels ]
+;;
+
 module DropValidationTests = struct
   let test_gate () =
     let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
@@ -1295,11 +1311,7 @@ module DropValidationTests = struct
     check bool "epic tier guarantee" true (validate_guarantee_quality_if_some (Some `Epic));
     check bool "bare tier guarantee" false (validate_guarantee_quality_if_some (Some `None));
     check bool "no bonus" true (int_min_if_some 0 None);
-    check bool "negative bonus" false (int_min_if_some 0 (Some (-1)));
-    check bool "no act" true (int_between_if_some 1 3 None);
-    check bool "act 3" true (int_between_if_some 1 3 (Some 3));
-    check bool "act 0" false (int_between_if_some 1 3 (Some 0));
-    check bool "act 4" false (int_between_if_some 1 3 (Some 4))
+    check bool "negative bonus" false (int_min_if_some 0 (Some (-1)))
   ;;
 end
 
@@ -1467,6 +1479,7 @@ let () =
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Nest Validation", nest_validation_tests);
+      ("Monster Levels Validation", monster_levels_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Trigger Validation", trigger_validation_tests);

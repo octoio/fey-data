@@ -104,6 +104,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets balance_j.ml balance_j.mli)
+ (deps balance.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets balance_t.ml balance_t.mli)
+ (deps balance.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets balance_v.ml balance_v.mli)
+ (deps balance.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets character_j.ml character_j.mli)
  (deps character.atd)
  (mode fallback)
@@ -689,6 +710,9 @@
   audio_j
   audio_t
   audio_v
+  balance_j
+  balance_t
+  balance_v
   character_j
   character_t
   character_v

@@ -267,6 +267,29 @@ let minimal_weapon_class_entity_definition : Data.Entity_t.entity_definition_int
     }
 ;;
 
+(* Minimal valid balance *)
+let minimal_balance =
+  { Data.Balance_t.metadata = minimal_metadata;
+    party_health = 1.0;
+    party_damage = 1.0;
+    party_mana = 1.0;
+    monster_health = 1.0;
+    monster_damage = 1.0;
+    monster_mana = 1.0
+  }
+;;
+
+let minimal_balance_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Balance
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Balance;
+      key = "Global";
+      version = 1;
+      id = "ownr:Balance:Global:1";
+      entity = minimal_balance
+    }
+;;
+
 (* Minimal valid room prefab *)
 let minimal_room_prefab =
   { Data.Room_prefab_t.metadata = minimal_metadata;
@@ -834,7 +857,7 @@ let minimal_quest =
     achievement_on_complete = `None;
     required_achievements = [ `None ];
     ends_run = None;
-    act = None
+    monster_levels = None
   }
 ;;
 

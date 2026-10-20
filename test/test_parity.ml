@@ -65,6 +65,7 @@ let test_entity_parity_comprehensive () =
       ("weapon_class", minimal_weapon_class_entity_definition, `WeaponClass);
       ("room_prefab", minimal_room_prefab_entity_definition, `RoomPrefab);
       ("achievement", minimal_achievement_entity_definition, `Achievement);
+      ("balance", minimal_balance_entity_definition, `Balance);
     ]
   in
   List.iter

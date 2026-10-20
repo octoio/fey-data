@@ -312,6 +312,16 @@ let test_nest_and_escalation_name_their_references () =
            }))
 ;;
 
+let test_quest_monster_levels_name_their_characters () =
+  let quest levels = Dataset.extract_entity_reference_from_quest_entity { minimal_quest with monster_levels = levels } in
+  let level : Data.Quest_t.monster_level =
+    { character = { minimal_entity_reference with Data.Common_t.entity_type = `Character }; level = 4 }
+  in
+  check int "a quest names the monsters it writes a level for"
+    (List.length (quest None) + 2)
+    (List.length (quest (Some [ level; level ])))
+;;
+
 let test_character_starting_kit_is_a_reference () =
   let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
   let kit : Data.Entity_t.entity_definition_internal =
@@ -687,7 +697,7 @@ let ending_quest ?(origin = `QuestBoard) ?(ends_run = false) key grants requires
           achievement_on_complete = grants;
           required_achievements = requires;
           ends_run = (if ends_run then Some true else None);
-          act = None
+          monster_levels = None
         }
     }
 ;;
@@ -1017,6 +1027,7 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_weapon_class_entity_definition;
       minimal_room_prefab_entity_definition;
       minimal_achievement_entity_definition;
+      minimal_balance_entity_definition;
     ]
   in
   List.iter
@@ -1240,6 +1251,10 @@ let dataset_tests =
       "Nests and escalations name their references"
       `Quick
       test_nest_and_escalation_name_their_references;
+    test_case
+      "Quest monster levels name their characters"
+      `Quick
+      test_quest_monster_levels_name_their_characters;
     test_case "Interact needs a Zone anchor" `Quick test_interact_needs_a_zone_anchor;
     test_case
       "Character starting kit is a reference"

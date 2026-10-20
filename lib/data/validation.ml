@@ -93,6 +93,14 @@ let rec quest_optional_placement_ok ~in_parallel (node : Quest_t.quest_node_inte
   | `Objective _ | `Action _ -> true
 ;;
 
+(* A quest writes the level of a monster definition once *)
+let validate_monster_levels (levels : Quest_t.monster_level list option) =
+  let keys =
+    List.map (fun (l : Quest_t.monster_level) -> l.character.key) (Option.value levels ~default:[])
+  in
+  List.length (List.sort_uniq String.compare keys) = List.length keys
+;;
+
 let validate_quest (quest : Quest_t.quest) =
   validate_quest_node_ids quest && quest_optional_placement_ok ~in_parallel:false quest.root
 ;;
@@ -320,7 +328,8 @@ let validate_entity_definition_internal
   | `SkillStone { owner; id; entity_type; key; version; _ }
   | `WeaponClass { owner; id; entity_type; key; version; _ }
   | `RoomPrefab { owner; id; entity_type; key; version; _ }
-  | `Achievement { owner; id; entity_type; key; version; _ } ->
+  | `Achievement { owner; id; entity_type; key; version; _ }
+  | `Balance { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
@@ -378,12 +387,6 @@ let int_min_if_some min (x : int option) =
   match x with
   | None -> true
   | Some x -> int_min min x
-;;
-
-let int_between_if_some min max (x : int option) =
-  match x with
-  | None -> true
-  | Some x -> int_between min max x
 ;;
 
 (* A drop gate asks for something: a level from 1, a tier from 1 (tier 0 is every quest), and a rank of

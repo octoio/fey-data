@@ -54,7 +54,8 @@ let entity_reference_of_entity_definition
   | `SkillStone { id; owner; entity_type; key; version; _ }
   | `WeaponClass { id; owner; entity_type; key; version; _ }
   | `RoomPrefab { id; owner; entity_type; key; version; _ }
-  | `Achievement { id; owner; entity_type; key; version; _ } ->
+  | `Achievement { id; owner; entity_type; key; version; _ }
+  | `Balance { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -246,9 +247,14 @@ let rec extract_entity_reference_from_quest_node
 ;;
 
 let extract_entity_reference_from_quest_entity
-  Data.Quest_t.{ difficulty; stage; root; _ }
+  Data.Quest_t.{ difficulty; stage; root; monster_levels; _ }
   =
-  difficulty :: stage :: extract_entity_reference_from_quest_node root
+  difficulty
+  :: stage
+  :: (extract_entity_reference_from_quest_node root
+      @ List.map
+          (fun (l : Data.Quest_t.monster_level) -> l.character)
+          (Option.value monster_levels ~default:[]))
 ;;
 
 (* The weapon classes a visual layer is limited to *)
@@ -328,6 +334,7 @@ let extract_entity_reference_from_entity_definition
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
   | `QuestDifficulty _
+  | `Balance _
   | `WeaponClass _
   | `RoomPrefab _
   | `Anchor _
