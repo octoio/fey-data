@@ -115,6 +115,10 @@ type character =
     ?hunts_healers: bool option;
     (* true: the character is not slowed by water ground (stage [ground_zone]). Absent = false. *)
     ?swims: bool option;
+    (* true: the character lurks until it acts: from its spawn it cannot be targeted or seen (only a ripple shows on
+       the ground), and it surfaces for good when it starts a cast or an area effect of an enemy hits it. Absent =
+       false. *)
+    ?lurks: bool option;
     (* Present: the character is a breeding nest, see [nest] *)
     ?nest: nest option;
     (* Player characters: the equipment and weapons a new character starts with (equipped on creation);
