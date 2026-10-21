@@ -76,6 +76,7 @@ type entity_type =
   | WeaponClass
   | RoomPrefab
   | Achievement
+  | Balance
   ]
 
 type entity_reference =

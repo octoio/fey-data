@@ -14,10 +14,10 @@ let create_test_stat_sheet () =
     ~str:15
     ~_int:8
     ~dex:12
-    ~armor:20
-    ~magic_resist:10
-    ~health:100
-    ~mana:50
+    ~armor:20.0
+    ~magic_resist:10.0
+    ~health:100.0
+    ~mana:50.0
     ~damage_taken_modifier:0.9
     ~damage_modifier:1.1
     ~movement_speed:5.0
@@ -65,6 +65,7 @@ let test_entity_parity_comprehensive () =
       ("weapon_class", minimal_weapon_class_entity_definition, `WeaponClass);
       ("room_prefab", minimal_room_prefab_entity_definition, `RoomPrefab);
       ("achievement", minimal_achievement_entity_definition, `Achievement);
+      ("balance", minimal_balance_entity_definition, `Balance);
     ]
   in
   List.iter

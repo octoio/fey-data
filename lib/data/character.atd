@@ -59,20 +59,10 @@ type enrage = {
   effects: status_effect list <ocaml valid="Validation.validate_enrage_effects">;
 }
 
-(* What each level above 1 adds to the character's stats (so level n adds [n - 1] times these, a stat source of its
-   own). Every field is absent (0) by default. [max_level] caps the character level: XP stops accruing there.
-   Growth stays small on purpose: skills and gear should matter more than grinding. When a level-up raises the
-   maximum health or mana, current health and mana rise by the same amount (no full heal). *)
+(* The level cap of a character. [max_level] caps the character level: XP stops accruing there. A level gives no stats
+   by itself: every level a player gains is 3 points to spend on Vit, Str, Int or Dex (fey-rs progression). *)
 type level_growth = {
   ?max_level: int option <ocaml valid="Validation.validate_max_level">;
-  ?vit: float option <ocaml valid="Validation.validate_growth">;
-  ?str: float option <ocaml valid="Validation.validate_growth">;
-  ?_int <json name="int">: float option <ocaml valid="Validation.validate_growth">;
-  ?dex: float option <ocaml valid="Validation.validate_growth">;
-  ?health: float option <ocaml valid="Validation.validate_growth">;
-  ?mana: float option <ocaml valid="Validation.validate_growth">;
-  ?armor: float option <ocaml valid="Validation.validate_growth">;
-  ?magic_resist: float option <ocaml valid="Validation.validate_growth">;
 }
 
 (* A breeding nest: a monster-side object the party breaks. It is placed on its anchor point (never scattered), has no
@@ -101,10 +91,10 @@ type character =
     hit_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
     (* Character level curve; absent = the game default *)
     ?xp_chart: xp_chart option;
-    (* Starting level (absent = 1). Stats only change through [level_growth]; a monster's level scales the character
-       XP its kill pays and, against the level of its opponent, the damage it deals and takes. *)
+    (* Starting level (absent = 1). A monster's level scales the character XP its kill pays and, against the level of
+       its opponent, the damage it deals and takes. *)
     ?level: int option;
-    (* Per-level stat growth and level cap, see [level_growth]; absent = levels change no stats *)
+    (* The level cap, see [level_growth]; absent = no cap *)
     ?level_growth: level_growth option;
     (* Normal (absent), Elite or Boss: drop tables gate and tilt their rewards by it *)
     ?rank: monster_rank option;

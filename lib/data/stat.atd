@@ -40,10 +40,10 @@ type stat_sheet = {
     str: int <ocaml valid="Validation.int_min 0">;
     _int <json name="int">: int <ocaml valid="Validation.int_min 0">;
     dex: int <ocaml valid="Validation.int_min 0">;
-    armor: int <ocaml valid="Validation.int_min 0">;
-    magic_resist: int <ocaml valid="Validation.int_min 0">;
-    health: int <ocaml valid="Validation.int_min 1">;
-    mana: int <ocaml valid="Validation.int_min 1">;
+    armor: float <ocaml valid="Validation.float_min 0.">;
+    magic_resist: float <ocaml valid="Validation.float_min 0.">;
+    health: float <ocaml valid="Validation.float_min 1.">;
+    mana: float <ocaml valid="Validation.float_min 1.">;
     damage_taken_modifier: float <ocaml valid="Validation.float_min 0.">;
     damage_modifier: float <ocaml valid="Validation.float_min 0.">;
     movement_speed: float <ocaml valid="Validation.float_min 0.">;

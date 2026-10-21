@@ -267,6 +267,31 @@ let minimal_weapon_class_entity_definition : Data.Entity_t.entity_definition_int
     }
 ;;
 
+(* Minimal valid balance *)
+let minimal_balance =
+  { Data.Balance_t.metadata = minimal_metadata;
+    party_health = 1.0;
+    party_damage = 1.0;
+    party_mana = 1.0;
+    monster_health = 1.0;
+    monster_damage = 1.0;
+    monster_mana = 1.0;
+    monster_health_growth = 1.0;
+    monster_damage_growth = 1.0
+  }
+;;
+
+let minimal_balance_entity_definition : Data.Entity_t.entity_definition_internal =
+  `Balance
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Balance;
+      key = "Global";
+      version = 1;
+      id = "ownr:Balance:Global:1";
+      entity = minimal_balance
+    }
+;;
+
 (* Minimal valid room prefab *)
 let minimal_room_prefab =
   { Data.Room_prefab_t.metadata = minimal_metadata;
@@ -372,10 +397,10 @@ let minimal_stat_sheet =
     str = 1;
     _int = 1;
     dex = 1;
-    armor = 1;
-    magic_resist = 1;
-    health = 1;
-    mana = 1;
+    armor = 1.0;
+    magic_resist = 1.0;
+    health = 1.0;
+    mana = 1.0;
     damage_taken_modifier = 0.0;
     damage_modifier = 0.0;
     movement_speed = 0.0;

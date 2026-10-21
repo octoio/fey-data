@@ -54,7 +54,8 @@ let entity_reference_of_entity_definition
   | `SkillStone { id; owner; entity_type; key; version; _ }
   | `WeaponClass { id; owner; entity_type; key; version; _ }
   | `RoomPrefab { id; owner; entity_type; key; version; _ }
-  | `Achievement { id; owner; entity_type; key; version; _ } ->
+  | `Achievement { id; owner; entity_type; key; version; _ }
+  | `Balance { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -328,6 +329,7 @@ let extract_entity_reference_from_entity_definition
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
   | `QuestDifficulty _
+  | `Balance _
   | `WeaponClass _
   | `RoomPrefab _
   | `Anchor _

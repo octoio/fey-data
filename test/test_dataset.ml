@@ -1016,6 +1016,7 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_weapon_class_entity_definition;
       minimal_room_prefab_entity_definition;
       minimal_achievement_entity_definition;
+      minimal_balance_entity_definition;
     ]
   in
   List.iter
