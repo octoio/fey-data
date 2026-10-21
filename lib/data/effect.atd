@@ -99,9 +99,11 @@ type damage_school =
    never mitigated; its school only labels the breakdown. Any other hit type with a school is an error.
    [execute] (Damage hits only): see execute_bonus. [knockback] (Damage hits only): units a target that survives the
    hit is pushed straight away from the caster, stopped by obstacles and the stage bounds (positive).
-   [pull] (Damage hits only, not with a knockback): units a target that survives the hit is dragged back the way the
-   caster came, i.e. straight behind the caster's facing, which after a dash is toward the spot the dash left; it
-   moves like a dash (the Move node's motion), stopped short of obstacles (positive). *)
+   [pull] (Damage hits only, not with a knockback): up to this many units a target that survives the hit is dragged
+   into the water: toward the wet point nearest to it that lies clear of the caster's body (it stays when it is in
+   water already). With no water that near it is dragged back the way the caster came, i.e. straight behind the
+   caster's facing, which after a dash is toward the spot the dash left. It moves like a dash (the Move node's
+   motion), stopped short of obstacles (positive). *)
 type hit_effect = {
   hit_type: hit_type;
   scalers: effect_scaling list;
