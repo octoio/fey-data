@@ -15,6 +15,7 @@ type effect_target_mechanic_type =
   | Selected
   | Circle
   | Rectangle
+  | Cone
   ]
 
 type effect_target_mechanic = {
@@ -47,12 +48,24 @@ type effect_target_mechanic_rectangle = {
   height: float;
 }
 
+(* A wedge of a circle with its tip on the CASTER: the characters within [radius] whose bearing from the caster is
+   within half the [angle] (full opening in degrees) of the axis. The axis points at the selected target or the aim
+   point (the caster's facing when there is neither); [behind] turns it round to the opposite way (a tail sweep) *)
+type effect_target_mechanic_cone = {
+  mechanic_type <json name="type">: effect_target_mechanic_type;
+  hit_count: int <ocaml valid="Validation.int_min 1">;
+  radius: float <ocaml valid="Validation.float_min 0.">;
+  angle: float <ocaml valid="Validation.float_between 1. 360.">;
+  ?behind: bool option;
+}
+
 type effect_target_mechanic_internal =
   [ Self of effect_target_mechanic_self
   | Team of effect_target_mechanic_team
   | Selected of effect_target_mechanic_selected
   | Circle of effect_target_mechanic_circle
   | Rectangle of effect_target_mechanic_rectangle
+  | Cone of effect_target_mechanic_cone
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type effect_target = 
