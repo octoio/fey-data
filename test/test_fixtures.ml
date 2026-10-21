@@ -275,7 +275,9 @@ let minimal_balance =
     party_mana = 1.0;
     monster_health = 1.0;
     monster_damage = 1.0;
-    monster_mana = 1.0
+    monster_mana = 1.0;
+    monster_health_growth = 1.0;
+    monster_damage_growth = 1.0
   }
 ;;
 
