@@ -189,6 +189,7 @@ let minimal_skill =
     experience = None;
     walk_while_casting = None;
     cancels_cast = None;
+    needs_status = None;
     charges = None;
     triggers = None;
     hit_delay = None;
@@ -349,6 +350,7 @@ let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
     mechanic = `StatChange { Data.Status_t.mechanic_type = `StatChange; stat = `Vit };
     stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None };
+    break_burst = None;
     triggers = None;
     vfx = None
   }
@@ -781,6 +783,7 @@ let skill_with_projectile =
     experience = None;
     walk_while_casting = None;
     cancels_cast = None;
+    needs_status = None;
     charges = None;
     triggers = None;
     hit_delay = None;

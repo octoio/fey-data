@@ -85,6 +85,7 @@ type quest_condition_type =
   | PickQuest
   | Teleport
   | Interact
+  | Channel
   ]
 
 type quest_condition = {
@@ -132,6 +133,21 @@ type quest_condition_interact = {
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
 }
 
+(* A channelled interaction: a living party player stands within the zone of one of [anchors] (the
+   Interact input) and channels [seconds] without moving, casting or being hurt, like the revive
+   channel. An anchor is freed once; the objective is done when [amount] of them are (more than
+   there are: all). When a channel starts, [spawns] appear (the spiders that drop on the webbed
+   travellers). With [raises_stone], each anchor freed raises one skill of the offer of the quest's
+   completion stone by one rarity step, up to Rare. *)
+type quest_condition_channel = {
+  condition_type <json name="type">: quest_condition_type;
+  anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `Anchor">;
+  amount: int <ocaml valid="Validation.int_min 1">;
+  seconds: float <ocaml valid="Validation.float_min 0.5">;
+  spawns: spawn list;
+  raises_stone: bool;
+}
+
 type quest_condition_internal =
   [ KillSpecific of quest_condition_kill_specific
   | EnterAnchor of quest_condition_enter_anchor
@@ -139,6 +155,7 @@ type quest_condition_internal =
   | PickQuest of quest_condition_pick_quest
   | Teleport of quest_condition_teleport
   | Interact of quest_condition_interact
+  | Channel of quest_condition_channel
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Actions: fire-and-forget world mutations (no rollback) *)

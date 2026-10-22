@@ -216,6 +216,9 @@ let quest_anchors (quest : Data.Quest_t.quest) : (string * bool) list =
       (match condition with
        | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } | `Interact { anchor; _ }
          -> note anchor.id opt
+       | `Channel { anchors; spawns; _ } ->
+         List.iter (fun (a : Data.Common_t.entity_reference) -> note a.id opt) anchors;
+         List.iter (fun (s : Data.Spawn_t.spawn) -> note s.anchor.id opt) spawns
        | _ -> ())
     | `Action { action; _ } ->
       (match action with

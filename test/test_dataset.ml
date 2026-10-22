@@ -273,6 +273,31 @@ let test_teleport_pick_and_interact_conditions_name_their_references () =
            { Data.Quest_t.condition_type = `Interact; anchor = reference `Anchor }))
 ;;
 
+let channel_condition ?(seconds = 3.0) ?(amount = 1) anchors spawns =
+  `Channel
+    { Data.Quest_t.condition_type = `Channel;
+      anchors;
+      amount;
+      seconds;
+      spawns;
+      raises_stone = true
+    }
+;;
+
+let test_channel_names_its_anchors_and_spawns () =
+  let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
+  let refs c = List.length (Dataset.extract_entity_reference_from_quest_condition c) in
+  check
+    int
+    "three anchors and one spawn (character and anchor) are five references"
+    5
+    (refs
+       (channel_condition
+          [ reference `Anchor; reference `Anchor; reference `Anchor ]
+          [ minimal_spawn ]));
+  check int "no spawn, one anchor" 1 (refs (channel_condition [ reference `Anchor ] []))
+;;
+
 let test_nest_and_escalation_name_their_references () =
   let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
   let nest : Data.Character_t.nest =
@@ -851,6 +876,63 @@ let test_interact_needs_a_zone_anchor () =
   check int "a Portal cannot" 1 (errors [ portal; quest ])
 ;;
 
+let test_channel_needs_zone_anchors () =
+  let anchor_ref =
+    Dataset.entity_reference_of_entity_definition minimal_anchor_entity_definition
+  in
+  let objective : Data.Quest_t.quest_node_internal =
+    `Objective
+      { Data.Quest_t.node_type = `Objective;
+        id = 0;
+        name = "free";
+        metadata = minimal_metadata;
+        is_optional = true;
+        bonus_achievement = None;
+        condition = channel_condition [ anchor_ref ] []
+      }
+  in
+  let quest = ("data/json/quest_file.json", quest_definition_with_root objective) in
+  let zone = ("data/json/anchor_file.json", minimal_anchor_entity_definition) in
+  let portal =
+    ( "data/json/anchor_file.json",
+      `Anchor
+        ({ Data.Entity_t.owner = "ownr";
+           entity_type = `Anchor;
+           key = "MinimalAnchor";
+           version = 1;
+           id = "ownr:Anchor:MinimalAnchor:1";
+           entity =
+             `Portal
+               { Data.Anchor_t.anchor_type = `Portal;
+                 metadata = minimal_metadata;
+                 transform = minimal_transform;
+                 binding = None
+               }
+         }
+          : Data.Entity_t.anchor_entity_definition) )
+  in
+  let errors defs = List.length (interact_errors (TestFixtures.create_dataset_with_definitions defs)) in
+  check int "a channel on a Zone anchor is valid" 0 (errors [ zone; quest ]);
+  check int "a channel on a Portal is not" 1 (errors [ portal; quest ])
+;;
+
+let test_channel_round_trips_through_json () =
+  let json =
+    {|{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":3.0,"spawns":[],"raises_stone":true}|}
+  in
+  let condition = Data.Quest_j.quest_condition_internal_of_string json in
+  (match condition with
+   | `Channel { amount = 1; seconds = 3.0; raises_stone = true; _ } -> ()
+   | _ -> Alcotest.fail "expected a channel");
+  check
+    bool
+    "serializing and parsing again gives the same condition"
+    true
+    (Data.Quest_j.quest_condition_internal_of_string
+       (Data.Quest_j.string_of_quest_condition_internal condition)
+     = condition)
+;;
+
 let weapon_class_errors defs =
   let validated =
     Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
@@ -1241,6 +1323,12 @@ let dataset_tests =
       `Quick
       test_nest_and_escalation_name_their_references;
     test_case "Interact needs a Zone anchor" `Quick test_interact_needs_a_zone_anchor;
+    test_case
+      "A channel names its anchors and spawns"
+      `Quick
+      test_channel_names_its_anchors_and_spawns;
+    test_case "A channel needs Zone anchors" `Quick test_channel_needs_zone_anchors;
+    test_case "A channel round trips through JSON" `Quick test_channel_round_trips_through_json;
     test_case
       "Character starting kit is a reference"
       `Quick

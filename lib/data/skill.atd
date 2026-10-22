@@ -242,6 +242,8 @@ type skill = {
   ?walk_while_casting: bool option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
   ?cancels_cast: bool option;
+  (* the caster must carry this status to cast the skill (a lunge that only follows a dive) *)
+  ?needs_status: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Status">;
   (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
      be cast twice in a row and then every [cooldown] seconds *)
   ?charges: int option <ocaml valid="Validation.validate_charges">;

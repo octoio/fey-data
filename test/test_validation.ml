@@ -1244,6 +1244,37 @@ let enrage_validation_tests =
   ]
 ;;
 
+module ConeAndBurstValidationTests = struct
+  let cone ?behind angle radius : Data.Effect_t.effect_target_mechanic_cone =
+    { mechanic_type = `Cone; hit_count = 1; radius; angle; behind }
+  ;;
+
+  let valid c = Data.Effect_v.validate_effect_target_mechanic_cone [] c = None
+
+  let test_cone () =
+    check bool "a rear arc" true (valid (cone ~behind:true 160. 3.5));
+    check bool "a full circle" true (valid (cone 360. 3.));
+    check bool "no opening" false (valid (cone 0. 3.));
+    check bool "over a full circle" false (valid (cone 361. 3.));
+    check bool "a negative reach" false (valid (cone 90. (-1.)))
+  ;;
+
+  let test_break_burst () =
+    check bool "no threshold" true (validate_break_burst None);
+    check bool "fifteen percent" true (validate_break_burst (Some 0.15));
+    check bool "the whole health" true (validate_break_burst (Some 1.));
+    check bool "nothing" false (validate_break_burst (Some 0.));
+    check bool "over the whole health" false (validate_break_burst (Some 1.5));
+    check bool "not a number" false (validate_break_burst (Some Float.nan))
+  ;;
+end
+
+let cone_and_burst_validation_tests =
+  [ "cone", `Quick, ConeAndBurstValidationTests.test_cone;
+    "break_burst", `Quick, ConeAndBurstValidationTests.test_break_burst
+  ]
+;;
+
 module NestValidationTests = struct
   let nest burst_at burst_count : Data.Character_t.nest =
     { burst_at; burst = make_entity_reference ~entity_type:`Character (); burst_count }
@@ -1481,6 +1512,7 @@ let () =
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
+      ("Cone And Burst Validation", cone_and_burst_validation_tests);
       ("Nest Validation", nest_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
