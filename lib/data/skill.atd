@@ -222,15 +222,6 @@ type skill_experience = {
   ?cooldown_per_level: float option <ocaml valid="Validation.validate_cooldown_per_level">;
 }
 
-(* Movement during a cast. [Root]: the caster cannot walk for the cast window; move inputs are ignored. [Free]: movement
-   skills and buffs the caster may walk through. [CancelOnMove]: the caster stands still while casting, but a move
-   input before the window ends cancels the cast (mana and cooldown come back when nothing has landed) *)
-type skill_cast_movement =
-  [ Root
-  | Free
-  | CancelOnMove
-  ]
-
 type skill = {
   metadata: metadata;
   quality: quality_type;
@@ -243,10 +234,12 @@ type skill = {
   cast_distance: float_range;
   indicators: skill_indicator list;
   ?experience: skill_experience option;
-  (* What a move input does to the caster while this skill is cast (docs/design/skill-audit.md in fey-rs). Absent = Root.
-     The cast window runs from the start of the cast to the end of its last Animation node (to the end of the tree
-     when it has none), so a zone that keeps burning after the cast does not hold the caster. *)
-  ?cast_movement: skill_cast_movement option;
+  (* true: the caster may walk while this skill is cast and the cast runs on (movement skills); absent = a move input
+     before the cast window ends cancels the cast, mana and cooldown coming back when nothing has landed
+     (docs/design/skill-audit.md in fey-rs). The cast window runs from the start of the cast to the end of its last
+     Animation node (to the end of the tree when it has none), so a zone that keeps burning after the cast is not
+     part of it. *)
+  ?walk_while_casting: bool option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
   ?cancels_cast: bool option;
   (* the caster must carry this status to cast the skill (a lunge that only follows a dive) *)
