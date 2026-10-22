@@ -127,7 +127,7 @@ let quest_anchor_subset_error_messages definitions =
     definitions
 ;;
 
-(* An Interact objective uses a Zone anchor (the place a player stands in to interact) *)
+(* An Interact or Channel objective uses Zone anchors (the place a player stands in to interact) *)
 let interact_error_messages definitions =
   let is_zone reference =
     List.exists
@@ -144,6 +144,7 @@ let interact_error_messages definitions =
       List.concat_map interact_anchors children
     | `Timer { child; _ } -> interact_anchors child
     | `Objective { condition = `Interact { anchor; _ }; _ } -> [ anchor ]
+    | `Objective { condition = `Channel { anchors; _ }; _ } -> anchors
     | `Objective _ | `Action _ -> []
   in
   List.concat_map
