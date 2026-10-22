@@ -11,6 +11,7 @@ type status_effect_mechanic_type =
     | Control
     | CrowdControl
     | Shield
+    | Submerge
     ]
 
 type status_effect_mechanic = {
@@ -28,11 +29,18 @@ type status_effect_mechanic_internal =
     | Control of status_effect_mechanic_control
     | CrowdControl of status_effect_mechanic_crowd_control
     | Shield of status_effect_mechanic_shield
+    | Submerge of status_effect_mechanic_submerge
     ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* A damage-absorbing pool: the status effect's scaler is the pool size; damage is soaked before health,
    oldest application first, and a drained shield ends (EndReason Consumed) *)
 type status_effect_mechanic_shield = {
+    mechanic_type <json name="type">: status_effect_mechanic_type;
+}
+
+(* The afflicted is under the surface while it lasts: nothing can target or hit it, not even an area effect, and it is
+   unseen (only a ripple shows where it is) *)
+type status_effect_mechanic_submerge = {
     mechanic_type <json name="type">: status_effect_mechanic_type;
 }
 
@@ -90,6 +98,9 @@ type status = {
     metadata: metadata;
     mechanic: status_effect_mechanic_internal;
     stack: status_stack;
+    (* Every application of the status ends early once its SOURCE has taken this fraction of its maximum health in
+       damage since the application (a grab that the others break with a burst of damage) *)
+    ?break_burst: float option <ocaml valid="Validation.validate_break_burst">;
     (* effects that fire on something happening to the afflicted character while it has the status (see trigger.atd) *)
     ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
   (* the effect on the afflicted character while the status lasts (see vfx.atd) *)
