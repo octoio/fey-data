@@ -116,11 +116,13 @@ type room_requirement = {
 }
 
 (* [main_path]: rooms on the main path, entrance and farthest room included. [loops]: extra connections that close a
-   cycle (never through the entrance or the boss arena). [dead_ends]: whether a side room may have one connection.
-   [branch_len]: rooms in a side branch. *)
+   cycle (never through the entrance or the boss arena). [maze]: loops may end in the entrance and the boss arena, which
+   each get a second way in, and join main-path rooms only so the side branches stay dead ends. [dead_ends]: whether a
+   side room may have one connection. [branch_len]: rooms in a side branch. *)
 type connection_rules = {
   main_path: int_range;
   loops: int_range;
+  ?maze: bool option;
   dead_ends: bool;
   branch_len: int_range;
 }
@@ -169,8 +171,11 @@ type generator_spec = {
 }
 
 (* A generated stage's anchor is the [ordinal]-th (default 0, counted by room depth then room) anchor of [slot] in the
-   layout; the anchor's transform is the hand-made fallback and is ignored by the generator. *)
+   layout; the anchor's transform is the hand-made fallback and is ignored by the generator.
+   With [every] the anchor is a template: the generator makes one anchor of it per [slot] in the layout (so [ordinal]
+   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost). *)
 type anchor_binding = {
   slot: anchor_slot;
   ?ordinal: int option <ocaml valid="Validation.int_min_if_some 0">;
+  ?every: bool option;
 }
