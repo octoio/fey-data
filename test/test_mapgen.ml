@@ -91,7 +91,7 @@ let crypt : G.generator_spec =
         requirement `Combat 3 6 `Large ~path:`Any
       ];
     connections =
-      { main_path = range 8 10; loops = range 1 2; dead_ends = true; branch_len = range 1 2 };
+      { main_path = range 8 10; loops = range 1 2; maze = None; dead_ends = true; branch_len = range 1 2 };
     forbidden_adjacent = Some [ { a = `Rest; b = `Boss }; { a = `Entrance; b = `Ambush } ];
     pinned = Some [ { prefab = shrine; role = `Rest; at = None; facing = None } ];
     party_size = Some 4;
@@ -297,7 +297,7 @@ let quest_of children : Data.Quest_t.quest =
 ;;
 
 let binding slot ordinal : G.anchor_binding =
-  { slot; ordinal = (if ordinal = 0 then None else Some ordinal) }
+  { slot; ordinal = (if ordinal = 0 then None else Some ordinal); every = None }
 ;;
 
 let id_of key = (anchor_ref key).id
@@ -427,6 +427,24 @@ let anchor_definition key binding : Data.Entity_t.entity_definition_internal =
     }
 ;;
 
+let lamp_definition key binding : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key;
+      version = 1;
+      id = (anchor_ref key).id;
+      entity =
+        `LampPost
+          { Data.Anchor_t.anchor_type = `LampPost;
+            metadata = minimal_metadata;
+            transform = minimal_transform;
+            binding;
+            model = "Lamp"
+          }
+    }
+;;
+
 let prefab_definition key prefab_id generator : Data.Entity_t.entity_definition_internal =
   `RoomPrefab
     { Data.Entity_t.owner = "ownr";
@@ -537,6 +555,31 @@ let test_ordinals_must_be_contiguous () =
     "repeated ordinal"
     true
     (mentions ~substring:"ordinals of the Shrine anchors are 0, 0" (errors repeated))
+;;
+
+let every_binding slot ordinal : G.anchor_binding = { slot; ordinal; every = Some true }
+
+let test_every_binds_a_template_lamp_post_only () =
+  let stage anchor = prefabs @ [ anchor; stage_definition [ "Lamp" ] (Some crypt) ] in
+  check
+    (list string)
+    "a lamp post may repeat"
+    []
+    (errors (stage (lamp_definition "Lamp" (Some (every_binding `Marker None)))));
+  check
+    bool
+    "a portal may not"
+    true
+    (mentions
+       ~substring:"bound with every, which only a LampPost may be"
+       (errors (stage (anchor_definition "Lamp" (Some (every_binding `Marker None))))));
+  check
+    bool
+    "no ordinal with every"
+    true
+    (mentions
+       ~substring:"bound with every, so it has no ordinal"
+       (errors (stage (lamp_definition "Lamp" (Some (every_binding `Marker (Some 1)))))))
 ;;
 
 let test_an_infeasible_spec_on_a_stage_is_a_build_error () =
@@ -702,6 +745,7 @@ let () =
           test_case "A static stage is not checked" `Quick test_a_static_stage_is_not_checked;
           test_case "Every anchor needs a binding" `Quick test_every_anchor_of_a_generated_stage_needs_a_binding;
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
+          test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_only;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
