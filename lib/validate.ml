@@ -551,6 +551,7 @@ let generator_error_messages definitions =
             | `SpawnPoint a -> a.binding
             | `Portal a -> a.binding
             | `QuestBoard a -> a.binding
+            | `LampPost a -> a.binding
           in
           Some (Dataset.entity_reference_of_entity_definition definition, binding)
         | _ -> None)

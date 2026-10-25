@@ -9,6 +9,7 @@ type anchor_type =
   | SpawnPoint
   | Portal
   | QuestBoard
+  | LampPost
   ]
 
 type zone_detection_type =
@@ -62,9 +63,20 @@ type anchor_quest_board = {
   ?binding: anchor_binding option;
 }
 
+(* A post the party lights with the interact key (a short channel); lit, it stays lit for the run and shines on
+   everybody. [model] is the key of the pack prop that stands there (one field: the model is a pick of the owner) *)
+type anchor_lamp_post = {
+  anchor_type <json name="type">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+  ?binding: anchor_binding option;
+  model: string <ocaml valid="Validation.string_min_length 1">;
+}
+
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
   | Portal of anchor_portal
   | QuestBoard of anchor_quest_board
+  | LampPost of anchor_lamp_post
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

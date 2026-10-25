@@ -187,6 +187,7 @@ let slot_order : anchor_slot -> int = function
   | `TrailSpawn -> 8
   | `WaterSpawn -> 9
   | `Cocoon -> 10
+  | `Marker -> 11
 ;;
 
 type slot_demand =
@@ -271,7 +272,7 @@ let role_of_slot : anchor_slot -> room_role option = function
   | `Shrine -> Some `Rest
   | `Chest -> Some `Treasure
   | `ObjectiveZone -> Some `Objective
-  | `PlayerSpawn | `EntryPortal | `TrailSpawn | `WaterSpawn | `Cocoon -> None
+  | `PlayerSpawn | `EntryPortal | `TrailSpawn | `WaterSpawn | `Cocoon | `Marker -> None
 ;;
 
 let new_requirement role n size : room_requirement =

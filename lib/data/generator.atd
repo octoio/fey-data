@@ -33,6 +33,8 @@ type anchor_slot =
   | WaterSpawn
   (* a spot of the side grove of a swamp: the room's cocoons *)
   | Cocoon
+  (* the middle of a filler island: no room is asked for, the layout has a few (a lamp post stands on one) *)
+  | Marker
   ]
 
 (* The theme turns it into units *)
