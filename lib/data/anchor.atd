@@ -26,11 +26,14 @@ type anchor = {
   ?binding: anchor_binding option;
 }
 
+(* [models] = the keys of the pack props a zone can stand as (a cocoon): the sim picks one per run from the run seed
+   and the anchor's binding ordinal, so the zones of a slot rotate through the list and differ. Absent = a bare disc *)
 type anchor_zone = {
   anchor_type <json name="type">: anchor_type;
   metadata: metadata;
   transform: transform;
   ?binding: anchor_binding option;
+  ?models: string list option <ocaml valid="Validation.validate_model_keys_if_some">;
   detection: zone_detection_type;
   radius: float <ocaml valid="Validation.float_min 0.1">;
   color: color;

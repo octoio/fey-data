@@ -494,6 +494,11 @@ let validate_prop_name_if_some (name : string option) =
   Option.fold ~none:true ~some:validate_prop_name name
 ;;
 
+(* A zone's model keys: at least one, each a prop name *)
+let validate_model_keys_if_some (keys : string list option) =
+  Option.fold ~none:true ~some:(fun l -> l <> [] && List.for_all validate_prop_name l) keys
+;;
+
 let validate_prop_scale (scale : float option) =
   Option.fold ~none:true ~some:(fun s -> Float.is_finite s && s >= 0.1 && s <= 10.) scale
 ;;
