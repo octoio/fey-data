@@ -401,7 +401,7 @@ let tier_error_messages definitions =
       tiers
   in
   let is_identity (t : Data.Quest_t.quest_tier) =
-    Option.value t.level_bonus ~default:0 = 0
+    Option.value t.rate ~default:1. = 1.
     && Option.value t.extra_adds ~default:0. = 0.
     && Option.value t.affixes ~default:[] = []
     && Option.value t.rarity_tilt ~default:0. = 0.

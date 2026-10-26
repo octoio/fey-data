@@ -30,13 +30,14 @@ type tier_affix = {
 
 (* What a difficulty entity changes when it is offered as a tier of the quest board (a quest is offered
    once per difficulty that has a tier, in [order]). The tier with the lowest order is the base: it
-   must change nothing (no bonus, affix, extra adds, tilt or multiplier). Semantics: fey-rs
+   must change nothing (rate 1, no affix, extra adds, tilt or multiplier). Semantics: fey-rs
    docs/systems/tiers.md. *)
 type quest_tier = {
   (* position on the board, unique among tiers; the board offers a quest once per tier *)
   order: int <ocaml valid="Validation.int_min 0">;
-  (* added to the level of every hostile spawned (default 0): raises the rarity tilt and the gates *)
-  ?level_bonus: int option <ocaml valid="Validation.int_min_if_some 0">;
+  (* how fast the run's clock raises the monsters' levels and the director's credits (default 1, the base tier's):
+     it multiplies the director's time factor, so Hard 1.5 levels monsters one and a half times as fast *)
+  ?rate: float option <ocaml valid="Validation.float_min_if_some 0.1">;
   (* extra Normal-rank adds: scripted spawns of normal monsters count (1 + extra_adds) times, rounded
      to the nearest whole number (default 0) *)
   ?extra_adds: float option <ocaml valid="Validation.float_min_if_some 0.">;
