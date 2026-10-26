@@ -388,6 +388,24 @@ let test_demands_raise_the_requirements () =
   check bool "objective room added" true (added.role = `Objective && added.path = Some `Branch)
 ;;
 
+(* a forest's nest has a pack guarding it, so objective rooms count as pack places *)
+let test_a_forest_nest_guards_a_pack () =
+  let forest : G.generator_spec =
+    { crypt with
+      generator = `Forest;
+      requirements =
+        [ requirement `Combat 2 2 `Large; requirement `Objective 3 3 `Large ~path:`Branch ]
+    }
+  in
+  let demand = [ { Mapgen_check.slot = `PackSpawn; count = 5; optional = false } ] in
+  let raised = Mapgen_check.apply_demands forest demand in
+  check bool "2 combat rooms + 3 nests hold 5 packs" true (raised.requirements = forest.requirements);
+  let crypt_like = { forest with generator = `Crypt } in
+  let raised = Mapgen_check.apply_demands crypt_like demand in
+  let combat = List.find (fun (r : G.room_requirement) -> r.role = `Combat) raised.requirements in
+  check int "a crypt's objective rooms hold no pack: combat raised" 5 combat.min
+;;
+
 let test_a_trail_demand_asks_for_no_room () =
   let raised =
     Mapgen_check.apply_demands
@@ -737,6 +755,7 @@ let () =
           test_case "Unbound anchors are reported" `Quick test_unbound_anchors_are_reported;
           test_case "Optional objectives ask for a branch" `Quick test_optional_objectives_ask_for_a_branch;
           test_case "Demands raise the requirements" `Quick test_demands_raise_the_requirements;
+          test_case "A forest nest guards a pack" `Quick test_a_forest_nest_guards_a_pack;
           test_case "A trail demand asks for no room" `Quick test_a_trail_demand_asks_for_no_room;
           test_case "Water and cocoon demands ask for no room" `Quick test_water_and_cocoon_demands_ask_for_no_room
         ] );
