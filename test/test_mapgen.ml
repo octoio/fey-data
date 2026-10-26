@@ -577,7 +577,7 @@ let test_ordinals_must_be_contiguous () =
 
 let every_binding slot ordinal : G.anchor_binding = { slot; ordinal; every = Some true }
 
-let test_every_binds_a_template_lamp_post_only () =
+let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
   let stage anchor = prefabs @ [ anchor; stage_definition [ "Lamp" ] (Some crypt) ] in
   check
     (list string)
@@ -589,7 +589,7 @@ let test_every_binds_a_template_lamp_post_only () =
     "a portal may not"
     true
     (mentions
-       ~substring:"bound with every, which only a LampPost may be"
+       ~substring:"bound with every, which only a LampPost or a SpawnPoint may be"
        (errors (stage (anchor_definition "Lamp" (Some (every_binding `Marker None))))));
   check
     bool
@@ -764,7 +764,7 @@ let () =
           test_case "A static stage is not checked" `Quick test_a_static_stage_is_not_checked;
           test_case "Every anchor needs a binding" `Quick test_every_anchor_of_a_generated_stage_needs_a_binding;
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
-          test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_only;
+          test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_or_spawn_point_only;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
