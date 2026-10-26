@@ -870,6 +870,13 @@ module PresentationValidationTests = struct
     check bool "absent" true (validate_prop_name_if_some None)
   ;;
 
+  let test_model_keys () =
+    check bool "absent" true (validate_model_keys_if_some None);
+    check bool "keys" true (validate_model_keys_if_some (Some [ "SDCocoonSeated"; "SDCocoonMound" ]));
+    check bool "none listed" false (validate_model_keys_if_some (Some []));
+    check bool "bad key" false (validate_model_keys_if_some (Some [ "SDCocoonSeated"; "" ]))
+  ;;
+
   let stage_prop ?(x = 1.) ?scale prop : Data.Stage_t.stage_prop =
     { prop; x; z = 2.; yaw = None; scale }
   ;;
@@ -909,6 +916,7 @@ let presentation_validation_tests =
   [ "validate_sheet_id", `Quick, PresentationValidationTests.test_sheet_id;
     "validate_model_family", `Quick, PresentationValidationTests.test_model_family;
     "validate_prop_name", `Quick, PresentationValidationTests.test_prop_name;
+    "validate_model_keys", `Quick, PresentationValidationTests.test_model_keys;
     "validate_stage_props", `Quick, PresentationValidationTests.test_stage_props;
     "validate_weapon_class_categories", `Quick, PresentationValidationTests.test_weapon_class_categories;
     "validate_animation_set", `Quick, PresentationValidationTests.test_animation_set
