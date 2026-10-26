@@ -302,7 +302,11 @@ let apply_demands (spec : generator_spec) (demands : slot_demand list) : generat
           (fun acc (r : room_requirement) ->
             let counts =
               if role = `Combat
-              then r.role = `Combat || r.role = `Ambush
+              then
+                r.role = `Combat
+                || r.role = `Ambush
+                || (* a forest's nest has a pack guarding it *)
+                (spec.generator = `Forest && r.role = `Objective)
               else r.role = role
             in
             if hard r && counts then acc + r.min else acc)

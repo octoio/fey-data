@@ -388,6 +388,24 @@ let test_demands_raise_the_requirements () =
   check bool "objective room added" true (added.role = `Objective && added.path = Some `Branch)
 ;;
 
+(* a forest's nest has a pack guarding it, so objective rooms count as pack places *)
+let test_a_forest_nest_guards_a_pack () =
+  let forest : G.generator_spec =
+    { crypt with
+      generator = `Forest;
+      requirements =
+        [ requirement `Combat 2 2 `Large; requirement `Objective 3 3 `Large ~path:`Branch ]
+    }
+  in
+  let demand = [ { Mapgen_check.slot = `PackSpawn; count = 5; optional = false } ] in
+  let raised = Mapgen_check.apply_demands forest demand in
+  check bool "2 combat rooms + 3 nests hold 5 packs" true (raised.requirements = forest.requirements);
+  let crypt_like = { forest with generator = `Crypt } in
+  let raised = Mapgen_check.apply_demands crypt_like demand in
+  let combat = List.find (fun (r : G.room_requirement) -> r.role = `Combat) raised.requirements in
+  check int "a crypt's objective rooms hold no pack: combat raised" 5 combat.min
+;;
+
 let test_a_trail_demand_asks_for_no_room () =
   let raised =
     Mapgen_check.apply_demands
@@ -559,7 +577,7 @@ let test_ordinals_must_be_contiguous () =
 
 let every_binding slot ordinal : G.anchor_binding = { slot; ordinal; every = Some true }
 
-let test_every_binds_a_template_lamp_post_only () =
+let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
   let stage anchor = prefabs @ [ anchor; stage_definition [ "Lamp" ] (Some crypt) ] in
   check
     (list string)
@@ -571,7 +589,7 @@ let test_every_binds_a_template_lamp_post_only () =
     "a portal may not"
     true
     (mentions
-       ~substring:"bound with every, which only a LampPost may be"
+       ~substring:"bound with every, which only a LampPost or a SpawnPoint may be"
        (errors (stage (anchor_definition "Lamp" (Some (every_binding `Marker None))))));
   check
     bool
@@ -737,6 +755,7 @@ let () =
           test_case "Unbound anchors are reported" `Quick test_unbound_anchors_are_reported;
           test_case "Optional objectives ask for a branch" `Quick test_optional_objectives_ask_for_a_branch;
           test_case "Demands raise the requirements" `Quick test_demands_raise_the_requirements;
+          test_case "A forest nest guards a pack" `Quick test_a_forest_nest_guards_a_pack;
           test_case "A trail demand asks for no room" `Quick test_a_trail_demand_asks_for_no_room;
           test_case "Water and cocoon demands ask for no room" `Quick test_water_and_cocoon_demands_ask_for_no_room
         ] );
@@ -745,7 +764,7 @@ let () =
           test_case "A static stage is not checked" `Quick test_a_static_stage_is_not_checked;
           test_case "Every anchor needs a binding" `Quick test_every_anchor_of_a_generated_stage_needs_a_binding;
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
-          test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_only;
+          test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_or_spawn_point_only;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
