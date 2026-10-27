@@ -10,6 +10,7 @@ type anchor_type =
   | Portal
   | QuestBoard
   | LampPost
+  | HealingShrine
   ]
 
 type zone_detection_type =
@@ -76,10 +77,23 @@ type anchor_lamp_post = {
   model: string <ocaml valid="Validation.string_min_length 1">;
 }
 
+(* A shrine the party pays gold at (the interact key, instant, once per run of the stage): it refills the health and mana
+   of the living party within reach. [model] is the key of the pack prop that stands there. [price] is the gold at
+   level 1 for one use; the sim scales it like the gold drops of the party's level (docs/systems/loot.md) *)
+type anchor_healing_shrine = {
+  anchor_type <json name="type">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+  ?binding: anchor_binding option;
+  model: string <ocaml valid="Validation.string_min_length 1">;
+  price: int <ocaml valid="Validation.int_min 1">;
+}
+
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
   | Portal of anchor_portal
   | QuestBoard of anchor_quest_board
   | LampPost of anchor_lamp_post
+  | HealingShrine of anchor_healing_shrine
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

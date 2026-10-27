@@ -121,7 +121,9 @@ let test_stat_sheet_parity_comprehensive () =
       (* float converted to int *)
       ("gold_modifier", `GoldModifier, 1);
       (* float converted to int *)
-      ("life_steal", `LifeSteal, 0) (* float converted to int *)
+      ("life_steal", `LifeSteal, 0);
+      (* float converted to int *)
+      ("health_globe_chance", `HealthGlobeChance, 0) (* absent on the sheet: 0 *)
     ]
   in
   List.iter
