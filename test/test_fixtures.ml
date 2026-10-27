@@ -967,6 +967,7 @@ let minimal_anchor_zone =
     metadata = minimal_metadata;
     transform = minimal_transform;
     binding = None;
+    models = None;
     detection = `Overlap;
     radius = 3.0;
     color = minimal_color;

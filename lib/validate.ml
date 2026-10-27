@@ -557,11 +557,11 @@ let generator_error_messages definitions =
         | _ -> None)
       definitions
   in
-  let lamp_posts =
+  let template_anchors =
     List.filter_map
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
         match definition with
-        | `Anchor { entity = `LampPost _; _ } ->
+        | `Anchor { entity = `LampPost _ | `SpawnPoint _; _ } ->
           Some (Dataset.entity_reference_of_entity_definition definition).id
         | _ -> None)
       definitions
@@ -647,11 +647,11 @@ let generator_error_messages definitions =
               (fun (id, (b : Data.Generator_t.anchor_binding)) ->
                 if not (every b)
                 then None
-                else if not (List.mem id lamp_posts)
+                else if not (List.mem id template_anchors)
                 then
                   Some
                     (Printf.sprintf
-                       "Stage %s: anchor %s is bound with every, which only a LampPost may be"
+                       "Stage %s: anchor %s is bound with every, which only a LampPost or a SpawnPoint may be"
                        stage_name
                        id)
                 else if b.ordinal <> None
