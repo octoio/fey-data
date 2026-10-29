@@ -553,8 +553,18 @@ let generator_error_messages definitions =
             | `QuestBoard a -> a.binding
             | `LampPost a -> a.binding
             | `HealingShrine a -> a.binding
+            | `WaveSpot _ -> None
           in
           Some (Dataset.entity_reference_of_entity_definition definition, binding)
+        | _ -> None)
+      definitions
+  in
+  let wave_spots =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity = `WaveSpot _; _ } ->
+          Some (Dataset.entity_reference_of_entity_definition definition)
         | _ -> None)
       definitions
   in
@@ -633,7 +643,7 @@ let generator_error_messages definitions =
             List.filter_map
               (fun (a : Data.Common_t.entity_reference) ->
                 match List.assoc_opt a anchors with
-                | Some None ->
+                | Some None when not (List.mem a wave_spots) ->
                   Some
                     (Printf.sprintf
                        "Stage %s has a generator, so anchor %s needs a binding"
