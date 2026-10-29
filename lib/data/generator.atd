@@ -35,6 +35,8 @@ type anchor_slot =
   | Cocoon
   (* the middle of a filler island: no room is asked for, the layout has a few (a lamp post stands on one) *)
   | Marker
+  (* a spot of a non-boss clearing: the healing shrines (two per generated combat stage) *)
+  | Healing
   ]
 
 (* The theme turns it into units *)
@@ -173,7 +175,7 @@ type generator_spec = {
 (* A generated stage's anchor is the [ordinal]-th (default 0, counted by room depth then room) anchor of [slot] in the
    layout; the anchor's transform is the hand-made fallback and is ignored by the generator.
    With [every] the anchor is a template: the generator makes one anchor of it per [slot] in the layout (so [ordinal]
-   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost). *)
+   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost, HealingShrine, SpawnPoint). *)
 type anchor_binding = {
   slot: anchor_slot;
   ?ordinal: int option <ocaml valid="Validation.int_min_if_some 0">;

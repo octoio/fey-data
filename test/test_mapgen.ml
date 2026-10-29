@@ -463,6 +463,25 @@ let lamp_definition key binding : Data.Entity_t.entity_definition_internal =
     }
 ;;
 
+let shrine_definition key binding : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key;
+      version = 1;
+      id = (anchor_ref key).id;
+      entity =
+        `HealingShrine
+          { Data.Anchor_t.anchor_type = `HealingShrine;
+            metadata = minimal_metadata;
+            transform = minimal_transform;
+            binding;
+            model = "Shrine";
+            price = 20
+          }
+    }
+;;
+
 let prefab_definition key prefab_id generator : Data.Entity_t.entity_definition_internal =
   `RoomPrefab
     { Data.Entity_t.owner = "ownr";
@@ -585,11 +604,16 @@ let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
     []
     (errors (stage (lamp_definition "Lamp" (Some (every_binding `Marker None)))));
   check
+    (list string)
+    "a healing shrine may repeat"
+    []
+    (errors (stage (shrine_definition "Lamp" (Some (every_binding `Healing None)))));
+  check
     bool
     "a portal may not"
     true
     (mentions
-       ~substring:"bound with every, which only a LampPost or a SpawnPoint may be"
+       ~substring:"bound with every, which only a LampPost, a HealingShrine or a SpawnPoint may be"
        (errors (stage (anchor_definition "Lamp" (Some (every_binding `Marker None))))));
   check
     bool

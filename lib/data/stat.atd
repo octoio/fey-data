@@ -26,6 +26,7 @@ type stat_type =
     | ExperienceModifier
     | GoldModifier
     | LifeSteal
+    | HealthGlobeChance
     ]
 
 type stat = {
@@ -60,5 +61,7 @@ type stat_sheet = {
     experience_modifier: float <ocaml valid="Validation.float_min 0.">;
     gold_modifier: float <ocaml valid="Validation.float_min 0.">;
     life_steal: float <ocaml valid="Validation.float_min 0.">;
+    (* the chance a kill by the character drops a health globe; absent = 0 (only an equipment affix gives it) *)
+    ?health_globe_chance: float option <ocaml valid="Validation.float_min_if_some 0.">;
 }
  

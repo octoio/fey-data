@@ -552,6 +552,7 @@ let generator_error_messages definitions =
             | `Portal a -> a.binding
             | `QuestBoard a -> a.binding
             | `LampPost a -> a.binding
+            | `HealingShrine a -> a.binding
           in
           Some (Dataset.entity_reference_of_entity_definition definition, binding)
         | _ -> None)
@@ -561,7 +562,7 @@ let generator_error_messages definitions =
     List.filter_map
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
         match definition with
-        | `Anchor { entity = `LampPost _ | `SpawnPoint _; _ } ->
+        | `Anchor { entity = `LampPost _ | `HealingShrine _ | `SpawnPoint _; _ } ->
           Some (Dataset.entity_reference_of_entity_definition definition).id
         | _ -> None)
       definitions
@@ -651,7 +652,7 @@ let generator_error_messages definitions =
                 then
                   Some
                     (Printf.sprintf
-                       "Stage %s: anchor %s is bound with every, which only a LampPost or a SpawnPoint may be"
+                       "Stage %s: anchor %s is bound with every, which only a LampPost, a HealingShrine or a SpawnPoint may be"
                        stage_name
                        id)
                 else if b.ordinal <> None
