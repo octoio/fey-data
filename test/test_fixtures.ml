@@ -418,7 +418,8 @@ let minimal_stat_sheet =
     health_regen = 0.0;
     experience_modifier = 0.0;
     gold_modifier = 0.0;
-    life_steal = 0.0
+    life_steal = 0.0;
+    health_globe_chance = None
   }
 ;;
 
