@@ -373,8 +373,8 @@ let drop_table_error_messages definitions =
     definitions
 ;;
 
-(* Quest tiers: orders are unique, the base tier (lowest order) changes nothing, and a drop gate never asks
-   for a tier that does not exist *)
+(* Quest tiers: orders are unique, the base tier (lowest order) changes nothing, the Custom difficulty has a tier
+   record, and a drop gate never asks for a tier that does not exist *)
 let tier_error_messages definitions =
   let tiers =
     List.filter_map
@@ -416,6 +416,18 @@ let tier_error_messages definitions =
       ]
     | _ -> []
   in
+  let custom_errors =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `QuestDifficulty { key; entity = { difficulty_type = `Custom; tier = None; _ }; _ } ->
+          Some
+            (Printf.sprintf
+               "Quest tier %s is the Custom difficulty and needs a tier record: it is where the knobs start"
+               key)
+        | _ -> None)
+      definitions
+  in
   let highest = List.fold_left (fun acc tier -> max acc (order_of tier)) 0 tiers in
   let gate_errors =
     List.concat_map
@@ -444,7 +456,7 @@ let tier_error_messages definitions =
         | _ -> [])
       definitions
   in
-  duplicate_errors @ base_errors @ gate_errors
+  duplicate_errors @ base_errors @ custom_errors @ gate_errors
 ;;
 
 (* The run ending (fey-rs docs/design/runs.md): a board with quests must have a way to finish a run, so at least one

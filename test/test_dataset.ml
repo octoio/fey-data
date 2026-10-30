@@ -677,7 +677,27 @@ let test_quest_tiers () =
     int
     "a gate on an existing tier is fine"
     0
-    (List.length (tier_errors [ normal; hard (plain_tier 1); tier_definition "Insane" `Insane (plain_tier 2); table ]))
+    (List.length (tier_errors [ normal; hard (plain_tier 1); tier_definition "Nightmare" `Nightmare (plain_tier 2); table ]));
+  let custom_without_record : Data.Entity_t.entity_definition_internal =
+    `QuestDifficulty
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `QuestDifficulty;
+        key = "Custom";
+        version = 1;
+        id = "ownr:QuestDifficulty:Custom:1";
+        entity = { minimal_quest_difficulty with Data.Quest_t.difficulty_type = `Custom; tier = None }
+      }
+  in
+  check
+    int
+    "the Custom difficulty needs a tier record"
+    1
+    (List.length (tier_errors [ normal; custom_without_record ]));
+  check
+    int
+    "the Custom difficulty with a tier record is valid"
+    0
+    (List.length (tier_errors [ normal; tier_definition "Custom" `Custom (plain_tier 3) ]))
 ;;
 
 (* The run ending: at least one board quest ends the run, and the board can reach it from the start. A quest

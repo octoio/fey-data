@@ -678,7 +678,10 @@ module AchievementValidationTests = struct
     check bool "item pool weapon" true
       (ok (unlock ~target:(make_entity_reference ~entity_type:`Weapon ()) `ItemPool));
     check bool "weapon class" true (ok (unlock ~target:class_ `WeaponClass));
-    check bool "weapon class wrong type" false (ok (unlock ~target:skill `WeaponClass))
+    check bool "weapon class wrong type" false (ok (unlock ~target:skill `WeaponClass));
+    let difficulty = make_entity_reference ~entity_type:`QuestDifficulty () in
+    check bool "tier" true (ok (unlock ~target:difficulty `Tier));
+    check bool "tier wrong type" false (ok (unlock ~target:skill `Tier))
   ;;
 end
 

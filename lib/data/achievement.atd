@@ -70,10 +70,12 @@ type unlock_kind =
   [ ItemPool
   | WeaponClass
   | SkillPool
+  | Tier
   ]
 
 (* One entry an achievement adds to a drop pool: ItemPool an Equipment or Weapon, WeaponClass a WeaponClass, SkillPool a
-   Skill. The unlocks are recorded when the achievement is earned and apply from the next run on. *)
+   Skill. Tier opens a QuestDifficulty in the lobby (a party plays a tier when every player present has it). The
+   unlocks are recorded when the achievement is earned and apply from the next run on. *)
 type unlock = {
   kind: unlock_kind;
   target: entity_reference;

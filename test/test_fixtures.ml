@@ -807,7 +807,7 @@ let skill_with_projectile_entity_definition : Data.Entity_t.entity_definition_in
 (* Minimal valid quest difficulty *)
 let minimal_quest_difficulty =
   { Data.Quest_t.metadata = minimal_metadata;
-    difficulty_type = `Easy;
+    difficulty_type = `Normal;
     color = minimal_color;
     tier = None
   }
@@ -817,9 +817,9 @@ let minimal_quest_difficulty_entity_definition : Data.Entity_t.entity_definition
   `QuestDifficulty
     { Data.Entity_t.owner = "ownr";
       entity_type = `QuestDifficulty;
-      key = "Easy";
+      key = "Normal";
       version = 1;
-      id = "ownr:QuestDifficulty:Easy:1";
+      id = "ownr:QuestDifficulty:Normal:1";
       entity = minimal_quest_difficulty
     }
 ;;
@@ -827,9 +827,9 @@ let minimal_quest_difficulty_entity_definition : Data.Entity_t.entity_definition
 let minimal_quest_difficulty_reference =
   { Data.Common_t.owner = "ownr";
     entity_type = `QuestDifficulty;
-    key = "Easy";
+    key = "Normal";
     version = 1;
-    id = "ownr:QuestDifficulty:Easy:1"
+    id = "ownr:QuestDifficulty:Normal:1"
   }
 ;;
 
