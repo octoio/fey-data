@@ -216,7 +216,6 @@ let extract_entity_reference_from_quest_condition
   | `KillSpecific { character; _ } -> Option.fold ~none:[] ~some:(fun x -> [ x ]) character
   | `PickQuest { quest; _ } -> Option.to_list quest
   | `Teleport { stage; _ } -> Option.to_list stage
-  | `Interact { anchor; _ } -> [ anchor ]
   | `Channel { anchors; spawns; _ } ->
     anchors @ List.concat_map extract_entity_reference_from_spawn spawns
 ;;
