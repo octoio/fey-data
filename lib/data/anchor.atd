@@ -11,7 +11,6 @@ type anchor_type =
   | QuestBoard
   | LampPost
   | HealingShrine
-  | WaveSpot
   ]
 
 type zone_detection_type =
@@ -90,16 +89,6 @@ type anchor_healing_shrine = {
   price: int <ocaml valid="Validation.int_min 1">;
 }
 
-(* A place the Director may spawn a wave of monsters (docs/systems/director.md): the stage premades the list, the
-   Director only picks from it. It stands on walkable ground away from where the party plays, so a wave walks in
-   from out of the camera's view. Never bound: a generated stage places its own spots (the generator spreads them over
-   the walkable area), the authored ones serve the hand-made layout *)
-type anchor_wave_spot = {
-  anchor_type <json name="type">: anchor_type;
-  metadata: metadata;
-  transform: transform;
-}
-
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
@@ -107,5 +96,4 @@ type anchor_internal =
   | QuestBoard of anchor_quest_board
   | LampPost of anchor_lamp_post
   | HealingShrine of anchor_healing_shrine
-  | WaveSpot of anchor_wave_spot
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

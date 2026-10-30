@@ -463,22 +463,6 @@ let lamp_definition key binding : Data.Entity_t.entity_definition_internal =
     }
 ;;
 
-let wave_spot_definition key : Data.Entity_t.entity_definition_internal =
-  `Anchor
-    { Data.Entity_t.owner = "ownr";
-      entity_type = `Anchor;
-      key;
-      version = 1;
-      id = (anchor_ref key).id;
-      entity =
-        `WaveSpot
-          { Data.Anchor_t.anchor_type = `WaveSpot;
-            metadata = minimal_metadata;
-            transform = minimal_transform
-          }
-    }
-;;
-
 let shrine_definition key binding : Data.Entity_t.entity_definition_internal =
   `Anchor
     { Data.Entity_t.owner = "ownr";
@@ -581,21 +565,6 @@ let test_every_anchor_of_a_generated_stage_needs_a_binding () =
     "unbound anchor named"
     true
     (mentions ~substring:"anchor ownr:Anchor:Spawn:1 needs a binding" (errors world))
-;;
-
-let test_a_wave_spot_of_a_generated_stage_needs_no_binding () =
-  let world =
-    prefabs
-    @ [ anchor_definition "Spawn" (Some (binding `PlayerSpawn 0));
-        wave_spot_definition "Wave";
-        stage_definition [ "Spawn"; "Wave" ] (Some crypt)
-      ]
-  in
-  check
-    bool
-    "the wave spot is not named"
-    false
-    (mentions ~substring:"anchor ownr:Anchor:Wave:1" (errors world))
 ;;
 
 let test_ordinals_must_be_contiguous () =
@@ -818,7 +787,6 @@ let () =
         [ test_case "A sound generated stage has no errors" `Quick test_a_sound_generated_stage_has_no_errors;
           test_case "A static stage is not checked" `Quick test_a_static_stage_is_not_checked;
           test_case "Every anchor needs a binding" `Quick test_every_anchor_of_a_generated_stage_needs_a_binding;
-          test_case "A wave spot needs no binding" `Quick test_a_wave_spot_of_a_generated_stage_needs_no_binding;
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
           test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_or_spawn_point_only;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
