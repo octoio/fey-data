@@ -1,14 +1,14 @@
 type model_anchor_position <ocaml from="Model"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 
-(* One layer of a character's 3D look. The client resolves [sheet] to a layer of the model's look file in the
+(* One layer of a character's 3D look. The client resolves [layer] to a layer of the model's look file in the
    active pack (the mesh parts shown, or a model hung on a socket); data names no file. Every humanoid is
    drawn as split base layers (head, torso, legs, ...): a piece of armour replaces the layer of its equipment
    slot (the category's name, lower case) instead of hiding a part of the body. [sort] orders the layers of one
    character where the order matters (a monster's first fixed layer names its colour variant). *)
 type visual_layer = {
   (* the layer id, e.g. "chest.strappedleathertunic" or "body_green"; lower case letters, digits, '_' and '.' *)
-  sheet: string <ocaml valid="Validation.validate_sheet_id">;
+  layer: string <ocaml valid="Validation.validate_layer_id">;
   (* the body socket it follows. Absent: equipment follows the socket of its category (Head -> HeadAnchor, Back ->
      BackAnchor, Chest -> ChestAnchor, ...), a weapon the socket of its hand; a monster body has none *)
   ?socket: model_anchor_position option;

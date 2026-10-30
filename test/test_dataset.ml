@@ -983,7 +983,7 @@ let test_weapon_and_visual_references () =
     Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
   in
   let layer : Data.Visual_t.visual_layer =
-    { sheet = "weapon.sword"; socket = Some `MainHandAnchor; sort = 0; only_for_classes = Some [ class_ref ] }
+    { layer = "weapon.sword"; socket = Some `MainHandAnchor; sort = 0; only_for_classes = Some [ class_ref ] }
   in
   let weapon =
     `Weapon

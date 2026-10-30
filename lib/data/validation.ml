@@ -458,7 +458,7 @@ let validate_ground_zones (zones : Stage_t.ground_zone list option) =
 
 
 (* The id of a layer of a character's look: lower case letters, digits, '_' and '.', starting with a letter *)
-let validate_sheet_id (id : string) =
+let validate_layer_id (id : string) =
   String.length id > 0
   && String.length id <= 64
   && (match id.[0] with 'a' .. 'z' -> true | _ -> false)
@@ -466,14 +466,14 @@ let validate_sheet_id (id : string) =
   && not (String.starts_with ~prefix:"." id || String.ends_with ~suffix:"." id)
 ;;
 
-let validate_sheet_id_if_some (id : string option) =
-  Option.fold ~none:true ~some:validate_sheet_id id
+let validate_layer_id_if_some (id : string option) =
+  Option.fold ~none:true ~some:validate_layer_id id
 ;;
 
 (* The id of a model family (the key of its model in a pack): a layer id that may also hold '-' between words
    (the low-poly animal families are named lp-rat, lp-wolf, ...) *)
 let validate_model_family (id : string) =
-  validate_sheet_id (String.map (function '-' -> '_' | c -> c) id)
+  validate_layer_id (String.map (function '-' -> '_' | c -> c) id)
   && not (String.starts_with ~prefix:"-" id || String.ends_with ~suffix:"-" id)
 ;;
 

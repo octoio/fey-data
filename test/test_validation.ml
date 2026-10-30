@@ -837,16 +837,16 @@ let ground_validation_tests =
 ;;
 
 module PresentationValidationTests = struct
-  let test_sheet_id () =
-    check bool "family" true (validate_sheet_id "body_green");
-    check bool "item layer" true (validate_sheet_id "chest.strappedleathertunic");
-    check bool "empty" false (validate_sheet_id "");
-    check bool "upper case" false (validate_sheet_id "Body");
-    check bool "starts with a digit" false (validate_sheet_id "1body");
-    check bool "path" false (validate_sheet_id "a/b");
-    check bool "trailing dot" false (validate_sheet_id "body.");
-    check bool "absent" true (validate_sheet_id_if_some None);
-    check bool "bad if present" false (validate_sheet_id_if_some (Some "Slime"))
+  let test_layer_id () =
+    check bool "family" true (validate_layer_id "body_green");
+    check bool "item layer" true (validate_layer_id "chest.strappedleathertunic");
+    check bool "empty" false (validate_layer_id "");
+    check bool "upper case" false (validate_layer_id "Body");
+    check bool "starts with a digit" false (validate_layer_id "1body");
+    check bool "path" false (validate_layer_id "a/b");
+    check bool "trailing dot" false (validate_layer_id "body.");
+    check bool "absent" true (validate_layer_id_if_some None);
+    check bool "bad if present" false (validate_layer_id_if_some (Some "Slime"))
   ;;
 
   let test_model_family () =
@@ -857,7 +857,7 @@ module PresentationValidationTests = struct
     check bool "leading dash" false (validate_model_family "-rat");
     check bool "trailing dash" false (validate_model_family "rat-");
     check bool "path" false (validate_model_family "lp/rat");
-    check bool "sheet ids keep their rule" false (validate_sheet_id "lp-rat")
+    check bool "layer ids keep their rule" false (validate_layer_id "lp-rat")
   ;;
 
   let test_prop_name () =
@@ -913,7 +913,7 @@ module PresentationValidationTests = struct
 end
 
 let presentation_validation_tests =
-  [ "validate_sheet_id", `Quick, PresentationValidationTests.test_sheet_id;
+  [ "validate_layer_id", `Quick, PresentationValidationTests.test_layer_id;
     "validate_model_family", `Quick, PresentationValidationTests.test_model_family;
     "validate_prop_name", `Quick, PresentationValidationTests.test_prop_name;
     "validate_model_keys", `Quick, PresentationValidationTests.test_model_keys;
