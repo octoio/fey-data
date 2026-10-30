@@ -614,7 +614,7 @@ let tier_definition key difficulty_type tier : Data.Entity_t.entity_definition_i
 
 let plain_tier order : Data.Quest_t.quest_tier =
   { order;
-    level_bonus = None;
+    rate = None;
     extra_adds = None;
     affixes = None;
     rarity_tilt = None;
@@ -631,7 +631,7 @@ let test_quest_tiers () =
     "an identity base tier and a harder one are valid"
     0
     (List.length
-       (tier_errors [ normal; hard { (plain_tier 1) with level_bonus = Some 2 } ]));
+       (tier_errors [ normal; hard { (plain_tier 1) with rate = Some 1.5 } ]));
   check
     int
     "two tiers with one order are both reported"
@@ -644,6 +644,15 @@ let test_quest_tiers () =
     (List.length
        (tier_errors
           [ tier_definition "Normal" `Normal { (plain_tier 0) with rarity_tilt = Some 0.5 };
+            hard (plain_tier 1)
+          ]));
+  check
+    int
+    "a base tier with another rate is not the base"
+    1
+    (List.length
+       (tier_errors
+          [ tier_definition "Normal" `Normal { (plain_tier 0) with rate = Some 2. };
             hard (plain_tier 1)
           ]));
   let gated : Data.Drop_t.drop_gate =

@@ -98,6 +98,9 @@ type character =
     ?level_growth: level_growth option;
     (* Normal (absent), Elite or Boss: drop tables gate and tilt their rewards by it *)
     ?rank: monster_rank option;
+    (* What the director (fey-rs docs/systems/director.md) pays in credits to spawn this monster in a wave; absent =
+       10 times the rank (Normal 1, Elite 6). Bosses are never bought. *)
+    ?director_cost: float option <ocaml valid="Validation.float_min_if_some 1.">;
     (* Enrage timer, see [enrage] *)
     ?enrage: enrage option;
     (* true: the monster goes for whoever in reach carries a healing skill instead of the threat holder
