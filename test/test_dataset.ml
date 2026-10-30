@@ -255,7 +255,7 @@ let test_kill_condition_character_is_a_reference () =
        (Dataset.extract_entity_reference_from_quest_condition (condition (Some reference))))
 ;;
 
-let test_teleport_pick_and_interact_conditions_name_their_references () =
+let test_teleport_and_pick_conditions_name_their_references () =
   let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
   let refs c = List.length (Dataset.extract_entity_reference_from_quest_condition c) in
   let teleport stage = `Teleport { Data.Quest_t.condition_type = `Teleport; stage } in
@@ -263,14 +263,7 @@ let test_teleport_pick_and_interact_conditions_name_their_references () =
   check int "teleport anywhere names nothing" 0 (refs (teleport None));
   check int "teleport to a stage names it" 1 (refs (teleport (Some (reference `Stage))));
   check int "pick any names nothing" 0 (refs (pick None));
-  check int "pick one quest names it" 1 (refs (pick (Some (reference `Quest))));
-  check
-    int
-    "interact names its anchor"
-    1
-    (refs
-       (`Interact
-           { Data.Quest_t.condition_type = `Interact; anchor = reference `Anchor }))
+  check int "pick one quest names it" 1 (refs (pick (Some (reference `Quest))))
 ;;
 
 let channel_condition ?(seconds = 3.0) ?(amount = 1) anchors spawns =
@@ -360,13 +353,13 @@ let test_character_starting_kit_is_a_reference () =
 
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
-    {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Interact","anchor":{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}}}}|}
+    {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_stone":false}}}|}
   in
   let node = Data.Quest_j.quest_node_internal_of_string json in
   (match node with
-   | `Timer { on_timeout = `Restart; child = `Objective { condition = `Interact _; _ }; _ }
+   | `Timer { on_timeout = `Restart; child = `Objective { condition = `Channel _; _ }; _ }
      -> ()
-   | _ -> Alcotest.fail "expected a Restart timer over an Interact objective");
+   | _ -> Alcotest.fail "expected a Restart timer over a Channel objective");
   check
     bool
     "serializing and parsing again gives the same node"
@@ -844,47 +837,6 @@ let interact_errors dataset =
     validated.errors
 ;;
 
-let test_interact_needs_a_zone_anchor () =
-  let anchor_ref =
-    Dataset.entity_reference_of_entity_definition minimal_anchor_entity_definition
-  in
-  let objective : Data.Quest_t.quest_node_internal =
-    `Objective
-      { Data.Quest_t.node_type = `Objective;
-        id = 0;
-        name = "use";
-        metadata = minimal_metadata;
-        is_optional = false;
-        bonus_achievement = None;
-        condition =
-          `Interact { Data.Quest_t.condition_type = `Interact; anchor = anchor_ref }
-      }
-  in
-  let quest = ("data/json/quest_file.json", quest_definition_with_root objective) in
-  let zone = ("data/json/anchor_file.json", minimal_anchor_entity_definition) in
-  let portal =
-    ( "data/json/anchor_file.json",
-      `Anchor
-        ({ Data.Entity_t.owner = "ownr";
-           entity_type = `Anchor;
-           key = "MinimalAnchor";
-           version = 1;
-           id = "ownr:Anchor:MinimalAnchor:1";
-           entity =
-             `Portal
-               { Data.Anchor_t.anchor_type = `Portal;
-                 metadata = minimal_metadata;
-                 transform = minimal_transform;
-                 binding = None
-               }
-         }
-          : Data.Entity_t.anchor_entity_definition) )
-  in
-  let errors defs = List.length (interact_errors (TestFixtures.create_dataset_with_definitions defs)) in
-  check int "a Zone anchor can be interacted with" 0 (errors [ zone; quest ]);
-  check int "a Portal cannot" 1 (errors [ portal; quest ])
-;;
-
 let test_channel_needs_zone_anchors () =
   let anchor_ref =
     Dataset.entity_reference_of_entity_definition minimal_anchor_entity_definition
@@ -1324,14 +1276,13 @@ let dataset_tests =
       `Quick
       test_kill_condition_character_is_a_reference;
     test_case
-      "Teleport, pick and interact conditions name their references"
+      "Teleport and pick conditions name their references"
       `Quick
-      test_teleport_pick_and_interact_conditions_name_their_references;
+      test_teleport_and_pick_conditions_name_their_references;
     test_case
       "Nests and escalations name their references"
       `Quick
       test_nest_and_escalation_name_their_references;
-    test_case "Interact needs a Zone anchor" `Quick test_interact_needs_a_zone_anchor;
     test_case
       "A channel names its anchors and spawns"
       `Quick
@@ -1343,7 +1294,7 @@ let dataset_tests =
       `Quick
       test_character_starting_kit_is_a_reference;
     test_case
-      "Timer Restart and Interact round trip through JSON"
+      "Timer Restart and Channel round trip through JSON"
       `Quick
       test_timer_restart_and_new_fields_round_trip_through_json;
     test_case

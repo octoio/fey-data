@@ -216,8 +216,7 @@ let quest_anchors (quest : Data.Quest_t.quest) : (string * bool) list =
     | `Objective { condition; is_optional; _ } ->
       let opt = optional || is_optional in
       (match condition with
-       | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } | `Interact { anchor; _ }
-         -> note anchor.id opt
+       | `EnterAnchor { anchor; _ } | `StayInAnchor { anchor; _ } -> note anchor.id opt
        | `Channel { anchors; spawns; _ } ->
          List.iter (fun (a : Data.Common_t.entity_reference) -> note a.id opt) anchors;
          List.iter (fun (s : Data.Spawn_t.spawn) -> note s.anchor.id opt) spawns
