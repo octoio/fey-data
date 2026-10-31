@@ -573,6 +573,7 @@ let achievement_unlock_ok (u : Achievement_t.unlock) =
   | `ItemPool -> target_is [ `Equipment; `Weapon ]
   | `WeaponClass -> target_is [ `WeaponClass ]
   | `SkillPool -> target_is [ `Skill ]
+  | `Tier -> target_is [ `QuestDifficulty ]
 ;;
 
 let validate_achievement (a : Achievement_t.achievement_def) =
