@@ -134,6 +134,25 @@ let test_extract_entity_reference_from_character () =
     (List.length character_refs >= 4)
 ;;
 
+let test_extract_entity_reference_from_character_death_sound () =
+  let refs_of death_sound =
+    Dataset.extract_entity_reference_from_entity_definition
+      (`Character
+          { Data.Entity_t.owner = "ownr";
+            entity_type = `Character;
+            key = "MinimalCharacter";
+            version = 1;
+            id = "ownr:Character:MinimalCharacter:1";
+            entity = { minimal_character with death_sound }
+          })
+  in
+  check
+    int
+    "A death sound adds one reference"
+    (List.length (refs_of None) + 1)
+    (List.length (refs_of (Some minimal_entity_reference)))
+;;
+
 let test_extract_entity_reference_from_skill () =
   let skill_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -1275,6 +1294,10 @@ let dataset_tests =
       "Extract entity reference from character"
       `Quick
       test_extract_entity_reference_from_character;
+    test_case
+      "Extract entity reference from character death sound"
+      `Quick
+      test_extract_entity_reference_from_character_death_sound;
     test_case
       "Extract entity reference from skill"
       `Quick
