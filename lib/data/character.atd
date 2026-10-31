@@ -89,6 +89,8 @@ type character =
     drop_table: entity_reference <ocaml valid="Validation.entity_reference_of_type `DropTable">;
     foot_step_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
     hit_sound: entity_reference <ocaml valid="Validation.entity_reference_of_type `Sound">;
+    (* Played where the character dies; absent = the generic death sound *)
+    ?death_sound: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Sound">;
     (* Character level curve; absent = the game default *)
     ?xp_chart: xp_chart option;
     (* Starting level (absent = 1). A monster's level scales the character XP its kill pays and, against the level of

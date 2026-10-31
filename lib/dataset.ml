@@ -305,6 +305,7 @@ let extract_entity_reference_from_entity_definition
   | `DropTable { entity; _ } -> extract_entity_reference_from_drop_table_entity entity
   | `Character { entity; _ } ->
     [ entity.hit_sound; entity.foot_step_sound; entity.auto_attack; entity.drop_table ]
+    @ extract_from_option_entity_reference entity.death_sound
     @ entity.skills
     @ Option.value entity.starting_equipment ~default:[]
     @ Option.value entity.starting_weapons ~default:[]
