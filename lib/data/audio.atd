@@ -11,6 +11,9 @@ type sound = {
     (* 0. for 2D and 1. for full 3D spatial *)
     spatial_blend: float <ocaml valid="Validation.float_between 0. 1.">;
     volume: float;
+    (* The pack sample base the client plays for this sound (`sfx/vocal-wolf` has the numbered
+       variants `sfx/vocal-wolf/1`...); absent = the client's own sound for the key *)
+    ?pack_sample: string option;
 }
 
 type sound_bank = {

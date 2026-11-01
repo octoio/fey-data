@@ -587,7 +587,8 @@ let minimal_audio_clip_entity_definition : Data.Entity_t.entity_definition_inter
 let minimal_sound =
   { Data.Audio_t.audio_references = [ minimal_entity_reference ];
     spatial_blend = 0.0;
-    volume = 1.0
+    volume = 1.0;
+    pack_sample = None
   }
 ;;
 
