@@ -159,6 +159,7 @@ type quest_action_type =
   | DeactivateAnchor
   | ActivatePortalToStage
   | ActivatePortalToQuestStage
+  | OpenGate
   | Message
   | EnableQuestBoardQuest
   | StartEscalation
@@ -201,6 +202,13 @@ type quest_action_activate_portal_to_quest_stage = {
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
 }
 
+(* Opens the gate [gate] (the id of a stage gate, see stage.atd) of the stage the quest is played on. Unknown or already
+   open: nothing happens. *)
+type quest_action_open_gate = {
+  action_type <json name="type">: quest_action_type;
+  gate: string <ocaml valid="Validation.string_min_length 1">;
+}
+
 type quest_action_message = {
   action_type <json name="type">: quest_action_type;
   message: string <ocaml valid="Validation.string_min_length 1">;
@@ -239,6 +247,7 @@ type quest_action_internal =
   | DeactivateAnchor of quest_action_deactivate_anchor
   | ActivatePortalToStage of quest_action_activate_portal_to_stage
   | ActivatePortalToQuestStage of quest_action_activate_portal_to_quest_stage
+  | OpenGate of quest_action_open_gate
   | Message of quest_action_message
   | EnableQuestBoardQuest of quest_action_enable_quest_board_quest
   | StartEscalation of quest_action_start_escalation

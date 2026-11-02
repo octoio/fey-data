@@ -233,7 +233,7 @@ let extract_entity_reference_from_quest_action
   | `ActivatePortalToStage { anchor; destination; _ } -> [ anchor; destination ]
   | `StartEscalation { nest; spawn; _ } -> [ nest; spawn ]
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
-  | `Message _ | `EnableQuestBoardQuest _ -> []
+  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ -> []
 ;;
 
 let rec extract_entity_reference_from_quest_node
@@ -326,6 +326,9 @@ let extract_entity_reference_from_entity_definition
     entity.anchors
     @ extract_from_option_entity_reference entity.thumbnail_reference
     @ extract_from_option_entity_reference entity.quest
+    @ List.concat_map
+        (fun (g : Data.Stage_t.gate) -> extract_from_option_entity_reference g.lever)
+        (Option.value entity.gates ~default:[])
     @ (match entity.generator with
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)

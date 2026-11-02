@@ -443,6 +443,27 @@ let validate_obstacle (o : Stage_t.obstacle) =
 let validate_obstacles (obstacles : Stage_t.obstacle list option) =
   Option.fold ~none:true ~some:(List.for_all validate_obstacle) obstacles
 
+(* A gate is a valid obstacle with a unique id. Interact and FromSide name a lever; FromSide also gives a side
+   vector that is not zero. *)
+let validate_gate (g : Stage_t.gate) =
+  let finite = function Some x -> Float.is_finite x | None -> false in
+  validate_obstacle g.obstacle
+  &&
+  match g.opening with
+  | `Quest -> true
+  | `Interact -> Option.is_some g.lever
+  | `FromSide ->
+    Option.is_some g.lever && finite g.side_x && finite g.side_z
+    && (Option.get g.side_x <> 0. || Option.get g.side_z <> 0.)
+
+let validate_gates (gates : Stage_t.gate list option) =
+  match gates with
+  | None -> true
+  | Some gates ->
+    let ids = List.map (fun (g : Stage_t.gate) -> g.id) gates in
+    List.for_all validate_gate gates
+    && List.length (List.sort_uniq String.compare ids) = List.length ids
+
 (* Same shape rule as an obstacle: a circle needs a radius, a box both half extents *)
 let validate_ground_zone (z : Stage_t.ground_zone) =
   let pos = function Some x -> Float.is_finite x && x > 0. | None -> false in
