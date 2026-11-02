@@ -564,6 +564,7 @@ let generator_error_messages definitions =
             | `QuestBoard a -> a.binding
             | `LampPost a -> a.binding
             | `HealingShrine a -> a.binding
+            | `Lever a -> a.binding
           in
           Some (Dataset.entity_reference_of_entity_definition definition, binding)
         | _ -> None)

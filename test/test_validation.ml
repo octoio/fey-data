@@ -821,6 +821,36 @@ let obstacle_validation_tests =
   [ "validate_obstacles", `Quick, ObstacleValidationTests.test_validate_obstacles ]
 ;;
 
+module GateValidationTests = struct
+  let lever : Data.Common_t.entity_reference option =
+    Some { id = "Octoio:Anchor:Lever:1"; owner = "Octoio"; entity_type = `Anchor; key = "Lever"; version = 1 }
+  ;;
+
+  let gate ?(id = "g") opening lever side_x side_z : Data.Stage_t.gate =
+    { id;
+      obstacle =
+        { kind = `Wall; shape = `Box; x = 1.; z = 2.; radius = None; half_x = Some 2.; half_z = Some 0.5;
+          yaw = None; blocks_sight = None; prop = None };
+      starts_open = None; opening; lever; side_x; side_z }
+  ;;
+
+  let test_validate_gates () =
+    check bool "absent" true (validate_gates None);
+    check bool "quest needs no lever" true (validate_gates (Some [ gate `Quest None None None ]));
+    check bool "interact needs a lever" false (validate_gates (Some [ gate `Interact None None None ]));
+    check bool "interact" true (validate_gates (Some [ gate `Interact lever None None ]));
+    check bool "from side needs a side" false (validate_gates (Some [ gate `FromSide lever None None ]));
+    check bool "from side" true (validate_gates (Some [ gate `FromSide lever (Some 0.) (Some 1.) ]));
+    check bool "from side, zero vector" false (validate_gates (Some [ gate `FromSide lever (Some 0.) (Some 0.) ]));
+    check bool "ids are unique" false
+      (validate_gates (Some [ gate `Quest None None None; gate `Quest None None None ]));
+    check bool "two ids" true
+      (validate_gates (Some [ gate `Quest None None None; gate ~id:"h" `Quest None None None ]))
+  ;;
+end
+
+let gate_validation_tests = [ "validate_gates", `Quick, GateValidationTests.test_validate_gates ]
+
 module GroundValidationTests = struct
   let zone shape radius half_x half_z : Data.Stage_t.ground_zone =
     { kind = `Water; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None }
@@ -1518,6 +1548,7 @@ let () =
       ("Move Node Validation", move_node_validation_tests);
       ("Interrupt Node Validation", interrupt_node_validation_tests);
       ("Obstacle Validation", obstacle_validation_tests);
+      ("Gate Validation", gate_validation_tests);
       ("Ground Validation", ground_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);

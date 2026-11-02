@@ -11,6 +11,7 @@ type anchor_type =
   | QuestBoard
   | LampPost
   | HealingShrine
+  | Lever
   ]
 
 type zone_detection_type =
@@ -89,6 +90,16 @@ type anchor_healing_shrine = {
   price: int <ocaml valid="Validation.int_min 1">;
 }
 
+(* A lever the party pulls with the interact key (instant, once): it opens the gates of the stage that name it (stage
+   [gates], opening Interact or FromSide). [model] is the key of the pack prop that stands there. *)
+type anchor_lever = {
+  anchor_type <json name="type">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+  ?binding: anchor_binding option;
+  model: string <ocaml valid="Validation.string_min_length 1">;
+}
+
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
@@ -96,4 +107,5 @@ type anchor_internal =
   | QuestBoard of anchor_quest_board
   | LampPost of anchor_lamp_post
   | HealingShrine of anchor_healing_shrine
+  | Lever of anchor_lever
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

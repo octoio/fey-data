@@ -87,6 +87,28 @@ type ground_zone = {
   ?yaw: float option;
 }
 
+(* How a gate opens. Interact: a character uses its [lever] anchor (the interact key). FromSide: like Interact, but only
+   from the side the vector ([side_x], [side_z]) points to, measured from the gate's centre (a shortcut that opens from
+   the far side only). Quest: only a quest action (OpenGate) opens it. *)
+type gate_opening =
+  [ Interact
+  | FromSide
+  | Quest
+  ]
+
+(* An obstacle that can leave the level during a stage. While closed it is an ordinary [obstacle] (bodies, paths, sight);
+   open, it is gone for everybody. [id] is unique on the stage and is what a quest names. It starts closed unless [starts_open]
+   is true. Opening is permanent for the stage visit; the stage resets when it is entered again. *)
+type gate = {
+  id: string <ocaml valid="Validation.string_min_length 1">;
+  obstacle: obstacle;
+  ?starts_open: bool option;
+  opening: gate_opening;
+  ?lever: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Anchor">;
+  ?side_x: float option;
+  ?side_z: float option;
+}
+
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
 type stage = {
   metadata: metadata;
@@ -100,6 +122,8 @@ type stage = {
   ?decor: stage_prop list option <ocaml valid="Validation.validate_stage_props">;
   (* Ground that is not plain dry floor, see [ground_zone]. Absent = all dry. *)
   ?ground: ground_zone list option <ocaml valid="Validation.validate_ground_zones">;
+  (* Obstacles that can open during the stage, see [gate]. Absent = none. *)
+  ?gates: gate list option <ocaml valid="Validation.validate_gates">;
   (* The stage can be generated: the map generator (Rust only) builds a layout from this spec and gives every anchor
      its position by the anchor's [binding]. The stage's own [obstacles] and anchor transforms stay as the hand-made
      version, used while generation is off. Every anchor of a stage with a generator must have a binding. *)

@@ -1010,6 +1010,7 @@ let minimal_stage =
     quest = None;
     obstacles = None;
     ground = None;
+    gates = None;
     decor = None;
     generator = None
   }
