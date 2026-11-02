@@ -190,9 +190,12 @@ type quest_action_deactivate_anchor = {
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
 }
 
+(* [remains_of] set: the portal [anchor] opens where the latest dead [remains_of] character fell (moved to the nearest free
+   ground), the way spawn_at_remains names its source. Unset: it opens where the anchor stands. *)
 type quest_action_activate_portal_to_stage = {
   action_type <json name="type">: quest_action_type;
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+  ?remains_of: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Character">;
   destination: entity_reference <ocaml valid="Validation.entity_reference_of_type `Stage">;
 }
 
