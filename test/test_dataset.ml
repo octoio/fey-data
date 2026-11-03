@@ -253,7 +253,7 @@ let test_stage_ground_effect_status_is_a_reference () =
   let status : Data.Common_t.entity_reference =
     { id = "Octoio:Status:Poison:1"; owner = "Octoio"; entity_type = `Status; key = "Poison"; version = 1 }
   in
-  let effect : Data.Stage_t.ground_effect =
+  let effect : Data.Generator_t.ground_effect =
     { status; who = `Walkers; period = 1.; durations = []; magnitude = 1.; path_cost = None }
   in
   let zone : Data.Stage_t.ground_zone =

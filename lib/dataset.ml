@@ -271,6 +271,10 @@ let extract_entity_reference_from_generator_spec (spec : Data.Generator_t.genera
      | Some { locked = Some { wake }; _ } ->
        List.concat_map extract_entity_reference_from_spawn wake
      | _ -> [])
+  @ (match spec.sewer with
+     | Some { effects } ->
+       List.map (fun (e : Data.Generator_t.ground_effect) -> e.status) effects
+     | None -> [])
 ;;
 
 let rec extract_entity_reference_from_achievement_condition
@@ -336,7 +340,7 @@ let extract_entity_reference_from_entity_definition
         (Option.value entity.gates ~default:[])
     @ List.concat_map
         (fun (z : Data.Stage_t.ground_zone) ->
-          List.map (fun (e : Data.Stage_t.ground_effect) -> e.status) (Option.value z.effects ~default:[]))
+          List.map (fun (e : Data.Generator_t.ground_effect) -> e.status) (Option.value z.effects ~default:[]))
         (Option.value entity.ground ~default:[])
     @ (match entity.generator with
        | None -> []

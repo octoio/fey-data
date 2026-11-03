@@ -101,6 +101,7 @@ let crypt : G.generator_spec =
     candidates = Some 3;
     par = None;
     gates = None;
+    sewer = None;
     seed_policy = `PerRun;
     fixed_seed = None
   }
@@ -465,6 +466,43 @@ let test_only_a_crypt_places_gates () =
     true
     (has_problem ~substring:"only a Crypt generator places gates"
        { crypt with generator = `Forest; gates = Some gates_of_crypt })
+;;
+
+let test_a_sewer_is_a_crypt_with_a_sluice_and_fords () =
+  let sewer : G.sewer_rules option =
+    Some
+      { effects =
+          [ { G.status = reference `Status "Poison";
+              who = `Walkers;
+              period = 1.;
+              durations = [];
+              magnitude = 1.;
+              path_cost = None
+            }
+          ]
+      }
+  in
+  check
+    bool
+    "no sluice"
+    true
+    (has_problem ~substring:"a sewer has a locked gate" { crypt with sewer });
+  let sluice = { gates_of_crypt with shortcuts = false } in
+  check
+    bool
+    "sluice and fords"
+    false
+    (has_problem ~substring:"sewer" { crypt with sewer; gates = Some sluice });
+  check
+    bool
+    "shortcuts"
+    true
+    (has_problem ~substring:"a sewer has a locked gate" { crypt with sewer; gates = Some gates_of_crypt });
+  check
+    bool
+    "forest"
+    true
+    (has_problem ~substring:"only a Crypt generator is a sewer" { crypt with sewer; generator = `Forest })
 ;;
 
 (* ---- dataset rules ---- *)
@@ -871,6 +909,7 @@ let () =
           test_case "Prefabs must exist and match the generator" `Quick test_prefabs_must_exist_and_match_the_generator;
           test_case "Impossible pins are refused" `Quick test_impossible_pins_are_refused;
           test_case "Seed policy and par must agree" `Quick test_the_seed_policy_and_par_must_agree;
+          test_case "A sewer is a crypt with a sluice and fords" `Quick test_a_sewer_is_a_crypt_with_a_sluice_and_fords;
           test_case "Only a crypt places gates" `Quick test_only_a_crypt_places_gates
         ] );
       ( "Quest demands",

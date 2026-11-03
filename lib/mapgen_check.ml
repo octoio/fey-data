@@ -172,6 +172,12 @@ let spec_problems
    | _ -> ());
   if Option.is_some spec.gates && spec.generator <> `Crypt
   then push "only a Crypt generator places gates";
+  if Option.is_some spec.sewer
+  then (
+    if spec.generator <> `Crypt then push "only a Crypt generator is a sewer";
+    match spec.gates with
+    | Some { shortcuts = false; locked = Some _ } -> ()
+    | _ -> push "a sewer has a locked gate (its sluice) and no shortcut gates (loops are fords)");
   List.rev !out
 ;;
 
