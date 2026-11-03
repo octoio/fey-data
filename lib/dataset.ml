@@ -329,6 +329,10 @@ let extract_entity_reference_from_entity_definition
     @ List.concat_map
         (fun (g : Data.Stage_t.gate) -> extract_from_option_entity_reference g.lever)
         (Option.value entity.gates ~default:[])
+    @ List.concat_map
+        (fun (z : Data.Stage_t.ground_zone) ->
+          List.map (fun (e : Data.Stage_t.ground_effect) -> e.status) (Option.value z.effects ~default:[]))
+        (Option.value entity.ground ~default:[])
     @ (match entity.generator with
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)

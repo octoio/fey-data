@@ -2,6 +2,7 @@ type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type generator_spec <ocaml from="Generator"> = abstract
+type status_duration <ocaml from="Effect"> = abstract
 
 (* Legacy enums; retired once stages are addressed by entity index everywhere *)
 type stage_type =
@@ -73,10 +74,35 @@ type ground_kind =
   | Boardwalk
   ]
 
+(* Who a ground effect lands on: Walkers (characters that do not swim), Swimmers (characters whose definition says
+   [swims]) or Everyone. *)
+type ground_effect_who =
+  [ Walkers
+  | Swimmers
+  | Everyone
+  ]
+
+(* A status a ground zone gives to the characters inside it that [who] names: on entering the zone, then every [period]
+   seconds while they stay in it. [durations] and [magnitude] are what each application carries, like a skill's status
+   effect (a status holds neither): [magnitude] is the flat amount of the application (the damage of one stack per tick
+   of a HitOverTime status, the value of a StatChange one). The source of the application is the environment, not a
+   character. [path_cost] is what the path planner adds to the cost of a unit of walking in the zone, for the characters
+   [who] names (absent: nothing; 6 on top of the cost of water makes a unit of poisoned water cost 8 dry ones). *)
+type ground_effect = {
+  status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
+  who: ground_effect_who;
+  period: float <ocaml valid="Validation.float_min 0.1">;
+  durations: status_duration list;
+  magnitude: float;
+  ?path_cost: float option <ocaml valid="Validation.float_min_if_some 0.">;
+}
+
 (* A patch of ground, in stage coordinates: a circle ([radius]) or an oriented box ([half_x], [half_z], turned by [yaw]
    degrees), like an obstacle. Where zones overlap the LAST one in the list wins; a point no zone covers is dry. A ground
-   zone is not an obstacle: nothing is blocked. *)
+   zone is not an obstacle: nothing is blocked. [id] (unique on the stage) is what a gate's [drains] names. [effects] are
+   what the zone does to the characters in it, see [ground_effect]; where zones overlap only the topmost one acts. *)
 type ground_zone = {
+  ?id: string option <ocaml valid="Validation.string_min_length_if_some 1">;
   kind: ground_kind;
   shape: obstacle_shape;
   x: float;
@@ -85,6 +111,7 @@ type ground_zone = {
   ?half_x: float option <ocaml valid="Validation.float_min_if_some 0.1">;
   ?half_z: float option <ocaml valid="Validation.float_min_if_some 0.1">;
   ?yaw: float option;
+  ?effects: ground_effect list option;
 }
 
 (* How a gate opens. Interact: a character uses its [lever] anchor (the interact key). FromSide: like Interact, but only
@@ -98,7 +125,9 @@ type gate_opening =
 
 (* An obstacle that can leave the level during a stage. While closed it is an ordinary [obstacle] (bodies, paths, sight);
    open, it is gone for everybody. [id] is unique on the stage and is what a quest names. It starts closed unless [starts_open]
-   is true. Opening is permanent for the stage visit; the stage resets when it is entered again. *)
+   is true. Opening is permanent for the stage visit; the stage resets when it is entered again. Opening also drains the
+   ground zones whose [id] is in [drains]: they are gone for everybody, like the gate's obstacle (a lever that drains a
+   stretch of water). *)
 type gate = {
   id: string <ocaml valid="Validation.string_min_length 1">;
   obstacle: obstacle;
@@ -107,6 +136,7 @@ type gate = {
   ?lever: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Anchor">;
   ?side_x: float option;
   ?side_z: float option;
+  ?drains: string list option;
 }
 
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
@@ -128,4 +158,4 @@ type stage = {
      its position by the anchor's [binding]. The stage's own [obstacles] and anchor transforms stay as the hand-made
      version, used while generation is off. Every anchor of a stage with a generator must have a binding. *)
   ?generator: generator_spec option;
-}
+} <ocaml valid="Validation.validate_stage_zone_ids">

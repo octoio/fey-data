@@ -92,6 +92,10 @@ type status_stack = {
     scaling_strategy: status_stack_scaling_strategy;
     (* absent means RefreshAll *)
     ?full_stack: status_full_stack_rule option;
+    (* true: every application adds a stack with no cap ([size] and [full_stack] are not used; give 1) and resets the
+       duration of the whole stack, the new application's included: the stacks go together once the last application's
+       duration runs out. Absent or false: the stack is capped at [size]. *)
+    ?accumulate: bool option;
 }
 
 type status = {
