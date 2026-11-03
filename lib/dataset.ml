@@ -230,7 +230,8 @@ let extract_entity_reference_from_quest_action
   | `ActivateAnchor { anchor; _ }
   | `DeactivateAnchor { anchor; _ }
   | `ActivatePortalToQuestStage { anchor; _ } -> [ anchor ]
-  | `ActivatePortalToStage { anchor; destination; _ } -> [ anchor; destination ]
+  | `ActivatePortalToStage { anchor; destination; remains_of; _ } ->
+    anchor :: destination :: Option.to_list remains_of
   | `StartEscalation { nest; spawn; _ } -> [ nest; spawn ]
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ -> []
@@ -260,12 +261,16 @@ let extract_entity_reference_from_visual_layer (layer : Data.Visual_t.visual_lay
   | Some { only_for_classes; _ } -> Option.value only_for_classes ~default:[]
 ;;
 
-(* The room prefabs a generator spec uses, in requirements and pins *)
+(* The room prefabs a generator spec uses, in requirements and pins, and what its locked gate wakes *)
 let extract_entity_reference_from_generator_spec (spec : Data.Generator_t.generator_spec) =
   List.filter_map (fun (r : Data.Generator_t.room_requirement) -> r.prefab) spec.requirements
   @ List.map
       (fun (p : Data.Generator_t.pinned_prefab) -> p.prefab)
       (Option.value spec.pinned ~default:[])
+  @ (match spec.gates with
+     | Some { locked = Some { wake }; _ } ->
+       List.concat_map extract_entity_reference_from_spawn wake
+     | _ -> [])
 ;;
 
 let rec extract_entity_reference_from_achievement_condition

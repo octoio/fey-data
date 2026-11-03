@@ -383,7 +383,18 @@ let test_nest_and_escalation_name_their_references () =
              character = reference `Character;
              remains_of = reference `Character;
              target_adventurer_on_spawn = true
-           }))
+           }));
+  let portal remains_of =
+    `ActivatePortalToStage
+      { Data.Quest_t.action_type = `ActivatePortalToStage;
+        anchor = reference `Anchor;
+        remains_of;
+        destination = reference `Stage
+      }
+  in
+  check int "a portal names its anchor and its stage" 2 (refs (portal None));
+  check int "a portal at remains also names the character it opens on" 3
+    (refs (portal (Some (reference `Character))))
 ;;
 
 let test_character_starting_kit_is_a_reference () =
