@@ -43,7 +43,7 @@ let test_entity_parity_comprehensive () =
     [ ("weapon", minimal_weapon_entity_definition, `Weapon);
       ("skill", minimal_skill_entity_definition, `Skill);
       ("equipment", minimal_equipment_entity_definition, `Equipment);
-      ("skill_stone", minimal_skill_stone_entity_definition, `SkillStone);
+      ("skill_book", minimal_skill_book_entity_definition, `SkillBook);
       ("status", minimal_status_entity_definition, `Status);
       ("model", minimal_model_entity_definition, `Model);
       ("image", minimal_image_entity_definition, `Image);

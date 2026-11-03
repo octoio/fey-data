@@ -293,7 +293,7 @@ let drop_table_error_messages definitions =
         match definition with
         | `Equipment { entity; _ } -> Some (reference, entity.Data.Equipment_t.quality)
         | `Weapon { entity; _ } -> Some (reference, entity.Data.Weapon_t.quality)
-        | `SkillStone { entity; _ } -> Some (reference, entity.Data.Skill_stone_t.quality)
+        | `SkillBook { entity; _ } -> Some (reference, entity.Data.Skill_book_t.quality)
         | _ -> None)
       definitions
   in
@@ -304,9 +304,9 @@ let drop_table_error_messages definitions =
         match d with
         | `Equipment e -> Some (`Equipment, e.equipment, e.gate)
         | `Weapon w -> Some (`Weapon, w.weapon, w.gate)
-        | `SkillStone s -> Some (`SkillStone, s.skill_stone, s.gate)
+        | `SkillBook s -> Some (`SkillBook, s.skill_book, s.gate)
         | `Gold _ | `Skill _ -> None)
-      (t.equipment_drops @ t.weapon_drops @ t.skill_stone_drops)
+      (t.equipment_drops @ t.weapon_drops @ t.skill_book_drops)
   in
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
@@ -440,7 +440,7 @@ let tier_error_messages definitions =
                 match d with
                 | `Equipment e -> e.gate
                 | `Weapon w -> w.gate
-                | `SkillStone s -> s.gate
+                | `SkillBook s -> s.gate
                 | `Gold _ | `Skill _ -> None
               in
               match gate with
@@ -452,7 +452,7 @@ let tier_error_messages definitions =
                      m
                      highest)
               | _ -> None)
-            (entity.equipment_drops @ entity.weapon_drops @ entity.skill_stone_drops)
+            (entity.equipment_drops @ entity.weapon_drops @ entity.skill_book_drops)
         | _ -> [])
       definitions
   in

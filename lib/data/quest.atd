@@ -130,15 +130,15 @@ type quest_condition_teleport = {
    Interact input) and channels [seconds] without moving, casting or being hurt, like the revive
    channel. An anchor is freed once; the objective is done when [amount] of them are (more than
    there are: all). When a channel starts, [spawns] appear (the spiders that drop on the webbed
-   travellers). With [raises_stone], each anchor freed raises one skill of the offer of the quest's
-   completion stone by one rarity step, up to Rare. *)
+   travellers). With [raises_book], each anchor freed raises one skill of the offer of the quest's
+   completion book by one rarity step, up to Rare. *)
 type quest_condition_channel = {
   condition_type <json name="type">: quest_condition_type;
   anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `Anchor">;
   amount: int <ocaml valid="Validation.int_min 1">;
   seconds: float <ocaml valid="Validation.float_min 0.0">;
   spawns: spawn list;
-  raises_stone: bool;
+  raises_book: bool;
 }
 
 type quest_condition_internal =

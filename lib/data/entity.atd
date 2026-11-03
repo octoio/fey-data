@@ -21,7 +21,7 @@ type quest <ocaml from="Quest"> = abstract
 type quest_difficulty <ocaml from="Quest"> = abstract
 type anchor_internal <ocaml from="Anchor"> = abstract
 type stage <ocaml from="Stage"> = abstract
-type skill_stone <ocaml from="Skill_stone"> = abstract
+type skill_book <ocaml from="Skill_book"> = abstract
 type weapon_class <ocaml from="Weapon_class"> = abstract
 type room_prefab <ocaml from="Room_prefab"> = abstract
 type achievement_def <ocaml from="Achievement"> = abstract
@@ -273,14 +273,14 @@ type stage_entity_definition =
     entity: stage;
   }
 
-type skill_stone_entity_definition =
+type skill_book_entity_definition =
   { owner: string <ocaml valid="Validation.string_length_between 3 64">;
     entity_type <json name="type">: entity_type;
     key: string <ocaml valid="Validation.string_length_between 3 64">;
     version: int <ocaml valid="Validation.int_min 0">;
     id: string;
     
-    entity: skill_stone;
+    entity: skill_book;
   }
 
 type weapon_class_entity_definition =
@@ -335,7 +335,7 @@ type entity_definition_internal =
   | QuestDifficulty of quest_difficulty_entity_definition
   | Anchor of anchor_entity_definition
   | Stage of stage_entity_definition
-  | SkillStone of skill_stone_entity_definition
+  | SkillBook of skill_book_entity_definition
   | WeaponClass of weapon_class_entity_definition
   | RoomPrefab of room_prefab_entity_definition
   | Achievement of achievement_entity_definition

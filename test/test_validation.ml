@@ -1417,7 +1417,7 @@ module DropValidationTests = struct
 
   let test_guarantee () =
     check bool "equipment" true (validate_guarantee_kind `Equipment);
-    check bool "stone" true (validate_guarantee_kind `SkillStone);
+    check bool "book" true (validate_guarantee_kind `SkillBook);
     check bool "gold" false (validate_guarantee_kind `Gold);
     check bool "rare" true (validate_guarantee_quality `Rare);
     check bool "none" false (validate_guarantee_quality `None);

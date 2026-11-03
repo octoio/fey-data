@@ -51,7 +51,7 @@ let entity_reference_of_entity_definition
   | `QuestDifficulty { id; owner; entity_type; key; version; _ }
   | `Anchor { id; owner; entity_type; key; version; _ }
   | `Stage { id; owner; entity_type; key; version; _ }
-  | `SkillStone { id; owner; entity_type; key; version; _ }
+  | `SkillBook { id; owner; entity_type; key; version; _ }
   | `WeaponClass { id; owner; entity_type; key; version; _ }
   | `RoomPrefab { id; owner; entity_type; key; version; _ }
   | `Achievement { id; owner; entity_type; key; version; _ }
@@ -122,7 +122,7 @@ let extract_entity_reference_from_sound_bank_entity
 ;;
 
 let extract_entity_reference_from_drop_table_entity
-  Data.Drop_t.{ skill_drops; skill_stone_drops; equipment_drops; weapon_drops; _ }
+  Data.Drop_t.{ skill_drops; skill_book_drops; equipment_drops; weapon_drops; _ }
   =
   let extract_entity_from_drop acc (drop : Data.Drop_t.drop_internal) =
     match drop with
@@ -130,13 +130,13 @@ let extract_entity_reference_from_drop_table_entity
     | `Equipment { equipment; _ } -> equipment :: acc
     | `Weapon { weapon; _ } -> weapon :: acc
     | `Skill { skill; _ } -> skill :: acc
-    | `SkillStone { skill_stone; _ } -> skill_stone :: acc
+    | `SkillBook { skill_book; _ } -> skill_book :: acc
   in
   let extract_entity_from_drops (drops : Data.Drop_t.drop_internal list) =
     List.fold_left extract_entity_from_drop [] drops
   in
   extract_entity_from_drops skill_drops
-  @ extract_entity_from_drops skill_stone_drops
+  @ extract_entity_from_drops skill_book_drops
   @ extract_entity_from_drops equipment_drops
   @ extract_entity_from_drops weapon_drops
 ;;
@@ -303,7 +303,7 @@ let extract_entity_reference_from_entity_definition
     [ entity.icon_reference ]
     @ extract_entity_reference_from_triggers entity.triggers
     @ extract_entity_reference_from_visual_layer entity.visual
-  | `SkillStone { entity; _ } -> [ entity.icon_reference ]
+  | `SkillBook { entity; _ } -> [ entity.icon_reference ]
   | `Cursor { entity; _ } -> [ entity.icon_reference ]
   | `Sound { entity; _ } -> entity.audio_references
   | `SoundBank { entity; _ } -> extract_entity_reference_from_sound_bank_entity entity

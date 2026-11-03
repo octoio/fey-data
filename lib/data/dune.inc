@@ -482,22 +482,22 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
- (targets skill_stone_j.ml skill_stone_j.mli)
- (deps skill_stone.atd)
+ (targets skill_book_j.ml skill_book_j.mli)
+ (deps skill_book.atd)
  (mode fallback)
  (action
   (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
 
 (rule
- (targets skill_stone_t.ml skill_stone_t.mli)
- (deps skill_stone.atd)
+ (targets skill_book_t.ml skill_book_t.mli)
+ (deps skill_book.atd)
  (mode fallback)
  (action
   (run atdgen -t %{deps} -deriving-conv "eq,show")))
 
 (rule
- (targets skill_stone_v.ml skill_stone_v.mli)
- (deps skill_stone.atd)
+ (targets skill_book_v.ml skill_book_v.mli)
+ (deps skill_book.atd)
  (mode fallback)
  (action
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
@@ -761,10 +761,10 @@
   room_prefab_j
   room_prefab_t
   room_prefab_v
+  skill_book_j
+  skill_book_t
+  skill_book_v
   skill_j
-  skill_stone_j
-  skill_stone_t
-  skill_stone_v
   skill_t
   skill_v
   spawn_j

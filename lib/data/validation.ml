@@ -326,7 +326,7 @@ let validate_entity_definition_internal
   | `Quest { owner; id; entity_type; key; version; _ }
   | `Anchor { owner; id; entity_type; key; version; _ }
   | `Stage { owner; id; entity_type; key; version; _ }
-  | `SkillStone { owner; id; entity_type; key; version; _ }
+  | `SkillBook { owner; id; entity_type; key; version; _ }
   | `WeaponClass { owner; id; entity_type; key; version; _ }
   | `RoomPrefab { owner; id; entity_type; key; version; _ }
   | `Achievement { owner; id; entity_type; key; version; _ }
@@ -352,7 +352,7 @@ let drop_of_type (expected : Drop_t.drop_type) (drop : Drop_t.drop_internal) =
   | `Equipment _, `Equipment -> true
   | `Weapon _, `Weapon -> true
   | `Skill _, `Skill -> true
-  | `SkillStone _, `SkillStone -> true
+  | `SkillBook _, `SkillBook -> true
   | _ -> false
 ;;
 
@@ -415,7 +415,7 @@ let validate_rarity_weights (w : Drop_t.rarity_weights) =
 (* A guarantee is about items *)
 let validate_guarantee_kind (kind : Drop_t.drop_type) =
   match kind with
-  | `Equipment | `Weapon | `SkillStone -> true
+  | `Equipment | `Weapon | `SkillBook -> true
   | `Gold | `Skill -> false
 ;;
 
