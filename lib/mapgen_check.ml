@@ -170,6 +170,8 @@ let spec_problems
    | Some { boss_path = { min; max } } when min < 0. || min > max ->
      pushf "par boss_path [%g, %g]: needs 0 <= min <= max" min max
    | _ -> ());
+  if Option.is_some spec.gates && spec.generator <> `Crypt
+  then push "only a Crypt generator places gates";
   List.rev !out
 ;;
 
@@ -189,6 +191,8 @@ let slot_order : anchor_slot -> int = function
   | `Cocoon -> 10
   | `Marker -> 11
   | `Healing -> 12
+  | `Lever -> 13
+  | `GatePack -> 14
 ;;
 
 type slot_demand =
@@ -272,7 +276,15 @@ let role_of_slot : anchor_slot -> room_role option = function
   | `Shrine -> Some `Rest
   | `Chest -> Some `Treasure
   | `ObjectiveZone -> Some `Objective
-  | `PlayerSpawn | `EntryPortal | `TrailSpawn | `WaterSpawn | `Cocoon | `Marker | `Healing -> None
+  | `PlayerSpawn
+  | `EntryPortal
+  | `TrailSpawn
+  | `WaterSpawn
+  | `Cocoon
+  | `Marker
+  | `Healing
+  | `Lever
+  | `GatePack -> None
 ;;
 
 let new_requirement role n size : room_requirement =

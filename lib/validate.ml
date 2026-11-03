@@ -574,7 +574,7 @@ let generator_error_messages definitions =
     List.filter_map
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
         match definition with
-        | `Anchor { entity = `LampPost _ | `HealingShrine _ | `SpawnPoint _; _ } ->
+        | `Anchor { entity = `LampPost _ | `HealingShrine _ | `SpawnPoint _ | `Lever _; _ } ->
           Some (Dataset.entity_reference_of_entity_definition definition).id
         | _ -> None)
       definitions
@@ -664,7 +664,7 @@ let generator_error_messages definitions =
                 then
                   Some
                     (Printf.sprintf
-                       "Stage %s: anchor %s is bound with every, which only a LampPost, a HealingShrine or a SpawnPoint may be"
+                       "Stage %s: anchor %s is bound with every, which only a LampPost, a HealingShrine, a SpawnPoint or a Lever may be"
                        stage_name
                        id)
                 else if b.ordinal <> None
@@ -676,6 +676,53 @@ let generator_error_messages definitions =
                        id)
                 else None)
               bindings
+          in
+          let gate_errors =
+            let bound slot =
+              List.filter_map
+                (fun (id, (b : Data.Generator_t.anchor_binding)) ->
+                  if b.slot = slot then Some (id, b) else None)
+                bindings
+            in
+            let needs slot =
+              Printf.sprintf
+                "Stage %s places gates, so it needs an anchor bound to the %s slot"
+                stage_name
+                slot
+            in
+            match spec.gates with
+            | None -> []
+            | Some g ->
+              let levers = bound `Lever in
+              (if levers = [] then [ needs "Lever" ] else [])
+              @ List.filter_map
+                  (fun (id, b) ->
+                    if every b
+                    then None
+                    else
+                      Some
+                        (Printf.sprintf
+                           "Stage %s: lever anchor %s must be bound with every (one per gate)"
+                           stage_name
+                           id))
+                  levers
+              @
+              (match g.locked with
+               | None -> []
+               | Some { wake } ->
+                 let packs = List.map fst (bound `GatePack) in
+                 (if packs = [] then [ needs "GatePack" ] else [])
+                 @ List.filter_map
+                     (fun (s : Data.Spawn_t.spawn) ->
+                       if List.mem s.anchor.id packs
+                       then None
+                       else
+                         Some
+                           (Printf.sprintf
+                              "Stage %s: a wake spawn names anchor %s, which is not bound to the GatePack slot"
+                              stage_name
+                              s.anchor.id))
+                     wake)
           in
           let bindings_counted = List.filter (fun (_, b) -> not (every b)) bindings in
           let ordinal_errors =
@@ -744,7 +791,7 @@ let generator_error_messages definitions =
                 | _ -> [])
               definitions
           in
-          spec_errors @ unbound_errors @ every_errors @ ordinal_errors @ quest_errors
+          spec_errors @ unbound_errors @ every_errors @ gate_errors @ ordinal_errors @ quest_errors
         | _ -> [])
       definitions
   in

@@ -100,6 +100,7 @@ let crypt : G.generator_spec =
     max_attempts = Some 64;
     candidates = Some 3;
     par = None;
+    gates = None;
     seed_policy = `PerRun;
     fixed_seed = None
   }
@@ -426,6 +427,46 @@ let test_water_and_cocoon_demands_ask_for_no_room () =
   check bool "requirements unchanged" true (raised.requirements = crypt.requirements)
 ;;
 
+let test_lever_and_gate_pack_demands_ask_for_no_room () =
+  let raised =
+    Mapgen_check.apply_demands
+      crypt
+      [ { slot = `Lever; count = 2; optional = false };
+        { slot = `GatePack; count = 1; optional = false }
+      ]
+  in
+  check bool "requirements unchanged" true (raised.requirements = crypt.requirements)
+;;
+
+let gates_of_crypt : G.gate_rules =
+  { shortcuts = true;
+    locked =
+      Some
+        { wake =
+            [ { Data.Spawn_t.spawn_count = 2;
+                character;
+                anchor = anchor_ref "GatePack";
+                target_adventurer_on_spawn = false
+              }
+            ]
+        }
+  }
+;;
+
+let test_only_a_crypt_places_gates () =
+  check
+    bool
+    "a crypt may"
+    false
+    (has_problem ~substring:"gates" { crypt with gates = Some gates_of_crypt });
+  check
+    bool
+    "a forest may not"
+    true
+    (has_problem ~substring:"only a Crypt generator places gates"
+       { crypt with generator = `Forest; gates = Some gates_of_crypt })
+;;
+
 (* ---- dataset rules ---- *)
 
 let anchor_definition key binding : Data.Entity_t.entity_definition_internal =
@@ -478,6 +519,24 @@ let shrine_definition key binding : Data.Entity_t.entity_definition_internal =
             binding;
             model = "Shrine";
             price = 20
+          }
+    }
+;;
+
+let lever_definition key binding : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key;
+      version = 1;
+      id = (anchor_ref key).id;
+      entity =
+        `Lever
+          { Data.Anchor_t.anchor_type = `Lever;
+            metadata = minimal_metadata;
+            transform = minimal_transform;
+            binding;
+            model = "Lever"
           }
     }
 ;;
@@ -613,7 +672,7 @@ let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
     "a portal may not"
     true
     (mentions
-       ~substring:"bound with every, which only a LampPost, a HealingShrine or a SpawnPoint may be"
+       ~substring:"bound with every, which only a LampPost, a HealingShrine, a SpawnPoint or a Lever may be"
        (errors (stage (anchor_definition "Lamp" (Some (every_binding `Marker None))))));
   check
     bool
@@ -622,6 +681,45 @@ let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
     (mentions
        ~substring:"bound with every, so it has no ordinal"
        (errors (stage (lamp_definition "Lamp" (Some (every_binding `Marker (Some 1)))))))
+;;
+
+let key_of (d : Data.Entity_t.entity_definition_internal) =
+  match d with
+  | `Anchor { key; _ } -> key
+  | _ -> failwith "an anchor"
+;;
+
+let test_a_gated_stage_needs_its_levers_and_its_gate_pack () =
+  let gated = { crypt with gates = Some gates_of_crypt } in
+  let stage anchors = prefabs @ anchors @ [ stage_definition (List.map key_of anchors) (Some gated) ] in
+  let lever = lever_definition "Lever" (Some (every_binding `Lever None)) in
+  let pack = anchor_definition "GatePack" (Some (binding `GatePack 0)) in
+  check (list string) "a sound gated stage" [] (errors (stage [ lever; pack ]));
+  check
+    bool
+    "no lever"
+    true
+    (mentions ~substring:"needs an anchor bound to the Lever slot" (errors (stage [ pack ])));
+  check
+    bool
+    "no gate pack"
+    true
+    (mentions ~substring:"needs an anchor bound to the GatePack slot" (errors (stage [ lever ])));
+  let single = lever_definition "Lever" (Some (binding `Lever 0)) in
+  check
+    bool
+    "a lever per gate is a template"
+    true
+    (mentions ~substring:"must be bound with every" (errors (stage [ single; pack ])));
+  let elsewhere = anchor_definition "Pack" (Some (binding `PackSpawn 0)) in
+  let wrong = { gated with gates = Some { gates_of_crypt with locked = Some { wake = [ { Data.Spawn_t.spawn_count = 1; character; anchor = anchor_ref "Pack"; target_adventurer_on_spawn = false } ] } } } in
+  check
+    bool
+    "the wake spawn must stand on the gate pack"
+    true
+    (mentions
+       ~substring:"not bound to the GatePack slot"
+       (errors (prefabs @ [ lever; pack; elsewhere; stage_definition [ "Lever"; "GatePack"; "Pack" ] (Some wrong) ])))
 ;;
 
 let test_an_infeasible_spec_on_a_stage_is_a_build_error () =
@@ -772,7 +870,8 @@ let () =
           test_case "An infeasible spec lists every problem" `Quick test_an_infeasible_spec_lists_every_problem;
           test_case "Prefabs must exist and match the generator" `Quick test_prefabs_must_exist_and_match_the_generator;
           test_case "Impossible pins are refused" `Quick test_impossible_pins_are_refused;
-          test_case "Seed policy and par must agree" `Quick test_the_seed_policy_and_par_must_agree
+          test_case "Seed policy and par must agree" `Quick test_the_seed_policy_and_par_must_agree;
+          test_case "Only a crypt places gates" `Quick test_only_a_crypt_places_gates
         ] );
       ( "Quest demands",
         [ test_case "Demands count slots by ordinal" `Quick test_demands_count_slots_by_ordinal;
@@ -781,7 +880,8 @@ let () =
           test_case "Demands raise the requirements" `Quick test_demands_raise_the_requirements;
           test_case "A forest nest guards a pack" `Quick test_a_forest_nest_guards_a_pack;
           test_case "A trail demand asks for no room" `Quick test_a_trail_demand_asks_for_no_room;
-          test_case "Water and cocoon demands ask for no room" `Quick test_water_and_cocoon_demands_ask_for_no_room
+          test_case "Water and cocoon demands ask for no room" `Quick test_water_and_cocoon_demands_ask_for_no_room;
+          test_case "Lever and gate pack demands ask for no room" `Quick test_lever_and_gate_pack_demands_ask_for_no_room
         ] );
       ( "Dataset rules",
         [ test_case "A sound generated stage has no errors" `Quick test_a_sound_generated_stage_has_no_errors;
@@ -789,6 +889,7 @@ let () =
           test_case "Every anchor needs a binding" `Quick test_every_anchor_of_a_generated_stage_needs_a_binding;
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
           test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_or_spawn_point_only;
+          test_case "A gated stage needs its levers and gate pack" `Quick test_a_gated_stage_needs_its_levers_and_its_gate_pack;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
