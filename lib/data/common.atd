@@ -72,7 +72,7 @@ type entity_type =
   | QuestDifficulty
   | Anchor
   | Stage
-  | SkillStone
+  | SkillBook
   | WeaponClass
   | RoomPrefab
   | Achievement

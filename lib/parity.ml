@@ -24,7 +24,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `QuestDifficulty _ -> `QuestDifficulty
   | `Anchor _ -> `Anchor
   | `Stage _ -> `Stage
-  | `SkillStone _ -> `SkillStone
+  | `SkillBook _ -> `SkillBook
   | `WeaponClass _ -> `WeaponClass
   | `RoomPrefab _ -> `RoomPrefab
   | `Achievement _ -> `Achievement

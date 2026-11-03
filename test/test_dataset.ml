@@ -329,7 +329,7 @@ let channel_condition ?(seconds = 3.0) ?(amount = 1) anchors spawns =
       amount;
       seconds;
       spawns;
-      raises_stone = true
+      raises_book = true
     }
 ;;
 
@@ -420,7 +420,7 @@ let test_character_starting_kit_is_a_reference () =
 
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
-    {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_stone":false}}}|}
+    {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
   in
   let node = Data.Quest_j.quest_node_internal_of_string json in
   (match node with
@@ -966,11 +966,11 @@ let test_channel_needs_zone_anchors () =
 
 let test_channel_round_trips_through_json () =
   let json =
-    {|{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":3.0,"spawns":[],"raises_stone":true}|}
+    {|{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":3.0,"spawns":[],"raises_book":true}|}
   in
   let condition = Data.Quest_j.quest_condition_internal_of_string json in
   (match condition with
-   | `Channel { amount = 1; seconds = 3.0; raises_stone = true; _ } -> ()
+   | `Channel { amount = 1; seconds = 3.0; raises_book = true; _ } -> ()
    | _ -> Alcotest.fail "expected a channel");
   check
     bool
@@ -1136,7 +1136,7 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_skill_entity_definition;
       minimal_character_entity_definition;
       minimal_equipment_entity_definition;
-      minimal_skill_stone_entity_definition;
+      minimal_skill_book_entity_definition;
       minimal_status_entity_definition;
       minimal_projectile_entity_definition;
       minimal_quest_entity_definition;
