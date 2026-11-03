@@ -249,6 +249,43 @@ let test_extract_entity_reference_from_stage () =
     (List.exists (fun ref -> ref.Data.Common_t.entity_type = `Anchor) stage_refs)
 ;;
 
+let test_stage_ground_effect_status_is_a_reference () =
+  let status : Data.Common_t.entity_reference =
+    { id = "Octoio:Status:Poison:1"; owner = "Octoio"; entity_type = `Status; key = "Poison"; version = 1 }
+  in
+  let effect : Data.Stage_t.ground_effect =
+    { status; who = `Walkers; period = 1.; durations = []; magnitude = 1.; path_cost = None }
+  in
+  let zone : Data.Stage_t.ground_zone =
+    { id = Some "water"; kind = `Water; shape = `Circle; x = 0.; z = 0.; radius = Some 1.; half_x = None;
+      half_z = None; yaw = None; effects = Some [ effect ] }
+  in
+  let stage : Data.Entity_t.entity_definition_internal =
+    `Stage
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Stage;
+        key = "MinimalStage";
+        version = 1;
+        id = "ownr:Stage:MinimalStage:1";
+        entity = { Test_fixtures.minimal_stage with Data.Stage_t.ground = Some [ zone ] }
+      }
+  in
+  let refs = Dataset.extract_entity_reference_from_entity_definition stage in
+  check bool "Stage contains the status of a ground effect" true
+    (List.exists (fun ref -> ref.Data.Common_t.entity_type = `Status) refs)
+;;
+
+let test_status_accumulate_round_trips () =
+  let accumulating =
+    Data.Status_j.status_stack_of_string {|{"size":1,"scaling_strategy":"Additive","accumulate":true}|}
+  in
+  check bool "accumulate parsed" true (accumulating.accumulate = Some true);
+  check bool "accumulate survives a round trip" true
+    (Data.Status_j.status_stack_of_string (Data.Status_j.string_of_status_stack accumulating) = accumulating);
+  let absent = Data.Status_j.status_stack_of_string {|{"size":1,"scaling_strategy":"Additive"}|} in
+  check bool "absent stays None" true (absent.accumulate = None)
+;;
+
 let test_kill_condition_character_is_a_reference () =
   let reference =
     { minimal_entity_reference with Data.Common_t.entity_type = `Character }
@@ -1411,6 +1448,8 @@ let dataset_tests =
       "Status full_stack rule round trip"
       `Quick
       test_status_full_stack_rule_round_trips_and_defaults_to_absent;
+    test_case "Stage ground effect reference" `Quick test_stage_ground_effect_status_is_a_reference;
+    test_case "Status accumulate round trip" `Quick test_status_accumulate_round_trips;
     test_case "Index deterministic generation" `Quick test_index_deterministic_generation;
     (* Error Detection *)
     test_case "Contains error with errors" `Quick test_contains_error_with_errors;

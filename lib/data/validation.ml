@@ -10,6 +10,8 @@ let string_starts_with prefix s = String.starts_with ~prefix s
 let string_ends_with suffix s = String.ends_with ~suffix s
 let string_max_length max s = String.length s <= max
 let string_min_length min s = String.length s >= min
+
+let string_min_length_if_some min (s : string option) = Option.fold ~none:true ~some:(string_min_length min) s
 let string_length_between min max s = string_min_length min s && string_max_length max s
 
 let vector2_between min max { x; y } =
@@ -463,6 +465,16 @@ let validate_gates (gates : Stage_t.gate list option) =
     let ids = List.map (fun (g : Stage_t.gate) -> g.id) gates in
     List.for_all validate_gate gates
     && List.length (List.sort_uniq String.compare ids) = List.length ids
+
+(* The ids of a stage's ground zones are unique, and every zone a gate drains exists *)
+let validate_stage_zone_ids (s : Stage_t.stage) =
+  let zones = Option.value s.ground ~default:[] in
+  let ids = List.filter_map (fun (z : Stage_t.ground_zone) -> z.id) zones in
+  let drained =
+    List.concat_map (fun (g : Stage_t.gate) -> Option.value g.drains ~default:[]) (Option.value s.gates ~default:[])
+  in
+  List.length (List.sort_uniq String.compare ids) = List.length ids
+  && List.for_all (fun d -> List.mem d ids) drained
 
 (* Same shape rule as an obstacle: a circle needs a radius, a box both half extents *)
 let validate_ground_zone (z : Stage_t.ground_zone) =

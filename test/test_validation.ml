@@ -831,7 +831,7 @@ module GateValidationTests = struct
       obstacle =
         { kind = `Wall; shape = `Box; x = 1.; z = 2.; radius = None; half_x = Some 2.; half_z = Some 0.5;
           yaw = None; blocks_sight = None; prop = None };
-      starts_open = None; opening; lever; side_x; side_z }
+      starts_open = None; opening; lever; side_x; side_z; drains = None }
   ;;
 
   let test_validate_gates () =
@@ -853,7 +853,7 @@ let gate_validation_tests = [ "validate_gates", `Quick, GateValidationTests.test
 
 module GroundValidationTests = struct
   let zone shape radius half_x half_z : Data.Stage_t.ground_zone =
-    { kind = `Water; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None }
+    { id = None; kind = `Water; shape; x = 1.; z = 2.; radius; half_x; half_z; yaw = None; effects = None }
   ;;
 
   let test_validate_ground_zones () =
@@ -867,6 +867,49 @@ end
 
 let ground_validation_tests =
   [ "validate_ground_zones", `Quick, GroundValidationTests.test_validate_ground_zones ]
+;;
+
+module ZoneIdValidationTests = struct
+  let zone id : Data.Stage_t.ground_zone =
+    { id; kind = `Water; shape = `Circle; x = 1.; z = 2.; radius = Some 1.; half_x = None; half_z = None; yaw = None;
+      effects = None }
+  ;;
+
+  let drain drains : Data.Stage_t.gate =
+    { (GateValidationTests.gate `Quest None None None) with drains }
+  ;;
+
+  let stage ground gates : Data.Stage_t.stage =
+    { metadata = { Data.Common_t.title = "t"; description = "d" };
+      scene_name = "s";
+      theme_color = { Data.Common_t.r = 0.; g = 0.; b = 0.; a = 1. };
+      thumbnail_reference = None;
+      anchors = [];
+      quest = None;
+      obstacles = None;
+      decor = None;
+      ground;
+      gates;
+      generator = None }
+  ;;
+
+  let test_validate_stage_zone_ids () =
+    check bool "no ground" true (validate_stage_zone_ids (stage None None));
+    check bool "ids are unique" false
+      (validate_stage_zone_ids (stage (Some [ zone (Some "a"); zone (Some "a") ]) None));
+    check bool "zones without an id may repeat" true
+      (validate_stage_zone_ids (stage (Some [ zone None; zone None; zone (Some "a") ]) None));
+    check bool "a drained zone exists" true
+      (validate_stage_zone_ids (stage (Some [ zone (Some "a") ]) (Some [ drain (Some [ "a" ]) ])));
+    check bool "a drained zone must exist" false
+      (validate_stage_zone_ids (stage (Some [ zone (Some "a") ]) (Some [ drain (Some [ "b" ]) ])));
+    check bool "nothing to drain on a stage without ground" false
+      (validate_stage_zone_ids (stage None (Some [ drain (Some [ "a" ]) ])))
+  ;;
+end
+
+let zone_id_validation_tests =
+  [ "validate_stage_zone_ids", `Quick, ZoneIdValidationTests.test_validate_stage_zone_ids ]
 ;;
 
 module PresentationValidationTests = struct
@@ -1550,6 +1593,7 @@ let () =
       ("Obstacle Validation", obstacle_validation_tests);
       ("Gate Validation", gate_validation_tests);
       ("Ground Validation", ground_validation_tests);
+      ("Zone Id Validation", zone_id_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
