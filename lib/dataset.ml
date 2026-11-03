@@ -230,7 +230,8 @@ let extract_entity_reference_from_quest_action
   | `ActivateAnchor { anchor; _ }
   | `DeactivateAnchor { anchor; _ }
   | `ActivatePortalToQuestStage { anchor; _ } -> [ anchor ]
-  | `ActivatePortalToStage { anchor; destination; _ } -> [ anchor; destination ]
+  | `ActivatePortalToStage { anchor; destination; remains_of; _ } ->
+    anchor :: destination :: Option.to_list remains_of
   | `StartEscalation { nest; spawn; _ } -> [ nest; spawn ]
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ -> []
