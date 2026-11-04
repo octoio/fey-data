@@ -1116,6 +1116,62 @@ let test_kill_objective_amount_exceeding_spawns_is_not_completable () =
     (List.length (completability_errors (completability_dataset root)))
 ;;
 
+(* A spawn at an anchor template (bound with every and a min_count) runs once per anchor, at least min_count times *)
+let template_spawn_dataset ~min_count root =
+  let template : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Anchor;
+        key = "MinimalSpawnAnchor";
+        version = 1;
+        id = "ownr:Anchor:MinimalSpawnAnchor:1";
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint;
+              metadata = minimal_metadata;
+              transform = minimal_transform;
+              binding =
+                Some
+                  { Data.Generator_t.slot = `TrailSpawn;
+                    ordinal = None;
+                    every = Some true;
+                    min_count
+                  };
+              team = None;
+              radius = None
+            }
+      }
+  in
+  TestFixtures.create_dataset_with_definitions
+    [ ("data/json/character_file.json", minimal_character_entity_definition);
+      ("data/json/anchor_file.json", template);
+      ("data/json/quest_file.json", quest_definition_with_root root)
+    ]
+;;
+
+let test_kill_objective_counts_a_template_spawn_per_min_count () =
+  let root =
+    sequence_node
+      0
+      [ `Action (spawn_action_node 1); `Objective (kill_objective_node ~amount:8 2) ]
+  in
+  check
+    int
+    "one spawn at a template of at least 8 anchors reaches an amount of 8"
+    0
+    (List.length (completability_errors (template_spawn_dataset ~min_count:(Some 8) root)));
+  check
+    int
+    "the same template with a min_count of 7 does not"
+    1
+    (List.length (completability_errors (template_spawn_dataset ~min_count:(Some 7) root)));
+  check
+    int
+    "a template with no min_count counts once"
+    1
+    (List.length (completability_errors (template_spawn_dataset ~min_count:None root)))
+;;
+
 let test_extract_entity_reference_from_equipment () =
   let equipment_refs =
     Dataset.extract_entity_reference_from_entity_definition
@@ -1429,6 +1485,10 @@ let dataset_tests =
       "Kill amount exceeding spawns is not completable"
       `Quick
       test_kill_objective_amount_exceeding_spawns_is_not_completable;
+    test_case
+      "Kill objective counts a template spawn per min_count"
+      `Quick
+      test_kill_objective_counts_a_template_spawn_per_min_count;
     test_case
       "Extract entity reference from equipment"
       `Quick

@@ -299,7 +299,7 @@ let quest_of children : Data.Quest_t.quest =
 ;;
 
 let binding slot ordinal : G.anchor_binding =
-  { slot; ordinal = (if ordinal = 0 then None else Some ordinal); every = None }
+  { slot; ordinal = (if ordinal = 0 then None else Some ordinal); every = None; min_count = None }
 ;;
 
 let id_of key = (anchor_ref key).id
@@ -691,7 +691,7 @@ let test_ordinals_must_be_contiguous () =
     (mentions ~substring:"ordinals of the Shrine anchors are 0, 0" (errors repeated))
 ;;
 
-let every_binding slot ordinal : G.anchor_binding = { slot; ordinal; every = Some true }
+let every_binding slot ordinal : G.anchor_binding = { slot; ordinal; every = Some true; min_count = None }
 
 let test_every_binds_a_template_lamp_post_or_spawn_point_only () =
   let stage anchor = prefabs @ [ anchor; stage_definition [ "Lamp" ] (Some crypt) ] in

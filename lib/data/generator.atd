@@ -227,9 +227,12 @@ type generator_spec = {
 (* A generated stage's anchor is the [ordinal]-th (default 0, counted by room depth then room) anchor of [slot] in the
    layout; the anchor's transform is the hand-made fallback and is ignored by the generator.
    With [every] the anchor is a template: the generator makes one anchor of it per [slot] in the layout (so [ordinal]
-   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost, HealingShrine, SpawnPoint). *)
+   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost, HealingShrine, SpawnPoint).
+   [min_count] (only with [every]): the generator rejects a layout with fewer than that many anchors of the slot, and the
+   quest completability check counts a spawn at this anchor [min_count] times. *)
 type anchor_binding = {
   slot: anchor_slot;
   ?ordinal: int option <ocaml valid="Validation.int_min_if_some 0">;
   ?every: bool option;
+  ?min_count: int option <ocaml valid="Validation.int_min_if_some 1">;
 }
