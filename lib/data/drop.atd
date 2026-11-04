@@ -134,7 +134,6 @@ type drop_table =
     gold_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
     equipment_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Equipment">;
     weapon_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Weapon">;
-    skill_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Skill">;
     skill_book_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `SkillBook">;
       (* Absent: items are picked by entry weight alone *)
     ?rarity_curve: rarity_curve option;

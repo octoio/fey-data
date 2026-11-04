@@ -138,6 +138,22 @@ let validate_interrupt_node (n : Skill_t.skill_action_interrupt_node) =
   | Some _ -> false
 ;;
 
+(* Whether a hit of the action tree revives *)
+let rec has_revive_hit (node : Skill_t.skill_action_node_internal) =
+  match node with
+  | `Hit n -> n.hit_effect.hit_type = `Revive
+  | `Sequence n -> List.exists has_revive_hit n.children
+  | `Parallel n -> List.exists has_revive_hit n.children
+  | `Requirement n -> has_revive_hit n.child
+  | `Delay _ | `Animation _ | `Sound _ | `Status _ | `Summon _ | `Projectile _ | `Move _ | `Interrupt _ -> false
+;;
+
+(* A skill that revives targets a dead ally and a skill that targets a dead ally revives: the target type names
+   the corpse the revive hit stands up *)
+let validate_skill (skill : Skill_t.skill) =
+  has_revive_hit (`Requirement skill.execution_root) = (skill.target_type = `DeadAlly)
+;;
+
 (* An execute bonus: below a fraction of the health in (0, 1], a factor of at least 1 *)
 let validate_execute_bonus (b : Effect_t.execute_bonus) = b.below > 0. && b.below <= 1. && b.factor >= 1.
 

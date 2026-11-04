@@ -13,7 +13,6 @@ type projectile_model_type =
 type projectile_model = {
   (* Using Unity prefabs for now; will switch to Sandbox .glb models in the future with trails, textures, particles *)
   model_type <json name="type">: projectile_model_type;
-  model_scale: vector3;
 }
 
 type projectile_impact_type = 

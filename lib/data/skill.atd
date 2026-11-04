@@ -257,4 +257,4 @@ type skill = {
   ?hit_delay: float option <ocaml valid="Validation.float_min_if_some 0.05">;
   (* visual effects by phase (see vfx.atd); presentation only *)
   ?vfx: skill_vfx option;
-}
+} <ocaml valid="Validation.validate_skill">

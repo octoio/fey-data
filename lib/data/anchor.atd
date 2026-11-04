@@ -19,7 +19,7 @@ type zone_detection_type =
   | Trigger
   ]
 
-(* Gameplay markers owned by a stage; transforms are relative to the stage's StageOrigin *)
+(* Gameplay markers owned by a stage; transforms are world space *)
 type anchor = {
   anchor_type <json name="type">: anchor_type;
   metadata: metadata;
