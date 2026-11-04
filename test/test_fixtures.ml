@@ -189,6 +189,7 @@ let minimal_skill =
     experience = None;
     walk_while_casting = None;
     cancels_cast = None;
+    interruptible = None;
     needs_status = None;
     charges = None;
     triggers = None;
@@ -637,7 +638,6 @@ let minimal_drop_table =
     gold_drops = [ minimal_drop_internal ];
     equipment_drops = [];
     weapon_drops = [];
-    skill_drops = [];
     skill_book_drops = [];
     rarity_curve = None;
     guarantees = None;
@@ -697,8 +697,7 @@ let minimal_animation_entity_definition : Data.Entity_t.entity_definition_intern
 
 (* Minimal valid projectile model *)
 let minimal_projectile_model =
-  { Data.Projectile_t.model_type = `Pebble;
-    model_scale = minimal_vector3
+  { Data.Projectile_t.model_type = `Pebble
   }
 ;;
 
@@ -787,6 +786,7 @@ let skill_with_projectile =
     experience = None;
     walk_while_casting = None;
     cancels_cast = None;
+    interruptible = None;
     needs_status = None;
     charges = None;
     triggers = None;

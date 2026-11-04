@@ -242,6 +242,9 @@ type skill = {
   ?walk_while_casting: bool option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
   ?cancels_cast: bool option;
+  (* false: no interrupt (a stun, a silence, an Interrupt node, a burst that breaks a status) cancels a cast of this
+     skill, and the HUD does not offer "interrupt!" on it (a boss that is immune); absent = true *)
+  ?interruptible: bool option;
   (* the caster must carry this status to cast the skill (a lunge that only follows a dive) *)
   ?needs_status: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Status">;
   (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
@@ -254,4 +257,4 @@ type skill = {
   ?hit_delay: float option <ocaml valid="Validation.float_min_if_some 0.05">;
   (* visual effects by phase (see vfx.atd); presentation only *)
   ?vfx: skill_vfx option;
-}
+} <ocaml valid="Validation.validate_skill">

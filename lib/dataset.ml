@@ -122,7 +122,7 @@ let extract_entity_reference_from_sound_bank_entity
 ;;
 
 let extract_entity_reference_from_drop_table_entity
-  Data.Drop_t.{ skill_drops; skill_book_drops; equipment_drops; weapon_drops; _ }
+  Data.Drop_t.{ skill_book_drops; equipment_drops; weapon_drops; _ }
   =
   let extract_entity_from_drop acc (drop : Data.Drop_t.drop_internal) =
     match drop with
@@ -135,8 +135,7 @@ let extract_entity_reference_from_drop_table_entity
   let extract_entity_from_drops (drops : Data.Drop_t.drop_internal list) =
     List.fold_left extract_entity_from_drop [] drops
   in
-  extract_entity_from_drops skill_drops
-  @ extract_entity_from_drops skill_book_drops
+  extract_entity_from_drops skill_book_drops
   @ extract_entity_from_drops equipment_drops
   @ extract_entity_from_drops weapon_drops
 ;;
