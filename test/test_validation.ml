@@ -1007,7 +1007,7 @@ let move_node_validation_tests =
 
 module ProjectileKindValidationTests = struct
   let model : Data.Projectile_t.projectile_model =
-    { model_type = `Pebble; model_scale = make_vector3 1. 1. 1. }
+    { model_type = `Pebble }
   ;;
 
   let straight ~lifetime ~speed ~max_range : Data.Projectile_t.projectile_straight =
@@ -1240,6 +1240,43 @@ module ReviveHitValidationTests = struct
       (validate_hit_effect (effect ~pull:3. [ scaler 50. ]))
   ;;
 
+  let revive_node ?(name = "revive") () : Data.Skill_t.skill_action_node_internal =
+    `Hit
+      { skill_action_node_type = `Hit;
+        name;
+        hit_effect = effect [ scaler 50. ]
+      }
+  ;;
+
+  (* The minimal skill with its root child replaced and its target type set *)
+  let skill target_type child : Data.Skill_t.skill =
+    let base = Test_fixtures.minimal_skill in
+    { base with
+      target_type;
+      execution_root = { base.execution_root with child }
+    }
+  ;;
+
+  let test_validate_skill () =
+    let sequence : Data.Skill_t.skill_action_node_internal =
+      `Sequence
+        { skill_action_node_type = `Sequence;
+          name = "seq";
+          children = [ revive_node () ];
+          loop = 1
+        }
+    in
+    check bool "a revive of a dead ally" true (validate_skill (skill `DeadAlly (revive_node ())));
+    check bool "a revive nested in a sequence" true (validate_skill (skill `DeadAlly sequence));
+    check bool "a revive on a living target" false (validate_skill (skill `Ally (revive_node ())));
+    check
+      bool
+      "a dead ally target without a revive"
+      false
+      (validate_skill { Test_fixtures.minimal_skill with target_type = `DeadAlly });
+    check bool "a skill without a revive" true (validate_skill Test_fixtures.minimal_skill)
+  ;;
+
   let test_validate_execute_bonus () =
     check bool "30 percent, double" true (validate_execute_bonus (bonus 0.3 2.));
     check bool "the whole health" true (validate_execute_bonus (bonus 1. 1.));
@@ -1253,7 +1290,8 @@ let revive_hit_validation_tests =
   [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect;
     "execute and knockback", `Quick, ReviveHitValidationTests.test_execute_and_knockback;
     "pull", `Quick, ReviveHitValidationTests.test_pull;
-    "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus
+    "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus;
+    "validate_skill", `Quick, ReviveHitValidationTests.test_validate_skill
   ]
 ;;
 
