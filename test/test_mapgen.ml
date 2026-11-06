@@ -102,6 +102,7 @@ let crypt : G.generator_spec =
     par = None;
     gates = None;
     sewer = None;
+    water = None;
     seed_policy = `PerRun;
     fixed_seed = None
   }
@@ -469,7 +470,7 @@ let test_only_a_crypt_places_gates () =
 ;;
 
 let test_a_sewer_is_a_crypt_with_a_sluice_and_fords () =
-  let sewer : G.sewer_rules option =
+  let sewer : G.water_rules option =
     Some
       { effects =
           [ { G.status = reference `Status "Poison";
@@ -503,6 +504,25 @@ let test_a_sewer_is_a_crypt_with_a_sluice_and_fords () =
     "forest"
     true
     (has_problem ~substring:"only a Crypt generator is a sewer" { crypt with sewer; generator = `Forest })
+;;
+
+let test_only_a_forest_or_a_swamp_has_water_rules () =
+  let water : G.water_rules option =
+    Some
+      { effects =
+          [ { G.status = reference `Status "Mired";
+              who = `Walkers;
+              period = 1.;
+              durations = [];
+              magnitude = 0.;
+              path_cost = Some 1.
+            }
+          ]
+      }
+  in
+  check bool "a swamp" false (has_problem ~substring:"water rules" { crypt with water; generator = `Swamp });
+  check bool "a forest" false (has_problem ~substring:"water rules" { crypt with water; generator = `Forest });
+  check bool "a crypt" true (has_problem ~substring:"only a Forest or a Swamp generator has water rules" { crypt with water })
 ;;
 
 (* ---- dataset rules ---- *)
@@ -910,6 +930,7 @@ let () =
           test_case "Impossible pins are refused" `Quick test_impossible_pins_are_refused;
           test_case "Seed policy and par must agree" `Quick test_the_seed_policy_and_par_must_agree;
           test_case "A sewer is a crypt with a sluice and fords" `Quick test_a_sewer_is_a_crypt_with_a_sluice_and_fords;
+          test_case "Only a forest or a swamp has water rules" `Quick test_only_a_forest_or_a_swamp_has_water_rules;
           test_case "Only a crypt places gates" `Quick test_only_a_crypt_places_gates
         ] );
       ( "Quest demands",

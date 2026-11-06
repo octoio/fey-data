@@ -96,6 +96,16 @@ type status_stack = {
        duration of the whole stack, the new application's included: the stacks go together once the last application's
        duration runs out. Absent or false: the stack is capped at [size]. *)
     ?accumulate: bool option;
+    (* The magnitude of each stack, by position: the n-th application to a stack holding n others carries [magnitudes]
+       nth (the last entry for any further one) instead of the magnitude it was applied with (a wade that costs 20% for
+       the first stack and 10% for each further one). Absent: every application carries its own magnitude. *)
+    ?magnitudes: float list option <ocaml valid="Validation.validate_stack_magnitudes">;
+    (* true: the stack fades by itself. Its timer is the Chrono duration of the latest application and restarts on every
+       application (the applications carry no expiry of their own); when it runs out one stack drops, the newest first,
+       and the timer restarts, so a stack that is no longer applied loses one stack per duration. A new application on
+       the very tick the timer runs out restarts it first: a stack applied once per duration never fades. Absent or
+       false: every application expires on its own. *)
+    ?decay: bool option;
 }
 
 type status = {

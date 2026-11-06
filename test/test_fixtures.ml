@@ -350,7 +350,7 @@ let minimal_achievement_entity_definition : Data.Entity_t.entity_definition_inte
 let minimal_status =
   { Data.Status_t.metadata = minimal_metadata;
     mechanic = `StatChange { Data.Status_t.mechanic_type = `StatChange; stat = `Vit };
-    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None; accumulate = None };
+    stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None; accumulate = None; magnitudes = None; decay = None };
     break_burst = None;
     triggers = None;
     vfx = None

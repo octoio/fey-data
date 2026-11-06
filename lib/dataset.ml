@@ -270,10 +270,13 @@ let extract_entity_reference_from_generator_spec (spec : Data.Generator_t.genera
      | Some { locked = Some { wake }; _ } ->
        List.concat_map extract_entity_reference_from_spawn wake
      | _ -> [])
-  @ (match spec.sewer with
-     | Some { effects } ->
-       List.map (fun (e : Data.Generator_t.ground_effect) -> e.status) effects
-     | None -> [])
+  @ List.concat_map
+      (fun (rules : Data.Generator_t.water_rules option) ->
+        match rules with
+        | Some { effects } ->
+          List.map (fun (e : Data.Generator_t.ground_effect) -> e.status) effects
+        | None -> [])
+      [ spec.sewer; spec.water ]
 ;;
 
 let rec extract_entity_reference_from_achievement_condition
