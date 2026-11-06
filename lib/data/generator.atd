@@ -194,10 +194,9 @@ type ground_effect = {
   ?path_cost: float option <ocaml valid="Validation.float_min_if_some 0.">;
 }
 
-(* What turns a generated crypt into a sewer (fey-rs #324, docs/design/mapgen.md "Sewer Warrens"): the layout becomes a
-   tunnel network with a channel of water in every tunnel and junction. [effects] are what the channel does to the characters
-   in it (a ground zone's effects, shared by every zone of the layout: its poison for walkers, its buff for swimmers). *)
-type sewer_rules = {
+(* What a generated layout's water does to the characters in it: [effects] are a ground zone's effects, shared by every
+   water zone of the layout (the poison for walkers and the buff for swimmers of a sewer's channels, the wade of a swamp). *)
+type water_rules = {
   effects: ground_effect list <ocaml valid="Validation.list_min_length 1">;
 }
 
@@ -219,7 +218,12 @@ type generator_spec = {
   ?candidates: int option <ocaml valid="Validation.int_min_if_some 1">;
   ?par: par_rule option;
   ?gates: gate_rules option;
-  ?sewer: sewer_rules option;
+  (* Turns a Crypt into a sewer (fey-rs #324, docs/design/mapgen.md "Sewer Warrens"): the layout becomes a tunnel network
+     with a channel of water in every tunnel and junction; the rules are what that water does. *)
+  ?sewer: water_rules option;
+  (* What the water of a Forest (ponds, river, fords) or a Swamp (the one water zone under the islands and boardwalks) does
+     (fey-rs #333). *)
+  ?water: water_rules option;
   seed_policy: seed_policy;
   ?fixed_seed: int option <ocaml valid="Validation.int_min_if_some 0">;
 }

@@ -198,6 +198,11 @@ let validate_enrage_effects (effects : Effect_t.status_effect list) =
        effects
 ;;
 
+(* A stack's per-position magnitudes name at least one stack *)
+let validate_stack_magnitudes (x : float list option) =
+  Option.fold ~none:true ~some:(fun l -> list_min_length 1 l && List.for_all Float.is_finite l) x
+;;
+
 (* A burst threshold is a fraction of the source's maximum health, in (0, 1] *)
 let validate_break_burst (x : float option) =
   Option.fold ~none:true ~some:(fun f -> Float.is_finite f && f > 0. && f <= 1.) x

@@ -178,6 +178,8 @@ let spec_problems
     match spec.gates with
     | Some { shortcuts = false; locked = Some _ } -> ()
     | _ -> push "a sewer has a locked gate (its sluice) and no shortcut gates (loops are fords)");
+  if Option.is_some spec.water && spec.generator = `Crypt
+  then push "only a Forest or a Swamp generator has water rules";
   List.rev !out
 ;;
 

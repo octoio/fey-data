@@ -286,6 +286,19 @@ let test_status_accumulate_round_trips () =
   check bool "absent stays None" true (absent.accumulate = None)
 ;;
 
+let test_status_ramp_and_decay_round_trip () =
+  let ramp =
+    Data.Status_j.status_stack_of_string
+      {|{"size":4,"scaling_strategy":"Additive","magnitudes":[-0.2,-0.1],"decay":true}|}
+  in
+  check bool "magnitudes parsed" true (ramp.magnitudes = Some [ -0.2; -0.1 ]);
+  check bool "decay parsed" true (ramp.decay = Some true);
+  check bool "survives a round trip" true
+    (Data.Status_j.status_stack_of_string (Data.Status_j.string_of_status_stack ramp) = ramp);
+  check bool "no magnitudes is valid" true (Data.Validation.validate_stack_magnitudes None);
+  check bool "an empty list is not" false (Data.Validation.validate_stack_magnitudes (Some []))
+;;
+
 let test_kill_condition_character_is_a_reference () =
   let reference =
     { minimal_entity_reference with Data.Common_t.entity_type = `Character }
@@ -1510,6 +1523,7 @@ let dataset_tests =
       test_status_full_stack_rule_round_trips_and_defaults_to_absent;
     test_case "Stage ground effect reference" `Quick test_stage_ground_effect_status_is_a_reference;
     test_case "Status accumulate round trip" `Quick test_status_accumulate_round_trips;
+    test_case "Status ramp and decay round trip" `Quick test_status_ramp_and_decay_round_trip;
     test_case "Index deterministic generation" `Quick test_index_deterministic_generation;
     (* Error Detection *)
     test_case "Contains error with errors" `Quick test_contains_error_with_errors;
