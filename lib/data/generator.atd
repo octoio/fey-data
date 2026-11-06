@@ -2,6 +2,7 @@ type entity_reference <ocaml from="Common"> = abstract
 type int_range <ocaml from="Common"> = abstract
 type float_range <ocaml from="Common"> = abstract
 type spawn <ocaml from="Spawn"> = abstract
+type status_duration <ocaml from="Effect"> = abstract
 
 (* Map generation data contract (docs/design/mapgen.md in fey-rs). The generator itself lives in Rust only
    (fey_core::mapgen); these types are the spec it reads and the checks fey-data runs on it at build time. *)
@@ -170,6 +171,36 @@ type gate_rules = {
   ?locked: locked_gate option;
 }
 
+(* Who a ground effect lands on: Walkers (characters that do not swim), Swimmers (characters whose definition says
+   [swims]) or Everyone. *)
+type ground_effect_who =
+  [ Walkers
+  | Swimmers
+  | Everyone
+  ]
+
+(* A status a ground zone gives to the characters inside it that [who] names: on entering the zone, then every [period]
+   seconds while they stay in it. [durations] and [magnitude] are what each application carries, like a skill's status
+   effect (a status holds neither): [magnitude] is the flat amount of the application (the damage of one stack per tick
+   of a HitOverTime status, the value of a StatChange one). The source of the application is the environment, not a
+   character. [path_cost] is what the path planner adds to the cost of a unit of walking in the zone, for the characters
+   [who] names (absent: nothing; 6 on top of the cost of water makes a unit of poisoned water cost 8 dry ones). *)
+type ground_effect = {
+  status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
+  who: ground_effect_who;
+  period: float <ocaml valid="Validation.float_min 0.1">;
+  durations: status_duration list;
+  magnitude: float;
+  ?path_cost: float option <ocaml valid="Validation.float_min_if_some 0.">;
+}
+
+(* What turns a generated crypt into a sewer (fey-rs #324, docs/design/mapgen.md "Sewer Warrens"): the layout becomes a
+   tunnel network with a channel of water in every tunnel and junction. [effects] are what the channel does to the characters
+   in it (a ground zone's effects, shared by every zone of the layout: its poison for walkers, its buff for swimmers). *)
+type sewer_rules = {
+  effects: ground_effect list <ocaml valid="Validation.list_min_length 1">;
+}
+
 (* What the generator needs besides the seed. [version]: the generator version the spec was tuned for. [party_size]
    (default 4) and [corridor_width] (default 8; raised to the party minimum) size the corridors. [fill]: the role of
    main-path rooms no requirement claims. [max_attempts] (default 64): derived seeds tried before giving up.
@@ -188,6 +219,7 @@ type generator_spec = {
   ?candidates: int option <ocaml valid="Validation.int_min_if_some 1">;
   ?par: par_rule option;
   ?gates: gate_rules option;
+  ?sewer: sewer_rules option;
   seed_policy: seed_policy;
   ?fixed_seed: int option <ocaml valid="Validation.int_min_if_some 0">;
 }
@@ -195,9 +227,12 @@ type generator_spec = {
 (* A generated stage's anchor is the [ordinal]-th (default 0, counted by room depth then room) anchor of [slot] in the
    layout; the anchor's transform is the hand-made fallback and is ignored by the generator.
    With [every] the anchor is a template: the generator makes one anchor of it per [slot] in the layout (so [ordinal]
-   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost, HealingShrine, SpawnPoint). *)
+   must be absent), only allowed on the anchor kinds that make sense repeated (LampPost, HealingShrine, SpawnPoint).
+   [min_count] (only with [every]): the generator rejects a layout with fewer than that many anchors of the slot, and the
+   quest completability check counts a spawn at this anchor [min_count] times. *)
 type anchor_binding = {
   slot: anchor_slot;
   ?ordinal: int option <ocaml valid="Validation.int_min_if_some 0">;
   ?every: bool option;
+  ?min_count: int option <ocaml valid="Validation.int_min_if_some 1">;
 }

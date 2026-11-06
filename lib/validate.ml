@@ -166,6 +166,18 @@ let interact_error_messages definitions =
     definitions
 ;;
 
+(* The generator binding of an anchor of any kind *)
+let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
+  match entity with
+  | `Zone a -> a.binding
+  | `SpawnPoint a -> a.binding
+  | `Portal a -> a.binding
+  | `QuestBoard a -> a.binding
+  | `LampPost a -> a.binding
+  | `HealingShrine a -> a.binding
+  | `Lever a -> a.binding
+;;
+
 (* A KillSpecific objective is only completable if enough characters of the
    required types are spawned by actions that are not strictly after it in
    execution order. Sequence children run in order; Parallel/Any/Timer branches
@@ -182,11 +194,27 @@ let quest_completability_error_messages definitions =
         | _ -> None)
       definitions
   in
+  let min_anchors_by_reference =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity; _ } ->
+          (match anchor_binding_of entity with
+           | Some { every = Some true; min_count = Some n; _ } ->
+             Some (Dataset.entity_reference_of_entity_definition definition, n)
+           | _ -> None)
+        | _ -> None)
+      definitions
+  in
   let spawn_counts (spawn : Data.Spawn_t.spawn) =
     match List.assoc_opt spawn.character character_type_by_reference with
     (* a missing character definition is reported by the generic reference check *)
     | None -> []
-    | Some character_type -> [ character_type, spawn.spawn_count ]
+    | Some character_type ->
+      let anchors =
+        Option.value (List.assoc_opt spawn.anchor min_anchors_by_reference) ~default:1
+      in
+      [ character_type, spawn.spawn_count * anchors ]
   in
   let action_spawn_counts (action : Data.Quest_t.quest_action_internal) =
     match action with
@@ -556,16 +584,7 @@ let generator_error_messages definitions =
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
         match definition with
         | `Anchor { entity; _ } ->
-          let binding =
-            match entity with
-            | `Zone a -> a.binding
-            | `SpawnPoint a -> a.binding
-            | `Portal a -> a.binding
-            | `QuestBoard a -> a.binding
-            | `LampPost a -> a.binding
-            | `HealingShrine a -> a.binding
-            | `Lever a -> a.binding
-          in
+          let binding = anchor_binding_of entity in
           Some (Dataset.entity_reference_of_entity_definition definition, binding)
         | _ -> None)
       definitions
@@ -659,7 +678,15 @@ let generator_error_messages definitions =
             List.filter_map
               (fun (id, (b : Data.Generator_t.anchor_binding)) ->
                 if not (every b)
-                then None
+                then
+                  if b.min_count <> None
+                  then
+                    Some
+                      (Printf.sprintf
+                         "Stage %s: anchor %s has a min_count, which only an anchor bound with every may have"
+                         stage_name
+                         id)
+                  else None
                 else if not (List.mem id template_anchors)
                 then
                   Some

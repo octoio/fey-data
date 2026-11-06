@@ -2,7 +2,7 @@ type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type generator_spec <ocaml from="Generator"> = abstract
-type status_duration <ocaml from="Effect"> = abstract
+type ground_effect <ocaml from="Generator"> = abstract
 
 (* Legacy enums; retired once stages are addressed by entity index everywhere *)
 type stage_type =
@@ -73,29 +73,6 @@ type ground_kind =
   | Dry
   | Boardwalk
   ]
-
-(* Who a ground effect lands on: Walkers (characters that do not swim), Swimmers (characters whose definition says
-   [swims]) or Everyone. *)
-type ground_effect_who =
-  [ Walkers
-  | Swimmers
-  | Everyone
-  ]
-
-(* A status a ground zone gives to the characters inside it that [who] names: on entering the zone, then every [period]
-   seconds while they stay in it. [durations] and [magnitude] are what each application carries, like a skill's status
-   effect (a status holds neither): [magnitude] is the flat amount of the application (the damage of one stack per tick
-   of a HitOverTime status, the value of a StatChange one). The source of the application is the environment, not a
-   character. [path_cost] is what the path planner adds to the cost of a unit of walking in the zone, for the characters
-   [who] names (absent: nothing; 6 on top of the cost of water makes a unit of poisoned water cost 8 dry ones). *)
-type ground_effect = {
-  status: entity_reference <ocaml valid="Validation.entity_reference_of_type `Status">;
-  who: ground_effect_who;
-  period: float <ocaml valid="Validation.float_min 0.1">;
-  durations: status_duration list;
-  magnitude: float;
-  ?path_cost: float option <ocaml valid="Validation.float_min_if_some 0.">;
-}
 
 (* A patch of ground, in stage coordinates: a circle ([radius]) or an oriented box ([half_x], [half_z], turned by [yaw]
    degrees), like an obstacle. Where zones overlap the LAST one in the list wins; a point no zone covers is dry. A ground
