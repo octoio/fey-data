@@ -533,7 +533,12 @@ let minimal_cursor_entity_definition : Data.Entity_t.entity_definition_internal 
 
 (* Minimal valid stat *)
 let minimal_stat =
-  { Data.Stat_t.metadata = minimal_metadata; stat_type = `Vit; color = minimal_color }
+  { Data.Stat_t.metadata = minimal_metadata;
+    stat_type = `Vit;
+    color = minimal_color;
+    clamp = None;
+    conversions = None
+  }
 ;;
 
 let minimal_stat_entity_definition : Data.Entity_t.entity_definition_internal =

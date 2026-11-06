@@ -29,10 +29,26 @@ type stat_type =
     | HealthGlobeChance
     ]
 
+(* The bounds of a final stat, applied after the conversions; an absent bound is open *)
+type stat_clamp = {
+    ?min: float option;
+    ?max: float option;
+} <ocaml valid="Validation.validate_stat_clamp">
+
+(* One term of the stat: [stat += raw attribute * per_point], read on the summed raw attributes *)
+type stat_conversion = {
+    attribute: stat_type <ocaml valid="Validation.stat_attribute">;
+    per_point: float;
+}
+
 type stat = {
     metadata: metadata;
     stat_type <json name="type">: stat_type;
     color: color;
+    (* absent = unclamped (negative Armor / MagicResist is allowed: armor shred) *)
+    ?clamp: stat_clamp option;
+    (* what the attributes (Vit, Str, Int, Dex) add to this stat; absent = nothing *)
+    ?conversions: stat_conversion list option;
 }
 
 
