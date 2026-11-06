@@ -29,7 +29,7 @@ type int_range =
 
 type metadata =
   { title : string;
-    description : string
+    description : string <ocaml valid="Validation.plain_text">
   }
 
 type size =

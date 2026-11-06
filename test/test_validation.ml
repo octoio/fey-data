@@ -94,6 +94,8 @@ module StringValidationTests = struct
   let test_plain_message () =
     check bool "plain text" true (plain_message "The howling stops, and 2 < 3 holds...");
     check bool "empty" false (plain_message "");
+    check bool "plain_text allows empty" true (plain_text "");
+    check bool "plain_text rejects a tag" false (plain_text "a <b>bold</b> word");
     check bool "italic tag" false (plain_message "<i>The howling stops.</i>");
     check bool "colour tag" false (plain_message "A <color=\"red\">wolf</color> howls")
   ;;

@@ -21,8 +21,10 @@ let string_has_tag s =
   | Some open_at -> String.contains_from s open_at '>'
 ;;
 
+let plain_text s = not (string_has_tag s)
+
 (* The text of a quest Message: shown as written, so non-empty and without tags *)
-let plain_message s = string_min_length 1 s && not (string_has_tag s)
+let plain_message s = string_min_length 1 s && plain_text s
 
 let vector2_between min max { x; y } =
   float_between min.x max.x x && float_between min.y max.y y
