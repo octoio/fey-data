@@ -1,6 +1,5 @@
 type metadata <ocaml from="Common"> = abstract
 type vector3 <ocaml from="Common"> = abstract
-type float_range <ocaml from="Common"> = abstract
 type xp_chart <ocaml from="Common"> = abstract
 type hit_type <ocaml from="Common"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
@@ -222,6 +221,11 @@ type skill_experience = {
   ?cooldown_per_level: float option <ocaml valid="Validation.validate_cooldown_per_level">;
 }
 
+(* How far the target may be from the caster. Only the longest reach is data: no rule reads a shortest one. *)
+type cast_distance = {
+  max: float;
+}
+
 type skill = {
   metadata: metadata;
   quality: quality_type;
@@ -231,7 +235,7 @@ type skill = {
   cooldown: float;
   target_type: skill_target_type;
   execution_root: skill_action_requirement_node;
-  cast_distance: float_range;
+  cast_distance: cast_distance;
   indicators: skill_indicator list;
   ?experience: skill_experience option;
   (* true: the caster may walk while this skill is cast and the cast runs on (movement skills); absent = a move input

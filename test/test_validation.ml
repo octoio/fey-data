@@ -91,6 +91,13 @@ module StringValidationTests = struct
     check bool "string_ends_with empty suffix" true (string_ends_with "" "any_string")
   ;;
 
+  let test_plain_message () =
+    check bool "plain text" true (plain_message "The howling stops, and 2 < 3 holds...");
+    check bool "empty" false (plain_message "");
+    check bool "italic tag" false (plain_message "<i>The howling stops.</i>");
+    check bool "colour tag" false (plain_message "A <color=\"red\">wolf</color> howls")
+  ;;
+
   let test_string_max_length () =
     check bool "string_max_length valid" true (string_max_length 10 "short");
     check bool "string_max_length invalid" false (string_max_length 3 "toolong");
@@ -437,6 +444,7 @@ let basic_validation_tests =
 let string_validation_tests =
   [ ("string_starts_with", `Quick, StringValidationTests.test_string_starts_with);
     ("string_ends_with", `Quick, StringValidationTests.test_string_ends_with);
+    ("plain_message", `Quick, StringValidationTests.test_plain_message);
     ("string_max_length", `Quick, StringValidationTests.test_string_max_length);
     ("string_min_length", `Quick, StringValidationTests.test_string_min_length);
     ("string_length_between", `Quick, StringValidationTests.test_string_length_between)
