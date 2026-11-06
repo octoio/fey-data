@@ -236,6 +236,20 @@ let validate_trigger (trigger : Trigger_t.trigger) =
   && (Option.is_none trigger.status || trigger.on = `StatusApplied)
 ;;
 
+(* A clamp keeps min <= max when both bounds are given *)
+let validate_stat_clamp ({ min; max } : Stat_t.stat_clamp) =
+  match min, max with
+  | Some min, Some max -> min <= max
+  | _ -> true
+;;
+
+(* Only the four attributes convert into other stats *)
+let stat_attribute (stat : Stat_t.stat_type) =
+  match stat with
+  | `Vit | `Str | `Int | `Dex -> true
+  | _ -> false
+;;
+
 (* The keys of the triggers of one owner are unique *)
 let validate_triggers (triggers : Trigger_t.trigger list option) =
   match triggers with

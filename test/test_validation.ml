@@ -1614,6 +1614,31 @@ let vfx_key_tests =
   ]
 ;;
 
+(* Stat clamps and conversions (stat.atd) *)
+module StatRulesTests = struct
+  let clamp min max : Data.Stat_t.stat_clamp = { min; max }
+
+  let test_clamp_bounds () =
+    check bool "min below max" true (validate_stat_clamp (clamp (Some 0.) (Some 1.)));
+    check bool "min equals max" true (validate_stat_clamp (clamp (Some 1.) (Some 1.)));
+    check bool "min above max" false (validate_stat_clamp (clamp (Some 1.) (Some 0.)));
+    check bool "open max" true (validate_stat_clamp (clamp (Some 1.) None));
+    check bool "open min" true (validate_stat_clamp (clamp None (Some 0.9)));
+    check bool "both open" true (validate_stat_clamp (clamp None None))
+  ;;
+
+  let test_conversion_attribute () =
+    List.iter (fun a -> check bool "attribute" true (stat_attribute a)) [ `Vit; `Str; `Int; `Dex ];
+    List.iter (fun a -> check bool "not an attribute" false (stat_attribute a)) [ `Armor; `Health ]
+  ;;
+end
+
+let stat_rules_tests =
+  [ ("clamp bounds", `Quick, StatRulesTests.test_clamp_bounds);
+    ("conversion attribute", `Quick, StatRulesTests.test_conversion_attribute)
+  ]
+;;
+
 (* Main test runner *)
 let () =
   let all_tests =
@@ -1645,6 +1670,7 @@ let () =
       ("File Validation", file_validation_tests);
       ("Vfx Key Validation", vfx_key_tests);
       ("Achievement Validation", achievement_validation_tests);
+      ("Stat Rules Validation", stat_rules_tests);
     ]
   in
   run "Validation Module Tests" all_tests
