@@ -214,7 +214,7 @@ type quest_action_open_gate = {
 
 type quest_action_message = {
   action_type <json name="type">: quest_action_type;
-  message: string <ocaml valid="Validation.string_min_length 1">;
+  message: string <ocaml valid="Validation.plain_message">;
 }
 
 type quest_action_enable_quest_board_quest = {

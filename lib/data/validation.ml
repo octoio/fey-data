@@ -14,6 +14,18 @@ let string_min_length min s = String.length s >= min
 let string_min_length_if_some min (s : string option) = Option.fold ~none:true ~some:(string_min_length min) s
 let string_length_between min max s = string_min_length min s && string_max_length max s
 
+(* A tag is a '<' closed by a later '>': presentation markup (Unity rich text) has no place in game data *)
+let string_has_tag s =
+  match String.index_opt s '<' with
+  | None -> false
+  | Some open_at -> String.contains_from s open_at '>'
+;;
+
+let plain_text s = not (string_has_tag s)
+
+(* The text of a quest Message: shown as written, so non-empty and without tags *)
+let plain_message s = string_min_length 1 s && plain_text s
+
 let vector2_between min max { x; y } =
   float_between min.x max.x x && float_between min.y max.y y
 ;;

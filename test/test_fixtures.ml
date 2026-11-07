@@ -184,7 +184,7 @@ let minimal_skill =
     cooldown = 0.0;
     target_type = `Enemy;
     execution_root = minimal_execution_root;
-    cast_distance = minimal_float_range;
+    cast_distance = { Data.Skill_t.max = 0.0 };
     indicators = [];
     experience = None;
     walk_while_casting = None;
@@ -786,7 +786,7 @@ let skill_with_projectile =
     cooldown = 2.0;
     target_type = `Enemy;
     execution_root;
-    cast_distance = minimal_float_range;
+    cast_distance = { Data.Skill_t.max = 0.0 };
     indicators = [];
     experience = None;
     walk_while_casting = None;
