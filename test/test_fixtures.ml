@@ -149,7 +149,8 @@ let minimal_weapon =
     model_anchor_set = minimal_model_anchor_set;
     min_level = None;
     weapon_class = None;
-    visual = None
+    visual = None;
+    triggers = None
   }
 ;;
 
