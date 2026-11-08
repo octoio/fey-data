@@ -600,6 +600,14 @@ let validate_weapon_class_categories (categories : Weapon_t.weapon_category list
   categories <> [] && List.length categories = List.length (List.sort_uniq compare categories)
 ;;
 
+(* A weapon's off-hand list names only off-hand categories (Shield, Focus), and only a main-hand weapon may list any *)
+let validate_weapon_off_hands (w : Weapon_t.weapon) =
+  w.off_hands = []
+  || (w.hand = `MainHand
+     && List.for_all (fun c -> c = `Shield || c = `Focus) w.off_hands
+     && List.length w.off_hands = List.length (List.sort_uniq compare w.off_hands))
+;;
+
 (* The cue a slot plays: an attack cue for the basic attack, the locomotion cues for idle, walk and run, the
    hit and death cues for the rest *)
 let animation_slot_takes_cue (slot : Weapon_class_t.animation_slot) (cue : Animation_t.animation_cue)

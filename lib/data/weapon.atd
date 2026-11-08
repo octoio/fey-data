@@ -56,4 +56,4 @@ type weapon = {
     ?weapon_class: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
     (* the look layer shown for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
     ?visual: visual_layer option;
-}
+} <ocaml valid="Validation.validate_weapon_off_hands">
