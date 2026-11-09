@@ -103,7 +103,9 @@ type damage_school =
    into the water: toward the wet point nearest to it that lies clear of the caster's body (it stays when it is in
    water already). With no water that near it is dragged back the way the caster came, i.e. straight behind the
    caster's facing, which after a dash is toward the spot the dash left. It moves like a dash (the Move node's
-   motion), stopped short of obstacles (positive). *)
+   motion), stopped short of obstacles (positive).
+   [mana_on_hit] (Damage hits only): mana the caster gets for each target this hit lands on (not dodged), added to
+   its mana up to the maximum (positive). *)
 type hit_effect = {
   hit_type: hit_type;
   scalers: effect_scaling list;
@@ -116,6 +118,7 @@ type hit_effect = {
   ?execute: execute_bonus option;
   ?knockback: float option;
   ?pull: float option;
+  ?mana_on_hit: float option;
 } <ocaml valid="Validation.validate_hit_effect">
 
 (* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
