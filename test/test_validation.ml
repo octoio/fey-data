@@ -1508,10 +1508,10 @@ module TriggerValidationTests = struct
   ;;
 
   let trigger ?(key = "crit-bleed") ?(chance = 1.) ?(cooldown = 0.) ?min_amount
-    ?status ?max_chain ?(effects = [ hit_only ]) on
+    ?status ?min_stacks ?max_chain ?(effects = [ hit_only ]) on
     : Data.Trigger_t.trigger
     =
-    { key; on; relation = None; chance; cooldown; min_amount; status; max_chain;
+    { key; on; relation = None; chance; cooldown; min_amount; status; min_stacks; max_chain;
       terminal = None; effects }
   ;;
 
@@ -1550,7 +1550,17 @@ module TriggerValidationTests = struct
       bool
       "status filter on another event"
       false
-      (validate_trigger (trigger ~status `Hit))
+      (validate_trigger (trigger ~status `Hit));
+    check bool "min stacks with a status" true
+      (validate_trigger (trigger ~status ~min_stacks:3 `StatusApplied));
+    check bool "min stacks of one" true
+      (validate_trigger (trigger ~status ~min_stacks:1 `StatusApplied));
+    check bool "min stacks without a status" false
+      (validate_trigger (trigger ~min_stacks:3 `StatusApplied));
+    check bool "min stacks on another event" false
+      (validate_trigger (trigger ~min_stacks:3 `Hit));
+    check bool "min stacks of zero" false
+      (validate_trigger (trigger ~status ~min_stacks:0 `StatusApplied))
   ;;
 
   let test_validate_triggers () =

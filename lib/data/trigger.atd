@@ -58,6 +58,8 @@ type trigger = {
   ?min_amount: float option;
   (* only for StatusApplied: the status that was applied *)
   ?status: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Status">;
+  (* only with [status]: fire only when the status now has at least this many stacks on the afflicted (at least 1) *)
+  ?min_stacks: int option;
   (* only events raised by effects of chain depth up to this one (0: direct effects only) *)
   ?max_chain: int option;
   (* true: the effects raise no further triggers *)
