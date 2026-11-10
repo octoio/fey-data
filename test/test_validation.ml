@@ -1166,6 +1166,7 @@ module ReviveHitValidationTests = struct
     ?execute
     ?knockback
     ?pull
+    ?mana_on_hit
     scalers
     : Data.Effect_t.hit_effect
     =
@@ -1179,7 +1180,8 @@ module ReviveHitValidationTests = struct
       school;
       execute;
       knockback;
-      pull
+      pull;
+      mana_on_hit
     }
   ;;
 
@@ -1245,6 +1247,16 @@ module ReviveHitValidationTests = struct
       (validate_hit_effect (effect ~hit_type:`Threat ~target:`Enemy ~knockback:1. []));
     check bool "a knockback on a revive" false
       (validate_hit_effect (effect ~knockback:1. [ scaler 50. ]))
+  ;;
+
+  let test_mana_on_hit () =
+    let damage = effect ~hit_type:`Damage ~target:`Enemy in
+    check bool "mana on a damage hit" true
+      (validate_hit_effect (damage ~mana_on_hit:2. [ scaler 5. ]));
+    check bool "no mana" false
+      (validate_hit_effect (damage ~mana_on_hit:0. [ scaler 5. ]));
+    check bool "mana on a heal" false
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Ally ~mana_on_hit:1. [ scaler 5. ]))
   ;;
 
   let test_pull () =
@@ -1313,6 +1325,7 @@ let revive_hit_validation_tests =
   [ "validate_hit_effect", `Quick, ReviveHitValidationTests.test_validate_hit_effect;
     "execute and knockback", `Quick, ReviveHitValidationTests.test_execute_and_knockback;
     "pull", `Quick, ReviveHitValidationTests.test_pull;
+    "mana on hit", `Quick, ReviveHitValidationTests.test_mana_on_hit;
     "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus;
     "validate_skill", `Quick, ReviveHitValidationTests.test_validate_skill
   ]
@@ -1512,7 +1525,8 @@ module TriggerValidationTests = struct
       school = None;
       execute = None;
       knockback = None;
-      pull = None
+      pull = None;
+      mana_on_hit = None
     }
   ;;
 

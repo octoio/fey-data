@@ -173,7 +173,12 @@ let validate_execute_bonus (b : Effect_t.execute_bonus) = b.below > 0. && b.belo
    maximum health and mana it returns with. Only a Damage hit executes, knocks back or pulls, a knockback or a pull
    is a positive distance and a hit has not both *)
 let validate_hit_effect (effect : Effect_t.hit_effect) =
-  let damage_only = effect.execute = None && effect.knockback = None && effect.pull = None in
+  let damage_only =
+    effect.execute = None
+    && effect.knockback = None
+    && effect.pull = None
+    && effect.mana_on_hit = None
+  in
   match effect.hit_type with
   | `Revive ->
     effect.school = None
@@ -184,7 +189,10 @@ let validate_hit_effect (effect : Effect_t.hit_effect) =
      | _ -> false)
   | `Damage ->
     let positive = Option.fold ~none:true ~some:(fun d -> d > 0.) in
-    positive effect.knockback && positive effect.pull && (effect.knockback = None || effect.pull = None)
+    positive effect.knockback
+    && positive effect.pull
+    && positive effect.mana_on_hit
+    && (effect.knockback = None || effect.pull = None)
   | `Heal -> damage_only
   | `Threat | `Mana -> effect.school = None && damage_only
 ;;
