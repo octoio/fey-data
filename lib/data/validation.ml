@@ -250,7 +250,7 @@ let validate_trigger_effect (effect : Trigger_t.trigger_effect) =
 
 let trigger_key_regex = Re.Perl.compile_pat "^[a-zA-Z0-9_-]{3,64}$"
 
-(* Probability and cooldown in range, a key, at least one effect; the status filter only makes sense for StatusApplied *)
+(* Probability and cooldown in range, a key, at least one effect; the status filter only makes sense for StatusApplied, and min_stacks only with a status filter *)
 let validate_trigger (trigger : Trigger_t.trigger) =
   Re.execp trigger_key_regex trigger.key
   && float_between 0. 1. trigger.chance
@@ -259,6 +259,8 @@ let validate_trigger (trigger : Trigger_t.trigger) =
   && Option.fold ~none:true ~some:(int_min 0) trigger.max_chain
   && trigger.effects <> []
   && (Option.is_none trigger.status || trigger.on = `StatusApplied)
+  && Option.fold ~none:true ~some:(int_min 1) trigger.min_stacks
+  && (Option.is_none trigger.min_stacks || Option.is_some trigger.status)
 ;;
 
 (* A clamp keeps min <= max when both bounds are given *)

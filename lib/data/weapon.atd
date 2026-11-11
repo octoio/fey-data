@@ -5,6 +5,7 @@ type stat_affix <ocaml from="Affix"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 type model_anchor_set <ocaml from="Model"> = abstract
 type visual_layer <ocaml from="Visual"> = abstract
+type trigger <ocaml from="Trigger"> = abstract
 
 type weapon_category = 
     [ None
@@ -56,4 +57,6 @@ type weapon = {
     ?weapon_class: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `WeaponClass">;
     (* the look layer shown for it, see visual.atd; socket absent = the socket of [hand] (Sheathed: of [sheathe_location]) *)
     ?visual: visual_layer option;
+    (* effects that fire while it is the main-hand weapon, only on the hits of its own basic_attack (a hit of a spell or any other skill never raises them; see trigger.atd) *)
+    ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
 } <ocaml valid="Validation.validate_weapon_off_hands">

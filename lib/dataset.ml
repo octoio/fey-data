@@ -302,6 +302,7 @@ let extract_entity_reference_from_entity_definition
     @ extract_from_option_entity_reference entity.basic_attack
     @ extract_from_option_entity_reference entity.weapon_class
     @ extract_entity_reference_from_visual_layer entity.visual
+    @ extract_entity_reference_from_triggers entity.triggers
   | `Skill { entity; _ } ->
     extract_entity_reference_from_skill_entity entity
     @ extract_entity_reference_from_triggers entity.triggers
