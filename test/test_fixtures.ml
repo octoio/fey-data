@@ -139,6 +139,7 @@ let minimal_weapon =
   { Data.Weapon_t.metadata = minimal_metadata;
     category = `OneHandSword;
     hand = `MainHand;
+    off_hands = [ `Shield ];
     quality = `Common;
     sheathe_location = `Hips;
     icon_reference = minimal_entity_reference;

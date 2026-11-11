@@ -985,6 +985,18 @@ module PresentationValidationTests = struct
     check bool "twice" false (validate_weapon_class_categories [ `Bow; `Bow ])
   ;;
 
+  let test_weapon_off_hands () =
+    let weapon hand off_hands = { Test_fixtures.minimal_weapon with hand; off_hands } in
+    check bool "main hand, shield" true (validate_weapon_off_hands (weapon `MainHand [ `Shield ]));
+    check bool "main hand, both" true (validate_weapon_off_hands (weapon `MainHand [ `Shield; `Focus ]));
+    check bool "main hand, none" true (validate_weapon_off_hands (weapon `MainHand []));
+    check bool "off-hand weapon, none" true (validate_weapon_off_hands (weapon `OffHand []));
+    check bool "off-hand weapon lists one" false (validate_weapon_off_hands (weapon `OffHand [ `Shield ]));
+    check bool "two-hander lists one" false (validate_weapon_off_hands (weapon `TwoHand [ `Focus ]));
+    check bool "a sword is no off-hand" false (validate_weapon_off_hands (weapon `MainHand [ `OneHandSword ]));
+    check bool "twice" false (validate_weapon_off_hands (weapon `MainHand [ `Shield; `Shield ]))
+  ;;
+
   let test_animation_set () =
     check bool "empty" true (validate_animation_set []);
     check bool "attack" true (validate_animation_set [ entry `BasicAttack `AttackShoot ]);
@@ -1005,6 +1017,7 @@ let presentation_validation_tests =
     "validate_model_keys", `Quick, PresentationValidationTests.test_model_keys;
     "validate_stage_props", `Quick, PresentationValidationTests.test_stage_props;
     "validate_weapon_class_categories", `Quick, PresentationValidationTests.test_weapon_class_categories;
+    "validate_weapon_off_hands", `Quick, PresentationValidationTests.test_weapon_off_hands;
     "validate_animation_set", `Quick, PresentationValidationTests.test_animation_set
   ]
 ;;

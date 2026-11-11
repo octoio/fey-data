@@ -22,6 +22,7 @@ type weapon_category =
     | Wand
     | Shield
     | Spear
+    | Focus
     ]
 
 type weapon_equip_index =
@@ -40,6 +41,8 @@ type weapon = {
     category: weapon_category;
     (* which equip slot the weapon occupies; explicit data, not derived from the category *)
     hand: weapon_equip_index;
+    (* the off-hand categories this weapon allows next to it; empty = none. The one rule of what may be held with what (Shield or Focus), read when a weapon is equipped; an off-hand weapon names none *)
+    off_hands: weapon_category list;
     quality: quality_type;
     sheathe_location: weapon_sheathe_location;
     icon_reference : entity_reference <ocaml valid="Validation.entity_reference_of_type `Image">;
@@ -56,4 +59,4 @@ type weapon = {
     ?visual: visual_layer option;
     (* effects that fire while it is the main-hand weapon, only on the hits of its own basic_attack (a hit of a spell or any other skill never raises them; see trigger.atd) *)
     ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
-}
+} <ocaml valid="Validation.validate_weapon_off_hands">
