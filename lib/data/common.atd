@@ -77,6 +77,7 @@ type entity_type =
   | RoomPrefab
   | Achievement
   | Balance
+  | PersonalQuest
   ]
 
 type entity_reference =

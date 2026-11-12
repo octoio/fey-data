@@ -55,7 +55,8 @@ let entity_reference_of_entity_definition
   | `WeaponClass { id; owner; entity_type; key; version; _ }
   | `RoomPrefab { id; owner; entity_type; key; version; _ }
   | `Achievement { id; owner; entity_type; key; version; _ }
-  | `Balance { id; owner; entity_type; key; version; _ } ->
+  | `Balance { id; owner; entity_type; key; version; _ }
+  | `PersonalQuest { id; owner; entity_type; key; version; _ } ->
     { id; owner; entity_type; key; version }
 ;;
 
@@ -321,6 +322,7 @@ let extract_entity_reference_from_entity_definition
     @ entity.skills
     @ Option.value entity.starting_equipment ~default:[]
     @ Option.value entity.starting_weapons ~default:[]
+    @ extract_from_option_entity_reference entity.first_personal_quest
     @ List.concat_map
         (fun layer -> extract_entity_reference_from_visual_layer (Some layer))
         (Option.value entity.visual_layers ~default:[])
@@ -349,6 +351,7 @@ let extract_entity_reference_from_entity_definition
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
+  | `PersonalQuest { entity; _ } -> entity.reward.weapons
   | `QuestDifficulty _
   | `Balance _
   | `WeaponClass _

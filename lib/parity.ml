@@ -29,6 +29,7 @@ let test_entity_parity (entity_definition : Data.Entity_t.entity_definition_inte
   | `RoomPrefab _ -> `RoomPrefab
   | `Achievement _ -> `Achievement
   | `Balance _ -> `Balance
+  | `PersonalQuest _ -> `PersonalQuest
 ;;
 
 let test_stat_sheet_parity

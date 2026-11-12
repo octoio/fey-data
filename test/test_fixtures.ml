@@ -296,6 +296,30 @@ let minimal_balance_entity_definition : Data.Entity_t.entity_definition_internal
     }
 ;;
 
+(* Minimal valid personal quest *)
+let minimal_personal_quest =
+  { Data.Personal_quest_t.metadata = minimal_metadata;
+    goal = { kind = `DefeatMonsters; count = 4 };
+    reward =
+      { kind = `WeaponCache;
+        weapons = List.init 3 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `Weapon })
+      };
+    goal_text = "Defeat 4 monsters";
+    reward_text = "a weapon"
+  }
+;;
+
+let minimal_personal_quest_entity_definition : Data.Entity_t.entity_definition_internal =
+  `PersonalQuest
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `PersonalQuest;
+      key = "First";
+      version = 1;
+      id = "ownr:PersonalQuest:First:1";
+      entity = minimal_personal_quest
+    }
+;;
+
 (* Minimal valid room prefab *)
 let minimal_room_prefab =
   { Data.Room_prefab_t.metadata = minimal_metadata;
@@ -447,6 +471,7 @@ let minimal_character =
     lurks = None;
     starting_equipment = None;
     starting_weapons = None;
+    first_personal_quest = None;
     level = None;
     level_growth = None;
     rank = None;

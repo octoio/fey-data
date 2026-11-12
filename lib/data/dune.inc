@@ -335,6 +335,27 @@
   (run atdgen -v %{deps} -deriving-conv "eq,show")))
 
 (rule
+ (targets personal_quest_j.ml personal_quest_j.mli)
+ (deps personal_quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -j -j-strict-fields -j-std %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets personal_quest_t.ml personal_quest_t.mli)
+ (deps personal_quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -t %{deps} -deriving-conv "eq,show")))
+
+(rule
+ (targets personal_quest_v.ml personal_quest_v.mli)
+ (deps personal_quest.atd)
+ (mode fallback)
+ (action
+  (run atdgen -v %{deps} -deriving-conv "eq,show")))
+
+(rule
  (targets portrait_j.ml portrait_j.mli)
  (deps portrait.atd)
  (mode fallback)
@@ -743,6 +764,9 @@
   model_j
   model_t
   model_v
+  personal_quest_j
+  personal_quest_t
+  personal_quest_v
   portrait_j
   portrait_t
   portrait_v
