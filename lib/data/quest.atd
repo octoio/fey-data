@@ -368,4 +368,7 @@ type quest = {
   (* absent = false: clearing this quest ends the run as a win (the party goes home with the starting kit and
      the quest chain starts over). At least one board quest must end the run and be reachable from the start *)
   ?ends_run: bool option;
+  (* gold every player of the party gets when the quest is won, times the tier's gold multiplier; shown on the
+     board and in the quest panel (absent: none) *)
+  ?reward_gold: int option <ocaml valid="Validation.int_min_if_some 1">;
 } <ocaml valid="Validation.validate_quest">

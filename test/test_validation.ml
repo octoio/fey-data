@@ -538,7 +538,8 @@ module QuestNodeIdValidationTests = struct
       is_repeatable = false;
       achievement_on_complete = `None;
       required_achievements = [ `None ];
-      ends_run = None
+      ends_run = None;
+      reward_gold = None
     }
   ;;
 
@@ -1492,7 +1493,7 @@ module DropValidationTests = struct
   let test_guarantee () =
     check bool "equipment" true (validate_guarantee_kind `Equipment);
     check bool "book" true (validate_guarantee_kind `SkillBook);
-    check bool "gold" false (validate_guarantee_kind `Gold);
+    check bool "skill" false (validate_guarantee_kind `Skill);
     check bool "rare" true (validate_guarantee_quality `Rare);
     check bool "none" false (validate_guarantee_quality `None);
     check bool "tilt" true (float_min_if_some 0. (Some 0.5));

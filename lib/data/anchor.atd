@@ -79,8 +79,8 @@ type anchor_lamp_post = {
 }
 
 (* A shrine the party pays gold at (the interact key, instant, once per run of the stage): it refills the health and mana
-   of the living party within reach. [model] is the key of the pack prop that stands there. [price] is the gold at
-   level 1 for one use; the sim scales it like the gold drops of the party's level (docs/systems/loot.md) *)
+   of the living party within reach. [model] is the key of the pack prop that stands there. [price] is the gold each living
+   player of the party pays for one use: fixed, it never grows with the level or the tier (docs/systems/loot.md) *)
 type anchor_healing_shrine = {
   anchor_type <json name="type">: anchor_type;
   metadata: metadata;

@@ -661,19 +661,24 @@ let minimal_sound_bank_entity_definition : Data.Entity_t.entity_definition_inter
 ;;
 
 (* Minimal valid drop_table *)
-let minimal_drop_internal : Data.Drop_t.drop_internal =
-  `Gold { Data.Drop_t.drop_type = `Gold; weight = 1; amount = minimal_int_range }
+let minimal_gold_rule : Data.Drop_t.gold_rule =
+  { Data.Drop_t.chance = 0.5; amount = minimal_int_range }
 ;;
 
 let minimal_drop_table =
   { Data.Drop_t.metadata = minimal_metadata;
-    gold_drops = [ minimal_drop_internal ];
+    gold =
+      Some
+        { Data.Drop_t.per_level = None;
+          normal = minimal_gold_rule;
+          elite = minimal_gold_rule;
+          boss = minimal_gold_rule
+        };
     equipment_drops = [];
     weapon_drops = [];
     skill_book_drops = [];
     rarity_curve = None;
     guarantees = None;
-    gold_scaling = None;
     distribution = None;
     party_scaling = None
   }
@@ -898,7 +903,8 @@ let minimal_quest =
     is_repeatable = false;
     achievement_on_complete = `None;
     required_achievements = [ `None ];
-    ends_run = None
+    ends_run = None;
+    reward_gold = None
   }
 ;;
 

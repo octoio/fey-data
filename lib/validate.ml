@@ -333,7 +333,7 @@ let drop_table_error_messages definitions =
         | `Equipment e -> Some (`Equipment, e.equipment, e.gate)
         | `Weapon w -> Some (`Weapon, w.weapon, w.gate)
         | `SkillBook s -> Some (`SkillBook, s.skill_book, s.gate)
-        | `Gold _ | `Skill _ -> None)
+        | `Skill _ -> None)
       (t.equipment_drops @ t.weapon_drops @ t.skill_book_drops)
   in
   List.concat_map
@@ -469,7 +469,7 @@ let tier_error_messages definitions =
                 | `Equipment e -> e.gate
                 | `Weapon w -> w.gate
                 | `SkillBook s -> s.gate
-                | `Gold _ | `Skill _ -> None
+                | `Skill _ -> None
               in
               match gate with
               | Some { min_tier = Some m; _ } when m > highest ->

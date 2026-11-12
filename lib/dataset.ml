@@ -127,7 +127,6 @@ let extract_entity_reference_from_drop_table_entity
   =
   let extract_entity_from_drop acc (drop : Data.Drop_t.drop_internal) =
     match drop with
-    | `Gold _ -> acc
     | `Equipment { equipment; _ } -> equipment :: acc
     | `Weapon { weapon; _ } -> weapon :: acc
     | `Skill { skill; _ } -> skill :: acc
