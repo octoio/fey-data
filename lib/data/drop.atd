@@ -7,8 +7,7 @@ type monster_rank <ocaml from="Character"> = abstract
 type quality_type <ocaml from="Quality"> = abstract
 
 type drop_type = 
-  [ Gold
-  | Equipment
+  [ Equipment
   | Weapon
   | Skill
   | SkillBook
@@ -31,12 +30,6 @@ type drop_gate =
     ?min_rank: monster_rank option;
     ?lower_rank_weight: int option;
   } <ocaml valid="Validation.validate_drop_gate">
-
-type gold_drop =
-  { drop_type <json name="type">: drop_type;
-    weight: int <ocaml valid="Validation.int_min 1">;
-    amount: int_range <ocaml valid="Validation.int_range_between {min=1; max=1000}">;
-  }
 
 type equipment_drop =
   { drop_type <json name="type">: drop_type;
@@ -70,8 +63,7 @@ type skill_book_drop =
   }
 
 type drop_internal =
-  [ Gold of gold_drop
-  | Equipment of equipment_drop
+  [ Equipment of equipment_drop
   | Weapon of weapon_drop
   | Skill of skill_drop
   | SkillBook of skill_book_drop
@@ -110,19 +102,27 @@ type drop_guarantee =
     min_quality: quality_type <ocaml valid="Validation.validate_guarantee_quality">;
   }
 
-(* Gold grows with the killed monster: the rolled amount is multiplied by (1 + per_level * (level - 1)),
-   then by the factor of its rank (default 1), and by the quest tier's gold multiplier. Rounded to the
-   nearest whole number, at least 1. *)
-type gold_scaling =
+(* The gold one kill of a rank drops: with probability [chance] the kill drops a whole amount in [amount],
+   the same for every eligible player. *)
+type gold_rule =
+  { chance: float <ocaml valid="Validation.float_between 0. 1.">;
+    amount: int_range <ocaml valid="Validation.int_range_between {min=1; max=1000}">;
+  }
+
+(* The gold of a table, per rank of the killed monster. The rolled amount grows with the monster:
+   it is multiplied by (1 + per_level * (level - 1)) and by the quest tier's gold multiplier, rounded to the
+   nearest whole number, at least 1. Absent [per_level]: the amount does not grow with the level. *)
+type gold_drops =
   { ?per_level: float option <ocaml valid="Validation.float_min_if_some 0.">;
-    ?elite: float option <ocaml valid="Validation.float_min_if_some 0.">;
-    ?boss: float option <ocaml valid="Validation.float_min_if_some 0.">;
+    normal: gold_rule;
+    elite: gold_rule;
+    boss: gold_rule;
   }
 
 (* Who gets a drop. Poll (default): every eligible player rolls Need / Greed / Pass for each item.
    Everyone: each eligible player receives their own copy at once. Individual: one eligible player
-   (drawn per item, with a pity bonus for those who have won less) receives it at once. Gold is always
-   split. *)
+   (drawn per item, with a pity bonus for those who have won less) receives it at once. Gold is never split: with
+   Individual each eligible player rolls their own, otherwise one roll pays every eligible player in full. *)
 type loot_distribution =
   [ Poll
   | Everyone
@@ -131,15 +131,14 @@ type loot_distribution =
 
 type drop_table =
   { metadata: metadata;
-    gold_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Gold">;
+    (* Absent: the table drops no gold *)
+    ?gold: gold_drops option;
     equipment_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Equipment">;
     weapon_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `Weapon">;
     skill_book_drops: drop_internal list <ocaml valid="Validation.drop_list_of_type 0 `SkillBook">;
       (* Absent: items are picked by entry weight alone *)
     ?rarity_curve: rarity_curve option;
     ?guarantees: drop_guarantee list option;
-    (* Absent: gold amounts are not scaled *)
-    ?gold_scaling: gold_scaling option;
     (* Absent: Poll *)
     ?distribution: loot_distribution option;
     (* Each eligible player beyond the first multiplies the chance of every item category by

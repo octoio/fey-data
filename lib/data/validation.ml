@@ -406,7 +406,6 @@ let validate_entity_definition_internal
 
 let drop_of_type (expected : Drop_t.drop_type) (drop : Drop_t.drop_internal) =
   match (drop, expected) with
-  | `Gold _, `Gold -> true
   | `Equipment _, `Equipment -> true
   | `Weapon _, `Weapon -> true
   | `Skill _, `Skill -> true
@@ -474,7 +473,7 @@ let validate_rarity_weights (w : Drop_t.rarity_weights) =
 let validate_guarantee_kind (kind : Drop_t.drop_type) =
   match kind with
   | `Equipment | `Weapon | `SkillBook -> true
-  | `Gold | `Skill -> false
+  | `Skill -> false
 ;;
 
 (* Quality None marks a bare item: it is never a rarity to demand *)
