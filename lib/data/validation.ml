@@ -387,7 +387,8 @@ let validate_entity_definition_internal
   | `WeaponClass { owner; id; entity_type; key; version; _ }
   | `RoomPrefab { owner; id; entity_type; key; version; _ }
   | `Achievement { owner; id; entity_type; key; version; _ }
-  | `Balance { owner; id; entity_type; key; version; _ } ->
+  | `Balance { owner; id; entity_type; key; version; _ }
+  | `PersonalQuest { owner; id; entity_type; key; version; _ } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id
   | `QuestDifficulty { owner; id; entity_type; key; version; entity } ->
     validate_entity_definition ~owner ~entity_type ~key ~version ~id

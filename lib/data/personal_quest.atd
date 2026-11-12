@@ -1,0 +1,36 @@
+type metadata <ocaml from="Common"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
+
+(* What a personal quest asks of one player. DefeatMonsters counts the monsters the player is credited with (the
+   kill XP rule); the other goals of fey-rs #356 (damage, healing, elites, levels) join this enum with the 3-card
+   offer. *)
+type personal_goal_kind =
+  [ DefeatMonsters
+  ]
+
+type personal_goal = {
+  kind: personal_goal_kind;
+  count: int <ocaml valid="Validation.int_min 1">;
+}
+
+(* What completing it puts in the player's bag. WeaponCache: an item that, used, offers one of three weapons of three
+   different weapon classes drawn from [weapons]. *)
+type personal_reward_kind =
+  [ WeaponCache
+  ]
+
+type personal_reward = {
+  kind: personal_reward_kind;
+  weapons: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 3 `Weapon">;
+}
+
+(* A personal quest (fey-rs #356): one goal for one player, always at most one open at a time, with its reward
+   named up front. [goal_text] and [reward_text] are the player-facing words ("Defeat 4 monsters with your fists",
+   "your first weapon"); the client adds the count and the frame. *)
+type personal_quest = {
+  metadata: metadata;
+  goal: personal_goal;
+  reward: personal_reward;
+  goal_text: string <ocaml valid="Validation.plain_message">;
+  reward_text: string <ocaml valid="Validation.plain_message">;
+}

@@ -26,6 +26,7 @@ type weapon_class <ocaml from="Weapon_class"> = abstract
 type room_prefab <ocaml from="Room_prefab"> = abstract
 type achievement_def <ocaml from="Achievement"> = abstract
 type balance <ocaml from="Balance"> = abstract
+type personal_quest <ocaml from="Personal_quest"> = abstract
 
 type entity_index =
   { index: int <ocaml valid="Validation.int_min 0">;
@@ -313,6 +314,16 @@ type balance_entity_definition =
     entity: balance;
   }
 
+type personal_quest_entity_definition =
+  { owner: string <ocaml valid="Validation.string_length_between 3 64">;
+    entity_type <json name="type">: entity_type;
+    key: string <ocaml valid="Validation.string_length_between 3 64">;
+    version: int <ocaml valid="Validation.int_min 0">;
+    id: string;
+
+    entity: personal_quest;
+  }
+
 type entity_definition_internal =
   [ Weapon of weapon_entity_definition
   | Skill of skill_entity_definition
@@ -340,4 +351,5 @@ type entity_definition_internal =
   | RoomPrefab of room_prefab_entity_definition
   | Achievement of achievement_entity_definition
   | Balance of balance_entity_definition
+  | PersonalQuest of personal_quest_entity_definition
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field"> <ocaml valid="Validation.validate_entity_definition_internal">

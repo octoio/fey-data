@@ -431,6 +431,26 @@ let test_character_starting_kit_is_a_reference () =
   check int "a starting kit adds its items to the references" (n bare + 3) (n kit)
 ;;
 
+let test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest () =
+  let n d = List.length (Dataset.extract_entity_reference_from_entity_definition d) in
+  check int "a personal quest names the weapons of its reward" 3 (n minimal_personal_quest_entity_definition);
+  let with_quest : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Character;
+        key = "Quester";
+        version = 1;
+        id = "ownr:Character:Quester:1";
+        entity =
+          { minimal_character with
+            Data.Character_t.first_personal_quest =
+              Some { minimal_entity_reference with Data.Common_t.entity_type = `PersonalQuest }
+          }
+      }
+  in
+  check int "a character names its first personal quest" (n minimal_character_entity_definition + 1) (n with_quest)
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1216,6 +1236,7 @@ let test_extract_entity_reference_from_all_entity_types () =
       minimal_room_prefab_entity_definition;
       minimal_achievement_entity_definition;
       minimal_balance_entity_definition;
+      minimal_personal_quest_entity_definition;
     ]
   in
   List.iter
@@ -1453,6 +1474,10 @@ let dataset_tests =
       "Character starting kit is a reference"
       `Quick
       test_character_starting_kit_is_a_reference;
+    test_case
+      "Personal quest names its weapon pool"
+      `Quick
+      test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick
