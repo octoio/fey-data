@@ -1490,6 +1490,13 @@ module DropValidationTests = struct
     check bool "all zero" false (validate_rarity_weights (w 0 0 0 0 0))
   ;;
 
+  let test_merchant_kinds () =
+    let k equipment weapon : Data.Anchor_t.merchant_kind_weights = { equipment; weapon } in
+    check bool "one kind" true (validate_merchant_kind_weights (k 0 1));
+    check bool "both kinds" true (validate_merchant_kind_weights (k 1 1));
+    check bool "no kind" false (validate_merchant_kind_weights (k 0 0))
+  ;;
+
   let test_guarantee () =
     check bool "equipment" true (validate_guarantee_kind `Equipment);
     check bool "book" true (validate_guarantee_kind `SkillBook);
@@ -1508,7 +1515,8 @@ module DropValidationTests = struct
 end
 
 let drop_validation_tests =
-  [ ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
+  [ ("validate_merchant_kind_weights", `Quick, DropValidationTests.test_merchant_kinds);
+    ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
     ("validate_rarity_weights", `Quick, DropValidationTests.test_weights);
     ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee)
   ]
