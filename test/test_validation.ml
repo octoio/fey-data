@@ -1520,16 +1520,18 @@ module DropValidationTests = struct
 
   let test_personal_reward () =
     let ok = validate_personal_reward in
-    check bool "a cache with weapons" true (ok (reward ~weapons:[ weapon_ref ] `WeaponCache));
+    let pool = [ weapon_ref; weapon_ref; weapon_ref ] in
+    check bool "a cache with three weapons" true (ok (reward ~weapons:pool `WeaponCache));
     check bool "a cache without a pool" false (ok (reward `WeaponCache));
     check bool "a cache with an empty pool" false (ok (reward ~weapons:[] `WeaponCache));
+    check bool "a cache with two weapons" false (ok (reward ~weapons:[ weapon_ref; weapon_ref ] `WeaponCache));
     check bool "gold with an amount" true (ok (reward ~gold:20 `Gold));
     check bool "gold without an amount" false (ok (reward `Gold));
     check bool "a piece names nothing" true (ok (reward `Piece));
     check bool "a book names nothing" true (ok (reward `SkillBook));
     check bool "a piece with gold" false (ok (reward ~gold:5 `Piece));
     check bool "a book with weapons" false (ok (reward ~weapons:[ weapon_ref ] `SkillBook));
-    check bool "a cache with gold" false (ok (reward ~weapons:[ weapon_ref ] ~gold:5 `WeaponCache))
+    check bool "a cache with gold" false (ok (reward ~weapons:pool ~gold:5 `WeaponCache))
   ;;
 
   let test_personal_numbers () =

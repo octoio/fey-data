@@ -423,10 +423,10 @@ let drop_list_of_type
   list_min_length min_length drops && List.for_all (drop_of_type expected) drops
 ;;
 
-(* A personal quest reward (personal_quest.atd): a WeaponCache names a non-empty pool of weapons and no gold, Gold
-   names gold above 0 and no weapons, Piece and SkillBook name neither *)
+(* A personal quest reward (personal_quest.atd): a WeaponCache names a pool of at least 3 weapons (the cache offers
+   three) and no gold, Gold names gold above 0 and no weapons, Piece and SkillBook name neither *)
 let validate_personal_reward (r : Personal_quest_t.personal_reward) =
-  let has_weapons = Option.fold ~none:false ~some:(fun l -> l <> []) r.weapons in
+  let has_weapons = Option.fold ~none:false ~some:(list_min_length 3) r.weapons in
   match r.kind with
   | `WeaponCache -> has_weapons && r.gold = None
   | `Gold -> r.gold <> None && r.weapons = None
