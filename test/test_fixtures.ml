@@ -299,13 +299,17 @@ let minimal_balance_entity_definition : Data.Entity_t.entity_definition_internal
 (* Minimal valid personal quest *)
 let minimal_personal_quest =
   { Data.Personal_quest_t.metadata = minimal_metadata;
-    goal = { kind = `DefeatMonsters; count = 4 };
-    reward =
-      { kind = `WeaponCache;
-        weapons = List.init 3 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `Weapon })
-      };
-    goal_text = "Defeat 4 monsters";
-    reward_text = "a weapon"
+    goal = { kind = `DefeatMonsters; count = 4; growth = None };
+    rewards =
+      [ { kind = `WeaponCache;
+          weight = None;
+          weapons =
+            Some (List.init 3 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `Weapon }));
+          gold = None;
+          text = Some "a weapon"
+        }
+      ];
+    goal_text = "Defeat {count} monsters"
   }
 ;;
 
@@ -472,6 +476,7 @@ let minimal_character =
     starting_equipment = None;
     starting_weapons = None;
     first_personal_quest = None;
+    personal_quests = None;
     level = None;
     level_growth = None;
     rank = None;

@@ -1,36 +1,54 @@
 type metadata <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 
-(* What a personal quest asks of one player. DefeatMonsters counts the monsters the player is credited with (the
-   kill XP rule); the other goals of fey-rs #356 (damage, healing, elites, levels) join this enum with the 3-card
-   offer. *)
+(* What a personal quest asks of one player (fey-rs #356). All of it is counted for the player who holds the quest
+   and is credited (the kill XP rule, [credit_holder]).
+   DefeatMonsters: a credited kill of a hostile. DefeatElites: a credited kill of a hostile of rank Elite or Boss.
+   DealDamage: the health it takes off enemies. HealAllies: the health it gives back to another party member.
+   GainLevels: the levels it gains while holding the quest. *)
 type personal_goal_kind =
   [ DefeatMonsters
+  | DefeatElites
+  | DealDamage
+  | HealAllies
+  | GainLevels
   ]
 
+(* The size of the goal is [count * (1 + growth * n)], rounded, where n is the number of chosen quests the player
+   has finished this run; [growth] absent = 0 *)
 type personal_goal = {
   kind: personal_goal_kind;
   count: int <ocaml valid="Validation.int_min 1">;
+  ?growth: float option <ocaml valid="Validation.float_min_if_some 0.">;
 }
 
-(* What completing it puts in the player's bag. WeaponCache: an item that, used, offers one of three weapons of three
-   different weapon classes drawn from [weapons]. *)
+(* What completing it gives. WeaponCache: an item that, used, offers one of three weapons of three different weapon
+   classes drawn from [weapons]. Piece: a piece for a slot the card names, rolled like a merchant commission.
+   SkillBook: the book a level gives. Gold: [gold] gold to the player's own purse. *)
 type personal_reward_kind =
   [ WeaponCache
+  | Piece
+  | SkillBook
+  | Gold
   ]
 
+(* [weight] (absent = 1) is how often the draw of a card picks this reward among the quest's rewards. [weapons] is
+   for WeaponCache only (not empty) and [gold] for Gold only (above 0). [text], when present, is what the card and
+   the line say of the reward ("your first weapon"); absent, the client words it from the kind. *)
 type personal_reward = {
   kind: personal_reward_kind;
-  weapons: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 3 `Weapon">;
-}
+  ?weight: int option <ocaml valid="Validation.int_min_if_some 1">;
+  ?weapons: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Weapon">;
+  ?gold: int option <ocaml valid="Validation.int_min_if_some 1">;
+  ?text: string option <ocaml valid="Validation.plain_message_if_some">;
+} <ocaml valid="Validation.validate_personal_reward">
 
-(* A personal quest (fey-rs #356): one goal for one player, always at most one open at a time, with its reward
-   named up front. [goal_text] and [reward_text] are the player-facing words ("Defeat 4 monsters with your fists",
-   "your first weapon"); the client adds the count and the frame. *)
+(* A personal quest (fey-rs #356): one goal for one player, always at most one open at a time, with its rewards
+   named up front. [goal_text] is the player-facing words ("Defeat {count} monsters"); the sim fills {count} with
+   the size. *)
 type personal_quest = {
   metadata: metadata;
   goal: personal_goal;
-  reward: personal_reward;
+  rewards: personal_reward list <ocaml valid="Validation.list_min_length 1">;
   goal_text: string <ocaml valid="Validation.plain_message">;
-  reward_text: string <ocaml valid="Validation.plain_message">;
 }

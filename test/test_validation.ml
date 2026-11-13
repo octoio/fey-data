@@ -1512,6 +1512,38 @@ module DropValidationTests = struct
     check bool "no kind" false (validate_merchant_kind_weights (k 0 0))
   ;;
 
+  let reward ?weapons ?gold kind : Data.Personal_quest_t.personal_reward =
+    { kind; weight = None; weapons; gold; text = None }
+  ;;
+
+  let weapon_ref = { Test_fixtures.minimal_entity_reference with Data.Common_t.entity_type = `Weapon }
+
+  let test_personal_reward () =
+    let ok = validate_personal_reward in
+    check bool "a cache with weapons" true (ok (reward ~weapons:[ weapon_ref ] `WeaponCache));
+    check bool "a cache without a pool" false (ok (reward `WeaponCache));
+    check bool "a cache with an empty pool" false (ok (reward ~weapons:[] `WeaponCache));
+    check bool "gold with an amount" true (ok (reward ~gold:20 `Gold));
+    check bool "gold without an amount" false (ok (reward `Gold));
+    check bool "a piece names nothing" true (ok (reward `Piece));
+    check bool "a book names nothing" true (ok (reward `SkillBook));
+    check bool "a piece with gold" false (ok (reward ~gold:5 `Piece));
+    check bool "a book with weapons" false (ok (reward ~weapons:[ weapon_ref ] `SkillBook));
+    check bool "a cache with gold" false (ok (reward ~weapons:[ weapon_ref ] ~gold:5 `WeaponCache))
+  ;;
+
+  let test_personal_numbers () =
+    check bool "growth absent" true (float_min_if_some 0. None);
+    check bool "growth 0.5" true (float_min_if_some 0. (Some 0.5));
+    check bool "growth negative" false (float_min_if_some 0. (Some (-0.1)));
+    check bool "weight absent" true (int_min_if_some 1 None);
+    check bool "weight 0" false (int_min_if_some 1 (Some 0));
+    check bool "text absent" true (plain_message_if_some None);
+    check bool "text empty" false (plain_message_if_some (Some ""));
+    check bool "text with a tag" false (plain_message_if_some (Some "<b>x</b>"));
+    check bool "text plain" true (plain_message_if_some (Some "your first weapon"))
+  ;;
+
   let test_guarantee () =
     check bool "equipment" true (validate_guarantee_kind `Equipment);
     check bool "book" true (validate_guarantee_kind `SkillBook);
@@ -1533,7 +1565,9 @@ let drop_validation_tests =
   [ ("validate_merchant_kind_weights", `Quick, DropValidationTests.test_merchant_kinds);
     ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
     ("validate_rarity_weights", `Quick, DropValidationTests.test_weights);
-    ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee)
+    ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee);
+    ("validate_personal_reward", `Quick, DropValidationTests.test_personal_reward);
+    ("personal quest numbers", `Quick, DropValidationTests.test_personal_numbers)
   ]
 ;;
 

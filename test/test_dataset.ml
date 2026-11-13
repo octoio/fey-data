@@ -462,7 +462,21 @@ let test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest ()
           }
       }
   in
-  check int "a character names its first personal quest" (n minimal_character_entity_definition + 1) (n with_quest)
+  check int "a character names its first personal quest" (n minimal_character_entity_definition + 1) (n with_quest);
+  let pool =
+    List.init 2 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `PersonalQuest })
+  in
+  let with_pool : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Character;
+        key = "Pooler";
+        version = 1;
+        id = "ownr:Character:Pooler:1";
+        entity = { minimal_character with Data.Character_t.personal_quests = Some pool }
+      }
+  in
+  check int "a character names the pool of its next personal quests" (n minimal_character_entity_definition + 2) (n with_pool)
 ;;
 
 let test_timer_restart_and_new_fields_round_trip_through_json () =

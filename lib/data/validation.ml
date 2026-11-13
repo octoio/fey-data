@@ -26,6 +26,8 @@ let plain_text s = not (string_has_tag s)
 (* The text of a quest Message: shown as written, so non-empty and without tags *)
 let plain_message s = string_min_length 1 s && plain_text s
 
+let plain_message_if_some (s : string option) = Option.fold ~none:true ~some:plain_message s
+
 let vector2_between min max { x; y } =
   float_between min.x max.x x && float_between min.y max.y y
 ;;
@@ -419,6 +421,16 @@ let drop_list_of_type
   (drops : Drop_t.drop_internal list)
   =
   list_min_length min_length drops && List.for_all (drop_of_type expected) drops
+;;
+
+(* A personal quest reward (personal_quest.atd): a WeaponCache names a non-empty pool of weapons and no gold, Gold
+   names gold above 0 and no weapons, Piece and SkillBook name neither *)
+let validate_personal_reward (r : Personal_quest_t.personal_reward) =
+  let has_weapons = Option.fold ~none:false ~some:(fun l -> l <> []) r.weapons in
+  match r.kind with
+  | `WeaponCache -> has_weapons && r.gold = None
+  | `Gold -> r.gold <> None && r.weapons = None
+  | `Piece | `SkillBook -> r.gold = None && r.weapons = None
 ;;
 
 let float_min_if_some min (x : float option) =
