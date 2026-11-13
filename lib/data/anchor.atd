@@ -4,6 +4,7 @@ type color <ocaml from="Common"> = abstract
 type character_team <ocaml from="Effect"> = abstract
 type anchor_binding <ocaml from="Generator"> = abstract
 type rarity_weights <ocaml from="Drop"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
 
 type anchor_type =
   [ Zone
@@ -135,13 +136,16 @@ type merchant_showcase = {
 (* The village merchant: the party buys, commissions and sells gear here with the interact key (a panel), in the village
    while a run is in progress. [model] is the key of the pack prop that stands there. She sells a piece for its price in
    [prices], pays [sell_fraction] of that price for a piece of the bag (rounded down, at least 1), and makes a random
-   piece of a slot the buyer names for [commission_price] (docs/systems/loot.md "Merchant") *)
+   piece of a slot the buyer names for [commission_price] (docs/systems/loot.md "Merchant"). While a run is in
+   progress she stands in front of her cart as the hero model wearing [outfit] (equipment references, no weapon):
+   a hooded or cloaked look is picked from the equipment that exists *)
 type anchor_merchant = {
   anchor_type <json name="type">: anchor_type;
   metadata: metadata;
   transform: transform;
   ?binding: anchor_binding option;
   model: string <ocaml valid="Validation.string_min_length 1">;
+  outfit: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Equipment">;
   prices: rarity_prices;
   sell_fraction: float <ocaml valid="Validation.float_between 0. 1.">;
   commission_price: int <ocaml valid="Validation.int_min 1">;

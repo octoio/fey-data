@@ -410,6 +410,20 @@ let test_nest_and_escalation_name_their_references () =
     (refs (portal (Some (reference `Character))))
 ;;
 
+let test_merchant_outfit_is_a_reference () =
+  let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
+  let merchant outfit =
+    anchor_entity_definition (`Merchant (minimal_anchor_merchant outfit))
+  in
+  let n d = List.length (Dataset.extract_entity_reference_from_entity_definition d) in
+  check int "a bare merchant names nothing" 0 (n (merchant []));
+  check
+    int
+    "an outfit names each piece, so a missing piece fails the existence check"
+    2
+    (n (merchant [ reference `Equipment; reference `Equipment ]))
+;;
+
 let test_character_starting_kit_is_a_reference () =
   let reference entity_type = { minimal_entity_reference with Data.Common_t.entity_type } in
   let kit : Data.Entity_t.entity_definition_internal =
@@ -1470,6 +1484,7 @@ let dataset_tests =
       test_channel_names_its_anchors_and_spawns;
     test_case "A channel needs Zone anchors" `Quick test_channel_needs_zone_anchors;
     test_case "A channel round trips through JSON" `Quick test_channel_round_trips_through_json;
+    test_case "Merchant outfit is a reference" `Quick test_merchant_outfit_is_a_reference;
     test_case
       "Character starting kit is a reference"
       `Quick
