@@ -230,6 +230,15 @@ let validate_break_burst (x : float option) =
   Option.fold ~none:true ~some:(fun f -> Float.is_finite f && f > 0. && f <= 1.) x
 ;;
 
+(* A status kept through death is a pure stat change (status.atd) *)
+let validate_keeps_through_death (s : Status_t.status) =
+  s.keeps_through_death <> Some true
+  ||
+  match s.mechanic with
+  | `StatChange _ -> true
+  | _ -> false
+;;
+
 (* Per-level growth of a skill's power: never negative (a level never weakens) *)
 let validate_growth (x : float option) = Option.fold ~none:true ~some:(float_min 0.) x
 let validate_cooldown_per_level (x : float option) =

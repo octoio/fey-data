@@ -34,6 +34,7 @@ let create_test_stat_sheet () =
     ~experience_modifier:1.2
     ~gold_modifier:1.1
     ~life_steal:0.08
+    ~health_modifier:1.0
     ()
 ;;
 
@@ -123,6 +124,8 @@ let test_stat_sheet_parity_comprehensive () =
       ("gold_modifier", `GoldModifier, 1);
       (* float converted to int *)
       ("life_steal", `LifeSteal, 0);
+      (* float converted to int *)
+      ("health_modifier", `HealthModifier, 1);
       (* float converted to int *)
       ("health_globe_chance", `HealthGlobeChance, 0) (* absent on the sheet: 0 *)
     ]

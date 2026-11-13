@@ -27,6 +27,7 @@ type stat_type =
     | GoldModifier
     | LifeSteal
     | HealthGlobeChance
+    | HealthModifier
     ]
 
 (* The bounds of a final stat, applied after the conversions; an absent bound is open *)
@@ -77,6 +78,8 @@ type stat_sheet = {
     experience_modifier: float <ocaml valid="Validation.float_min 0.">;
     gold_modifier: float <ocaml valid="Validation.float_min 0.">;
     life_steal: float <ocaml valid="Validation.float_min 0.">;
+    (* scales the final maximum health (1.0 = unchanged); a status lowers it by its share, e.g. -0.1 = 10% less *)
+    health_modifier: float <ocaml valid="Validation.float_min 0.">;
     (* the chance a kill by the character drops a health globe; absent = 0 (only an equipment affix gives it) *)
     ?health_globe_chance: float option <ocaml valid="Validation.float_min_if_some 0.">;
 }

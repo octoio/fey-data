@@ -119,4 +119,8 @@ type status = {
     ?triggers: trigger list option <ocaml valid="Validation.validate_triggers">;
   (* the effect on the afflicted character while the status lasts (see vfx.atd) *)
   ?vfx: status_vfx option;
-}
+  (* true: the status stays on a character that dies and is revived (it still ends with its room or dungeon scope and
+     its duration). Only a StatChange status: a hit over time, a control or a shield on the dead makes no sense. Absent
+     or false: death clears it. *)
+  ?keeps_through_death: bool option;
+} <ocaml valid="Validation.validate_keeps_through_death">

@@ -58,6 +58,7 @@ let test_stat_sheet_parity
      experience_modifier;
      gold_modifier;
      life_steal;
+     health_modifier;
      health_globe_chance
    } :
     Data.Stat_t.stat_sheet)
@@ -88,6 +89,7 @@ let test_stat_sheet_parity
   | `ExperienceModifier -> Int.of_float experience_modifier
   | `GoldModifier -> Int.of_float gold_modifier
   | `LifeSteal -> Int.of_float life_steal
+  | `HealthModifier -> Int.of_float health_modifier
   | `HealthGlobeChance -> Int.of_float (Option.value health_globe_chance ~default:0.)
 ;;
 

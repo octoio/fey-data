@@ -1426,11 +1426,23 @@ module ConeAndBurstValidationTests = struct
     check bool "over the whole health" false (validate_break_burst (Some 1.5));
     check bool "not a number" false (validate_break_burst (Some Float.nan))
   ;;
+
+  let test_keeps_through_death () =
+    let status keeps mechanic = { Test_fixtures.minimal_status with keeps_through_death = keeps; mechanic } in
+    let stat_change = Test_fixtures.minimal_status.mechanic in
+    let body : Data.Status_t.status_effect_mechanic_shield = { mechanic_type = `Shield } in
+    let shield : Data.Status_t.status_effect_mechanic_internal = `Shield body in
+    check bool "a stat change kept" true (validate_keeps_through_death (status (Some true) stat_change));
+    check bool "absent" true (validate_keeps_through_death (status None shield));
+    check bool "false on a shield" true (validate_keeps_through_death (status (Some false) shield));
+    check bool "a shield kept" false (validate_keeps_through_death (status (Some true) shield))
+  ;;
 end
 
 let cone_and_burst_validation_tests =
   [ "cone", `Quick, ConeAndBurstValidationTests.test_cone;
-    "break_burst", `Quick, ConeAndBurstValidationTests.test_break_burst
+    "break_burst", `Quick, ConeAndBurstValidationTests.test_break_burst;
+    "keeps_through_death", `Quick, ConeAndBurstValidationTests.test_keeps_through_death
   ]
 ;;
 
