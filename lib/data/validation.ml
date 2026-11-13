@@ -469,6 +469,9 @@ let validate_rarity_weights (w : Drop_t.rarity_weights) =
   w.common + w.uncommon + w.rare + w.epic + w.legendary > 0
 ;;
 
+(* The merchant rolls the kind of each piece: at least one kind needs a weight *)
+let validate_merchant_kind_weights (w : Anchor_t.merchant_kind_weights) = w.equipment + w.weapon > 0
+
 (* A guarantee is about items *)
 let validate_guarantee_kind (kind : Drop_t.drop_type) =
   match kind with

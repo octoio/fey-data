@@ -351,6 +351,7 @@ let extract_entity_reference_from_entity_definition
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
   | `PersonalQuest { entity; _ } -> entity.reward.weapons
+  | `Anchor { entity = `Merchant merchant; _ } -> merchant.outfit
   | `QuestDifficulty _
   | `Balance _
   | `WeaponClass _

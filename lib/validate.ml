@@ -176,6 +176,7 @@ let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
   | `LampPost a -> a.binding
   | `HealingShrine a -> a.binding
   | `Lever a -> a.binding
+  | `Merchant a -> a.binding
 ;;
 
 (* A KillSpecific objective is only completable if enough characters of the

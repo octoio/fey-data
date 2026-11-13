@@ -1018,6 +1018,36 @@ let minimal_anchor_zone =
 
 let minimal_anchor_internal : Data.Anchor_t.anchor_internal = `Zone minimal_anchor_zone
 
+(* A merchant whose outfit is [outfit] *)
+let minimal_anchor_merchant outfit : Data.Anchor_t.anchor_merchant =
+  let weights : Data.Drop_t.rarity_weights =
+    { common = 1; uncommon = 0; rare = 0; epic = 0; legendary = 0 }
+  in
+  { anchor_type = `Merchant;
+    metadata = minimal_metadata;
+    transform = minimal_transform;
+    binding = None;
+    model = "Cart";
+    outfit;
+    prices = { common = 1; uncommon = 1; rare = 1; epic = 1; legendary = 1 };
+    sell_fraction = 0.2;
+    commission_price = 1;
+    stock = { size = 1; rarity = weights; kinds = { equipment = 1; weapon = 1 } };
+    showcase = { rarity = weights }
+  }
+;;
+
+let anchor_entity_definition anchor : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key = "MinimalAnchor";
+      version = 1;
+      id = "ownr:Anchor:MinimalAnchor:1";
+      entity = anchor
+    }
+;;
+
 let minimal_anchor_entity_definition : Data.Entity_t.entity_definition_internal =
   `Anchor
     { Data.Entity_t.owner = "ownr";

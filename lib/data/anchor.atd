@@ -3,6 +3,8 @@ type transform <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
 type character_team <ocaml from="Effect"> = abstract
 type anchor_binding <ocaml from="Generator"> = abstract
+type rarity_weights <ocaml from="Drop"> = abstract
+type entity_reference <ocaml from="Common"> = abstract
 
 type anchor_type =
   [ Zone
@@ -12,6 +14,7 @@ type anchor_type =
   | LampPost
   | HealingShrine
   | Lever
+  | Merchant
   ]
 
 type zone_detection_type =
@@ -100,6 +103,56 @@ type anchor_lever = {
   model: string <ocaml valid="Validation.string_min_length 1">;
 }
 
+(* The gold of one item, by its rarity (an item of quality None counts as Common). Fixed: it never grows with the level
+   or the tier (docs/systems/loot.md "Merchant") *)
+type rarity_prices = {
+  common: int <ocaml valid="Validation.int_min 1">;
+  uncommon: int <ocaml valid="Validation.int_min 1">;
+  rare: int <ocaml valid="Validation.int_min 1">;
+  epic: int <ocaml valid="Validation.int_min 1">;
+  legendary: int <ocaml valid="Validation.int_min 1">;
+}
+
+(* Relative weights of the kinds of piece the merchant stocks (weights, not percentages; the sum must be positive) *)
+type merchant_kind_weights = {
+  equipment: int <ocaml valid="Validation.int_min 0">;
+  weapon: int <ocaml valid="Validation.int_min 0">;
+} <ocaml valid="Validation.validate_merchant_kind_weights">
+
+(* The shelf of [size] pieces, rolled when a run starts and again each time the party enters the village from a quest. A
+   piece is rolled by [rarity] and [kinds]; a rarity with no unlocked candidate falls to the next lower one. The merchant
+   never stocks a Legendary or a skill stone, whatever the weights say *)
+type merchant_stock = {
+  size: int <ocaml valid="Validation.int_min 1">;
+  rarity: rarity_weights;
+  kinds: merchant_kind_weights;
+}
+
+(* The one piece she keeps aside for the whole run, rolled when the run starts and kept until bought *)
+type merchant_showcase = {
+  rarity: rarity_weights;
+}
+
+(* The village merchant: the party buys, commissions and sells gear here with the interact key (a panel), in the village
+   while a run is in progress. [model] is the key of the pack prop that stands there. She sells a piece for its price in
+   [prices], pays [sell_fraction] of that price for a piece of the bag (rounded down, at least 1), and makes a random
+   piece of a slot the buyer names for [commission_price] (docs/systems/loot.md "Merchant"). While a run is in
+   progress she stands in front of her cart as the hero model wearing [outfit] (equipment references, no weapon):
+   a hooded or cloaked look is picked from the equipment that exists *)
+type anchor_merchant = {
+  anchor_type <json name="type">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+  ?binding: anchor_binding option;
+  model: string <ocaml valid="Validation.string_min_length 1">;
+  outfit: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Equipment">;
+  prices: rarity_prices;
+  sell_fraction: float <ocaml valid="Validation.float_between 0. 1.">;
+  commission_price: int <ocaml valid="Validation.int_min 1">;
+  stock: merchant_stock;
+  showcase: merchant_showcase;
+}
+
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
@@ -108,4 +161,5 @@ type anchor_internal =
   | LampPost of anchor_lamp_post
   | HealingShrine of anchor_healing_shrine
   | Lever of anchor_lever
+  | Merchant of anchor_merchant
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

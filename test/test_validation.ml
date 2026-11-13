@@ -1453,6 +1453,21 @@ let nest_validation_tests =
   [ "generated nest", `Quick, NestValidationTests.test_generated_nest ]
 ;;
 
+module MerchantOutfitTests = struct
+  let merchant outfit = Test_fixtures.minimal_anchor_merchant outfit
+  let valid outfit = Data.Anchor_v.validate_anchor_merchant [] (merchant outfit) = None
+  let piece entity_type = make_entity_reference ~entity_type ~key:"piece" ()
+
+  let test_outfit () =
+    check bool "no outfit" true (valid []);
+    check bool "equipment" true (valid [ piece `Equipment; piece `Equipment ]);
+    check bool "a weapon is not worn by the figure" false (valid [ piece `Weapon ]);
+    check bool "mixed" false (valid [ piece `Equipment; piece `Skill ])
+  ;;
+end
+
+let merchant_outfit_tests = [ "outfit is equipment", `Quick, MerchantOutfitTests.test_outfit ]
+
 module DropValidationTests = struct
   let test_gate () =
     let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
@@ -1490,6 +1505,13 @@ module DropValidationTests = struct
     check bool "all zero" false (validate_rarity_weights (w 0 0 0 0 0))
   ;;
 
+  let test_merchant_kinds () =
+    let k equipment weapon : Data.Anchor_t.merchant_kind_weights = { equipment; weapon } in
+    check bool "one kind" true (validate_merchant_kind_weights (k 0 1));
+    check bool "both kinds" true (validate_merchant_kind_weights (k 1 1));
+    check bool "no kind" false (validate_merchant_kind_weights (k 0 0))
+  ;;
+
   let test_guarantee () =
     check bool "equipment" true (validate_guarantee_kind `Equipment);
     check bool "book" true (validate_guarantee_kind `SkillBook);
@@ -1508,7 +1530,8 @@ module DropValidationTests = struct
 end
 
 let drop_validation_tests =
-  [ ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
+  [ ("validate_merchant_kind_weights", `Quick, DropValidationTests.test_merchant_kinds);
+    ("validate_drop_gate", `Quick, DropValidationTests.test_gate);
     ("validate_rarity_weights", `Quick, DropValidationTests.test_weights);
     ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee)
   ]
@@ -1713,6 +1736,7 @@ let () =
       ("Nest Validation", nest_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
+      ("Merchant Outfit Validation", merchant_outfit_tests);
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests);
