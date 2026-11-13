@@ -306,10 +306,12 @@ let minimal_personal_quest =
           weapons =
             Some (List.init 3 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `Weapon }));
           gold = None;
-          text = Some "a weapon"
+          text = Some "a weapon";
+          min_quality = None
         }
       ];
-    goal_text = "Defeat {count} monsters"
+    goal_text = "Defeat {count} monsters";
+    oath = None
   }
 ;;
 

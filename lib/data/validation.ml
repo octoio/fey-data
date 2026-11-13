@@ -437,9 +437,19 @@ let drop_list_of_type
 let validate_personal_reward (r : Personal_quest_t.personal_reward) =
   let has_weapons = Option.fold ~none:false ~some:(list_min_length 3) r.weapons in
   match r.kind with
-  | `WeaponCache -> has_weapons && r.gold = None
-  | `Gold -> r.gold <> None && r.weapons = None
-  | `Piece | `SkillBook -> r.gold = None && r.weapons = None
+  | `WeaponCache -> has_weapons && r.gold = None && r.min_quality = None
+  | `Gold -> r.gold <> None && r.weapons = None && r.min_quality = None
+  | `Piece -> r.gold = None && r.weapons = None
+  | `SkillBook -> r.gold = None && r.weapons = None && r.min_quality = None
+;;
+
+(* A sworn quest (personal_quest.atd) has only Piece rewards with a [min_quality]: its reward is sure *)
+let validate_personal_quest (q : Personal_quest_t.personal_quest) =
+  q.oath = None
+  || List.for_all
+       (fun (r : Personal_quest_t.personal_reward) ->
+         r.kind = `Piece && r.min_quality <> None)
+       q.rewards
 ;;
 
 let float_min_if_some min (x : float option) =
