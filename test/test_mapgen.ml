@@ -862,7 +862,15 @@ let test_a_chest_and_its_guard_belong_together () =
     true
     (mentions
        ~substring:"to the ChestGuard slot"
-       (chest_errors [ chest; misbound; stage [ "Chest"; "Guards" ] ]))
+       (chest_errors [ chest; misbound; stage [ "Chest"; "Guards" ] ]));
+  let second = chest_definition "Second" "Guards" (Some (binding `Chest 1)) in
+  check
+    bool
+    "a stage has one chest"
+    true
+    (mentions
+       ~substring:"more than one chest"
+       (chest_errors [ chest; second; guard_spawn; stage [ "Chest"; "Second"; "Guards" ] ]))
 ;;
 
 let test_an_infeasible_spec_on_a_stage_is_a_build_error () =

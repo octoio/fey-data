@@ -188,7 +188,7 @@ let chest_error_messages definitions =
     List.filter_map
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
         match definition with
-        | `Stage { entity; _ } -> Some entity.anchors
+        | `Stage { entity; _ } -> Some (Dataset.entity_reference_of_entity_definition definition, entity.anchors)
         | _ -> None)
       definitions
   in
@@ -204,7 +204,22 @@ let chest_error_messages definitions =
     Option.bind (List.assoc_opt reference anchors) (fun entity ->
       Option.map (fun (b : Data.Generator_t.anchor_binding) -> b.slot) (anchor_binding_of entity))
   in
-  List.concat_map
+  let is_chest reference =
+    match List.assoc_opt reference anchors with
+    | Some (`Chest _) -> true
+    | _ -> false
+  in
+  (* the guard mark is the stage's, so a second chest would lock the first *)
+  let more_than_one =
+    List.filter_map
+      (fun (stage, stage_anchors) ->
+        if List.length (List.filter is_chest stage_anchors) > 1
+        then Some (Printf.sprintf "Stage %s: more than one chest" (name stage))
+        else None)
+      stages
+  in
+  more_than_one
+  @ List.concat_map
     (fun (reference, (entity : Data.Anchor_t.anchor_internal)) ->
       match entity with
       | `Chest chest ->
@@ -217,7 +232,7 @@ let chest_error_messages definitions =
         if not is_spawn_point
         then [ Printf.sprintf "Chest %s: its guard %s is not a SpawnPoint anchor" (name reference) (name guard) ]
         else if
-          not (List.exists (fun s -> List.mem reference s && List.mem guard s) stages)
+          not (List.exists (fun (_, s) -> List.mem reference s && List.mem guard s) stages)
         then
           [ Printf.sprintf
               "Chest %s: its guard %s is not an anchor of the same stage"
