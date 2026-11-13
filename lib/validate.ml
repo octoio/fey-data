@@ -397,7 +397,18 @@ let drop_table_error_messages definitions =
                      (Data.Character_j.string_of_monster_rank g.min_rank)))
             (Option.value entity.guarantees ~default:[])
         in
-        curve_errors @ guarantee_errors
+        let chances_errors =
+          if
+            Option.is_none entity.item_chances
+            && (entity.equipment_drops <> [] || entity.weapon_drops <> [])
+          then
+            [ Printf.sprintf
+                "Drop table %s has equipment or weapon entries but no item_chances"
+                name
+            ]
+          else []
+        in
+        curve_errors @ guarantee_errors @ chances_errors
       | _ -> [])
     definitions
 ;;

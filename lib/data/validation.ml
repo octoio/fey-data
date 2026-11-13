@@ -510,6 +510,13 @@ let validate_guarantee_kind (kind : Drop_t.drop_type) =
   | `Skill -> false
 ;;
 
+(* A per-player guarantee hands out a piece of equipment or a weapon, never a book *)
+let validate_guarantee (g : Drop_t.drop_guarantee) =
+  match g.per_player, g.kind with
+  | Some true, (`Equipment | `Weapon) | (None | Some false), _ -> true
+  | Some true, (`Skill | `SkillBook) -> false
+;;
+
 (* Quality None marks a bare item: it is never a rarity to demand *)
 let validate_guarantee_quality (quality : Quality_t.quality_type) =
   match quality with

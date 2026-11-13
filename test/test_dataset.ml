@@ -605,12 +605,24 @@ let curve : Data.Drop_t.rarity_curve =
   }
 ;;
 
-let drop_table_dataset ?(equipment = minimal_equipment) ?curve:(rarity_curve = None) ?guarantees entries =
+let some_item_chances : Data.Drop_t.item_chances option =
+  let rule : Data.Drop_t.item_rule = { equipment = 0.1; weapon = 0.05 } in
+  Some { normal = rule; elite = rule; boss = rule }
+;;
+
+let drop_table_dataset
+  ?(equipment = minimal_equipment)
+  ?curve:(rarity_curve = None)
+  ?guarantees
+  ?(item_chances = some_item_chances)
+  entries
+  =
   let table =
     { minimal_drop_table with
       equipment_drops = entries;
       rarity_curve;
-      guarantees
+      guarantees;
+      item_chances
     }
   in
   let table_def : Data.Entity_t.entity_definition_internal =
@@ -638,7 +650,7 @@ let drop_table_dataset ?(equipment = minimal_equipment) ?curve:(rarity_curve = N
 ;;
 
 let guarantee ?(min_quality = `Rare) () : Data.Drop_t.drop_guarantee =
-  { min_rank = `Boss; kind = `Equipment; min_quality }
+  { min_rank = `Boss; kind = `Equipment; min_quality; per_player = None }
 ;;
 
 let test_drop_table_without_curve_is_valid () =
@@ -708,6 +720,20 @@ let test_drop_guarantee_needs_a_matching_entry () =
              ~equipment:rare
              ~guarantees:[ guarantee () ]
              [ equipment_entry ~gate:elite_gate () ])))
+;;
+
+let test_drop_item_entries_need_item_chances () =
+  check
+    int
+    "equipment entries without item_chances are rejected"
+    1
+    (List.length
+       (drop_errors (drop_table_dataset ~item_chances:None [ equipment_entry () ])));
+  check
+    int
+    "a table without item entries needs none"
+    0
+    (List.length (drop_errors (drop_table_dataset ~item_chances:None [])))
 ;;
 
 (* Quest tiers: unique orders, an identity base tier, gates on tiers that exist *)
@@ -1527,6 +1553,10 @@ let dataset_tests =
       "Drop guarantee needs a matching entry"
       `Quick
       test_drop_guarantee_needs_a_matching_entry;
+    test_case
+      "Drop item entries need item_chances"
+      `Quick
+      test_drop_item_entries_need_item_chances;
     test_case "Quest tiers" `Quick test_quest_tiers;
     test_case "Run ending" `Quick test_run_ending;
     (* Quest Completability *)

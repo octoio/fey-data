@@ -95,11 +95,27 @@ type rarity_curve =
   }
 
 (* A monster of at least [min_rank] always drops one item of [kind] (Equipment, Weapon or SkillBook)
-   whose rarity is at least [min_quality]. *)
+   whose rarity is at least [min_quality]. With [per_player] (absent: false; only for Equipment or Weapon)
+   the item is rolled once for each character credited with the kill and is that character's own: no
+   Need / Greed roll. *)
 type drop_guarantee =
   { min_rank: monster_rank;
     kind: drop_type <ocaml valid="Validation.validate_guarantee_kind">;
     min_quality: quality_type <ocaml valid="Validation.validate_guarantee_quality">;
+    ?per_player: bool option;
+  } <ocaml valid="Validation.validate_guarantee">
+
+(* The chances that one kill drops a piece of equipment and a weapon (before [party_scaling]). *)
+type item_rule =
+  { equipment: float <ocaml valid="Validation.float_between 0. 1.">;
+    weapon: float <ocaml valid="Validation.float_between 0. 1.">;
+  }
+
+(* The item chances of a table, per rank of the killed monster. *)
+type item_chances =
+  { normal: item_rule;
+    elite: item_rule;
+    boss: item_rule;
   }
 
 (* The gold one kill of a rank drops: with probability [chance] the kill drops a whole amount in [amount],
@@ -139,6 +155,8 @@ type drop_table =
       (* Absent: items are picked by entry weight alone *)
     ?rarity_curve: rarity_curve option;
     ?guarantees: drop_guarantee list option;
+    (* Required when the table has equipment or weapon entries; absent: those chances are 0 *)
+    ?item_chances: item_chances option;
     (* Absent: Poll *)
     ?distribution: loot_distribution option;
     (* Each eligible player beyond the first multiplies the chance of every item category by

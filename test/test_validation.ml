@@ -1584,6 +1584,13 @@ module DropValidationTests = struct
     check bool "equipment" true (validate_guarantee_kind `Equipment);
     check bool "book" true (validate_guarantee_kind `SkillBook);
     check bool "skill" false (validate_guarantee_kind `Skill);
+    let g ?per_player kind : Data.Drop_t.drop_guarantee =
+      { min_rank = `Boss; kind; min_quality = `Rare; per_player }
+    in
+    check bool "per player equipment" true (validate_guarantee (g ~per_player:true `Equipment));
+    check bool "per player weapon" true (validate_guarantee (g ~per_player:true `Weapon));
+    check bool "per player book" false (validate_guarantee (g ~per_player:true `SkillBook));
+    check bool "book without per_player" true (validate_guarantee (g `SkillBook));
     check bool "rare" true (validate_guarantee_quality `Rare);
     check bool "none" false (validate_guarantee_quality `None);
     check bool "tilt" true (float_min_if_some 0. (Some 0.5));
