@@ -5,6 +5,7 @@ type character_team <ocaml from="Effect"> = abstract
 type anchor_binding <ocaml from="Generator"> = abstract
 type rarity_weights <ocaml from="Drop"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
 
 type anchor_type =
   [ Zone
@@ -15,6 +16,7 @@ type anchor_type =
   | HealingShrine
   | Lever
   | Merchant
+  | Chest
   ]
 
 type zone_detection_type =
@@ -153,6 +155,21 @@ type anchor_merchant = {
   showcase: merchant_showcase;
 }
 
+(* A chest the party opens with the interact key (instant, once per run of the stage) once the monsters that guard it are
+   dead: each member of the party then gets one piece in its bag, rolled for it with a floor of [min_quality] (a rarity,
+   Uncommon to Epic). [model] is the key of the pack prop that stands there. [guard] is the SpawnPoint anchor of the
+   same stage whose monsters guard it: the chest is refused while one of them lives. Nothing of what is inside shows
+   before it is opened (docs/systems/chest.md in fey-rs) *)
+type anchor_chest = {
+  anchor_type <json name="type">: anchor_type;
+  metadata: metadata;
+  transform: transform;
+  ?binding: anchor_binding option;
+  model: string <ocaml valid="Validation.string_min_length 1">;
+  min_quality: quality_type <ocaml valid="Validation.quality_uncommon_to_epic">;
+  guard: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
 type anchor_internal =
   [ Zone of anchor_zone
   | SpawnPoint of anchor_spawn_point
@@ -162,4 +179,5 @@ type anchor_internal =
   | HealingShrine of anchor_healing_shrine
   | Lever of anchor_lever
   | Merchant of anchor_merchant
+  | Chest of anchor_chest
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">

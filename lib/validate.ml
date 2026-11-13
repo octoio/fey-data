@@ -177,6 +177,63 @@ let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
   | `HealingShrine a -> a.binding
   | `Lever a -> a.binding
   | `Merchant a -> a.binding
+  | `Chest a -> a.binding
+;;
+
+(* A chest's guard is a SpawnPoint anchor of the chest's own stage; on a generated stage the chest is bound to the Chest
+   slot and its guard to the ChestGuard slot, so the guards stand in the chest's room *)
+let chest_error_messages definitions =
+  let name = Data.Common_j.string_of_entity_reference in
+  let stages =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stage { entity; _ } -> Some entity.anchors
+        | _ -> None)
+      definitions
+  in
+  let anchors =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity; _ } -> Some (Dataset.entity_reference_of_entity_definition definition, entity)
+        | _ -> None)
+      definitions
+  in
+  let slot_of reference =
+    Option.bind (List.assoc_opt reference anchors) (fun entity ->
+      Option.map (fun (b : Data.Generator_t.anchor_binding) -> b.slot) (anchor_binding_of entity))
+  in
+  List.concat_map
+    (fun (reference, (entity : Data.Anchor_t.anchor_internal)) ->
+      match entity with
+      | `Chest chest ->
+        let guard = chest.guard in
+        let is_spawn_point =
+          match List.assoc_opt guard anchors with
+          | Some (`SpawnPoint _) -> true
+          | _ -> false
+        in
+        if not is_spawn_point
+        then [ Printf.sprintf "Chest %s: its guard %s is not a SpawnPoint anchor" (name reference) (name guard) ]
+        else if
+          not (List.exists (fun s -> List.mem reference s && List.mem guard s) stages)
+        then
+          [ Printf.sprintf
+              "Chest %s: its guard %s is not an anchor of the same stage"
+              (name reference)
+              (name guard)
+          ]
+        else if chest.binding <> None && (slot_of reference <> Some `Chest || slot_of guard <> Some `ChestGuard)
+        then
+          [ Printf.sprintf
+              "Chest %s: on a generated stage it is bound to the Chest slot and its guard %s to the ChestGuard slot"
+              (name reference)
+              (name guard)
+          ]
+        else []
+      | _ -> [])
+    anchors
 ;;
 
 (* A KillSpecific objective is only completable if enough characters of the
@@ -207,10 +264,20 @@ let quest_completability_error_messages definitions =
         | _ -> None)
       definitions
   in
+  (* the SpawnPoints a chest names as its guard: a quest may spawn monsters there, but no objective may need them *)
+  let guard_anchors =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity = `Chest chest; _ } -> Some chest.guard
+        | _ -> None)
+      definitions
+  in
   let spawn_counts (spawn : Data.Spawn_t.spawn) =
     match List.assoc_opt spawn.character character_type_by_reference with
     (* a missing character definition is reported by the generic reference check *)
     | None -> []
+    | Some _ when List.mem spawn.anchor guard_anchors -> []
     | Some character_type ->
       let anchors =
         Option.value (List.assoc_opt spawn.anchor min_anchors_by_reference) ~default:1
@@ -865,6 +932,7 @@ let validate_entity_definitions dataset =
       entity_definition_reference_missing_errors
   in
   let anchor_ownership_errors = anchor_ownership_error_messages (take_definitions dataset) in
+  let chest_errors = chest_error_messages (take_definitions dataset) in
   let quest_anchor_subset_errors =
     quest_anchor_subset_error_messages (take_definitions dataset)
   in
@@ -887,6 +955,7 @@ let validate_entity_definitions dataset =
       (entity_reference_definitions_error_messages
        @ entity_reference_error_messages
        @ anchor_ownership_errors
+       @ chest_errors
        @ quest_anchor_subset_errors
        @ quest_completability_errors
        @ interact_errors

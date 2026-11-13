@@ -1480,6 +1480,40 @@ end
 
 let merchant_outfit_tests = [ "outfit is equipment", `Quick, MerchantOutfitTests.test_outfit ]
 
+module ChestTests = struct
+  let chest ?(guard_type = `Anchor) min_quality : Data.Anchor_t.anchor_chest =
+    { anchor_type = `Chest;
+      metadata = Test_fixtures.minimal_metadata;
+      transform = Test_fixtures.minimal_transform;
+      binding = None;
+      model = "Chest";
+      min_quality;
+      guard = make_entity_reference ~entity_type:guard_type ~key:"guards" ()
+    }
+  ;;
+
+  let valid ?guard_type q = Data.Anchor_v.validate_anchor_chest [] (chest ?guard_type q) = None
+
+  let test_min_quality () =
+    check
+      (list bool)
+      "a chest promises Uncommon to Epic"
+      [ false; false; true; true; true; false ]
+      (List.map valid [ `None; `Common; `Uncommon; `Rare; `Epic; `Legendary ])
+  ;;
+
+  let test_guard_is_an_anchor () =
+    check bool "an anchor" true (valid `Uncommon);
+    check bool "not a character" false (valid ~guard_type:`Character `Uncommon)
+  ;;
+end
+
+let chest_tests =
+  [ "min_quality", `Quick, ChestTests.test_min_quality;
+    "guard is an anchor", `Quick, ChestTests.test_guard_is_an_anchor
+  ]
+;;
+
 module DropValidationTests = struct
   let test_gate () =
     let gate ?min_level ?min_tier ?min_rank ?lower_rank_weight () : Data.Drop_t.drop_gate =
@@ -1815,6 +1849,7 @@ let () =
       ("Level Growth Validation", level_growth_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Merchant Outfit Validation", merchant_outfit_tests);
+      ("Chest Validation", chest_tests);
       ("Trigger Validation", trigger_validation_tests);
       ("Entity Validation", entity_validation_tests);
       ("File Validation", file_validation_tests);

@@ -342,6 +342,13 @@ let validate_entity_reference { entity_type; key; version; owner; id } =
      = id
 ;;
 
+(* The rarity a chest promises its pieces: Uncommon, Rare or Epic (a Common one is the quest card's, a Legendary one a boss's) *)
+let quality_uncommon_to_epic (q : Quality_t.quality_type) =
+  match q with
+  | `Uncommon | `Rare | `Epic -> true
+  | `None | `Common | `Legendary -> false
+;;
+
 let entity_reference_of_type (expected : Common_t.entity_type) { entity_type; _ } =
   entity_type = expected
 ;;

@@ -429,6 +429,18 @@ let test_water_and_cocoon_demands_ask_for_no_room () =
   check bool "requirements unchanged" true (raised.requirements = crypt.requirements)
 ;;
 
+(* the monsters that guard a chest stand in its Treasure room, so naming their anchor asks for that room *)
+let test_a_chest_guard_demand_asks_for_a_treasure_room () =
+  let raised =
+    Mapgen_check.apply_demands crypt [ { slot = `ChestGuard; count = 1; optional = false } ]
+  in
+  let treasure =
+    List.find (fun (r : G.room_requirement) -> r.role = `Treasure) raised.requirements
+  in
+  check bool "the soft treasure room becomes hard" true (Mapgen_check.hard treasure);
+  check int "one of them" 1 treasure.min
+;;
+
 let test_lever_and_gate_pack_demands_ask_for_no_room () =
   let raised =
     Mapgen_check.apply_demands
@@ -595,6 +607,26 @@ let lever_definition key binding : Data.Entity_t.entity_definition_internal =
             transform = minimal_transform;
             binding;
             model = "Lever"
+          }
+    }
+;;
+
+let chest_definition key guard binding : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key;
+      version = 1;
+      id = (anchor_ref key).id;
+      entity =
+        `Chest
+          { Data.Anchor_t.anchor_type = `Chest;
+            metadata = minimal_metadata;
+            transform = minimal_transform;
+            binding;
+            model = "Chest";
+            min_quality = `Uncommon;
+            guard = anchor_ref guard
           }
     }
 ;;
@@ -780,6 +812,59 @@ let test_a_gated_stage_needs_its_levers_and_its_gate_pack () =
        (errors (prefabs @ [ lever; pack; elsewhere; stage_definition [ "Lever"; "GatePack"; "Pack" ] (Some wrong) ])))
 ;;
 
+let test_a_chest_and_its_guard_belong_together () =
+  let chest = chest_definition "Chest" "Guards" (Some (binding `Chest 0)) in
+  let guards = anchor_definition "Guards" (Some (binding `ChestGuard 0)) in
+  let spawn_point key binding : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr";
+        entity_type = `Anchor;
+        key;
+        version = 1;
+        id = (anchor_ref key).id;
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint;
+              metadata = minimal_metadata;
+              transform = minimal_transform;
+              binding;
+              team = None;
+              radius = Some 3.
+            }
+      }
+  in
+  let guard_spawn = spawn_point "Guards" (Some (binding `ChestGuard 0)) in
+  let chest_errors definitions = Validate.chest_error_messages definitions in
+  let stage anchors = stage_definition anchors (Some crypt) in
+  check
+    (list string)
+    "a sound chest"
+    []
+    (chest_errors [ chest; guard_spawn; stage [ "Chest"; "Guards" ] ]);
+  check
+    bool
+    "the guard must be a SpawnPoint"
+    true
+    (mentions
+       ~substring:"is not a SpawnPoint anchor"
+       (chest_errors [ chest; guards; stage [ "Chest"; "Guards" ] ]));
+  check
+    bool
+    "the guard must be on the chest's stage"
+    true
+    (mentions
+       ~substring:"is not an anchor of the same stage"
+       (chest_errors [ chest; guard_spawn; stage [ "Chest" ] ]));
+  let misbound = spawn_point "Guards" (Some (binding `PackSpawn 0)) in
+  check
+    bool
+    "on a generated stage the guard is bound to the ChestGuard slot"
+    true
+    (mentions
+       ~substring:"to the ChestGuard slot"
+       (chest_errors [ chest; misbound; stage [ "Chest"; "Guards" ] ]))
+;;
+
 let test_an_infeasible_spec_on_a_stage_is_a_build_error () =
   let deep =
     { crypt with
@@ -941,6 +1026,7 @@ let () =
           test_case "A forest nest guards a pack" `Quick test_a_forest_nest_guards_a_pack;
           test_case "A trail demand asks for no room" `Quick test_a_trail_demand_asks_for_no_room;
           test_case "Water and cocoon demands ask for no room" `Quick test_water_and_cocoon_demands_ask_for_no_room;
+          test_case "A chest guard demand asks for a treasure room" `Quick test_a_chest_guard_demand_asks_for_a_treasure_room;
           test_case "Lever and gate pack demands ask for no room" `Quick test_lever_and_gate_pack_demands_ask_for_no_room
         ] );
       ( "Dataset rules",
@@ -950,6 +1036,7 @@ let () =
           test_case "Ordinals must be contiguous" `Quick test_ordinals_must_be_contiguous;
           test_case "Every binds a template lamp post only" `Quick test_every_binds_a_template_lamp_post_or_spawn_point_only;
           test_case "A gated stage needs its levers and gate pack" `Quick test_a_gated_stage_needs_its_levers_and_its_gate_pack;
+          test_case "A chest and its guard belong together" `Quick test_a_chest_and_its_guard_belong_together;
           test_case "An infeasible spec is a build error" `Quick test_an_infeasible_spec_on_a_stage_is_a_build_error;
           test_case "A missing prefab is an error" `Quick test_a_missing_prefab_is_an_error;
           test_case "A quest the spec cannot hold is refused" `Quick test_a_quest_the_spec_cannot_hold_is_refused;
