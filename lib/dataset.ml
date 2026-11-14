@@ -322,6 +322,7 @@ let extract_entity_reference_from_entity_definition
     @ Option.value entity.starting_equipment ~default:[]
     @ Option.value entity.starting_weapons ~default:[]
     @ extract_from_option_entity_reference entity.first_personal_quest
+    @ Option.value entity.personal_quests ~default:[]
     @ List.concat_map
         (fun layer -> extract_entity_reference_from_visual_layer (Some layer))
         (Option.value entity.visual_layers ~default:[])
@@ -350,7 +351,10 @@ let extract_entity_reference_from_entity_definition
        | None -> []
        | Some spec -> extract_entity_reference_from_generator_spec spec)
   | `Achievement { entity; _ } -> extract_entity_reference_from_achievement entity
-  | `PersonalQuest { entity; _ } -> entity.reward.weapons
+  | `PersonalQuest { entity; _ } ->
+    List.concat_map
+      (fun (r : Data.Personal_quest_t.personal_reward) -> Option.value r.weapons ~default:[])
+      entity.rewards
   | `Anchor { entity = `Merchant merchant; _ } -> merchant.outfit
   | `QuestDifficulty _
   | `Balance _

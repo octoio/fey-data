@@ -122,6 +122,9 @@ type character =
     ?starting_weapons: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Weapon">;
     (* Player characters: the personal quest a new character opens with (fey-rs #356); absent = none *)
     ?first_personal_quest: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `PersonalQuest">;
+    (* Player characters: the pool the offer of three personal quests draws from after the first one; absent or
+       empty = no offer *)
+    ?personal_quests: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `PersonalQuest">;
     (* 3D look of a monster: the model family (its own skeleton and clips; the pack's model key is the family, or
        "<family>-<variant>" when the first fixed layer is a "body_<variant>" colour) and the layers shown, usually a
        single body layer. Absent: the client draws the character's default look. A weapon class is not needed, the
