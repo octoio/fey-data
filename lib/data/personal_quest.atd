@@ -1,5 +1,6 @@
 type metadata <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
+type quality_type <ocaml from="Quality"> = abstract
 
 (* What a personal quest asks of one player (fey-rs #356). All of it is counted for the player who holds the quest
    and is credited (the kill XP rule, [credit_holder]).
@@ -34,14 +35,23 @@ type personal_reward_kind =
 
 (* [weight] (absent = 1) is how often the draw of a card picks this reward among the quest's rewards. [weapons] is
    for WeaponCache only (not empty) and [gold] for Gold only (above 0). [text], when present, is what the card and
-   the line say of the reward ("your first weapon"); absent, the client words it from the kind. *)
+   the line say of the reward ("your first weapon"); absent, the client words it from the kind. [min_quality] is
+   for Piece only: the lowest rarity of the piece (the commission roll is raised to it; a rolled better one stays). *)
 type personal_reward = {
   kind: personal_reward_kind;
   ?weight: int option <ocaml valid="Validation.int_min_if_some 1">;
   ?weapons: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Weapon">;
   ?gold: int option <ocaml valid="Validation.int_min_if_some 1">;
   ?text: string option <ocaml valid="Validation.plain_message_if_some">;
+  ?min_quality: quality_type option;
 } <ocaml valid="Validation.validate_personal_reward">
+
+(* A condition on the quest's holder that can break while the quest is held. NoDeath: the holder dies (the state a
+   revive undoes). NoFlask: the holder drinks its flask (a shrine, a globe and another's heal are not the flask). *)
+type personal_oath =
+  [ NoDeath
+  | NoFlask
+  ]
 
 (* A personal quest (fey-rs #356): one goal for one player, always at most one open at a time, with its rewards
    named up front. [goal_text] is the player-facing words ("Defeat {count} monsters"); the sim fills {count} with
@@ -51,4 +61,7 @@ type personal_quest = {
   goal: personal_goal;
   rewards: personal_reward list <ocaml valid="Validation.list_min_length 1">;
   goal_text: string <ocaml valid="Validation.plain_message">;
-}
+  (* A sworn quest: breaking the oath loses the quest and gives Oathbreaker until the stage ends. Every reward of
+     a sworn quest is a Piece with a [min_quality] (the sure reward). *)
+  ?oath: personal_oath option;
+} <ocaml valid="Validation.validate_personal_quest">

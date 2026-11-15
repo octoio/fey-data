@@ -31,7 +31,7 @@ let sample_weapon_json =
       "cooldown_reduction": 0.0, "dodge_chance": 0.0,
       "mana_regen": 0.0, "health_regen": 0.0,
       "experience_modifier": 0.0, "gold_modifier": 0.0,
-      "life_steal": 0.0
+      "life_steal": 0.0, "health_modifier": 1.0
     },
     "equip_index": "MainHand",
     "sheathe_location": "Back",
@@ -306,10 +306,12 @@ let minimal_personal_quest =
           weapons =
             Some (List.init 3 (fun _ -> { minimal_entity_reference with Data.Common_t.entity_type = `Weapon }));
           gold = None;
-          text = Some "a weapon"
+          text = Some "a weapon";
+          min_quality = None
         }
       ];
-    goal_text = "Defeat {count} monsters"
+    goal_text = "Defeat {count} monsters";
+    oath = None
   }
 ;;
 
@@ -383,7 +385,8 @@ let minimal_status =
     stack = { Data.Status_t.size = 1; scaling_strategy = `Additive; full_stack = None; accumulate = None; magnitudes = None; decay = None };
     break_burst = None;
     triggers = None;
-    vfx = None
+    vfx = None;
+    keeps_through_death = None
   }
 ;;
 
@@ -450,6 +453,7 @@ let minimal_stat_sheet =
     experience_modifier = 0.0;
     gold_modifier = 0.0;
     life_steal = 0.0;
+    health_modifier = 1.0;
     health_globe_chance = None
   }
 ;;

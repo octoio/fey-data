@@ -1426,11 +1426,23 @@ module ConeAndBurstValidationTests = struct
     check bool "over the whole health" false (validate_break_burst (Some 1.5));
     check bool "not a number" false (validate_break_burst (Some Float.nan))
   ;;
+
+  let test_keeps_through_death () =
+    let status keeps mechanic = { Test_fixtures.minimal_status with keeps_through_death = keeps; mechanic } in
+    let stat_change = Test_fixtures.minimal_status.mechanic in
+    let body : Data.Status_t.status_effect_mechanic_shield = { mechanic_type = `Shield } in
+    let shield : Data.Status_t.status_effect_mechanic_internal = `Shield body in
+    check bool "a stat change kept" true (validate_keeps_through_death (status (Some true) stat_change));
+    check bool "absent" true (validate_keeps_through_death (status None shield));
+    check bool "false on a shield" true (validate_keeps_through_death (status (Some false) shield));
+    check bool "a shield kept" false (validate_keeps_through_death (status (Some true) shield))
+  ;;
 end
 
 let cone_and_burst_validation_tests =
   [ "cone", `Quick, ConeAndBurstValidationTests.test_cone;
-    "break_burst", `Quick, ConeAndBurstValidationTests.test_break_burst
+    "break_burst", `Quick, ConeAndBurstValidationTests.test_break_burst;
+    "keeps_through_death", `Quick, ConeAndBurstValidationTests.test_keeps_through_death
   ]
 ;;
 
@@ -1513,7 +1525,7 @@ module DropValidationTests = struct
   ;;
 
   let reward ?weapons ?gold kind : Data.Personal_quest_t.personal_reward =
-    { kind; weight = None; weapons; gold; text = None }
+    { kind; weight = None; weapons; gold; text = None; min_quality = None }
   ;;
 
   let weapon_ref = { Test_fixtures.minimal_entity_reference with Data.Common_t.entity_type = `Weapon }
@@ -1532,6 +1544,28 @@ module DropValidationTests = struct
     check bool "a piece with gold" false (ok (reward ~gold:5 `Piece));
     check bool "a book with weapons" false (ok (reward ~weapons:[ weapon_ref ] `SkillBook));
     check bool "a cache with gold" false (ok (reward ~weapons:pool ~gold:5 `WeaponCache))
+  ;;
+
+  let test_sworn_quest () =
+    let with_floor kind : Data.Personal_quest_t.personal_reward = { (reward kind) with min_quality = Some `Rare } in
+    let quest ?oath rewards : Data.Personal_quest_t.personal_quest =
+      { metadata = Test_fixtures.minimal_metadata;
+        goal = { kind = `DefeatMonsters; count = 5; growth = None };
+        rewards;
+        goal_text = "Defeat {count} monsters";
+        oath
+      }
+    in
+    check bool "a floor on a piece" true (validate_personal_reward (with_floor `Piece));
+    check bool "a floor on gold" false (validate_personal_reward { (with_floor `Gold) with gold = Some 5 });
+    check bool "a floor on a book" false (validate_personal_reward (with_floor `SkillBook));
+    check bool "a plain quest" true (validate_personal_quest (quest [ reward `Gold ]));
+    check bool "a sworn quest with a sure piece" true
+      (validate_personal_quest (quest ~oath:`NoDeath [ with_floor `Piece ]));
+    check bool "a sworn quest with a piece and no floor" false
+      (validate_personal_quest (quest ~oath:`NoFlask [ reward `Piece ]));
+    check bool "a sworn quest with another reward" false
+      (validate_personal_quest (quest ~oath:`NoFlask [ with_floor `Piece; reward ~gold:5 `Gold ]))
   ;;
 
   let test_personal_numbers () =
@@ -1569,6 +1603,7 @@ let drop_validation_tests =
     ("validate_rarity_weights", `Quick, DropValidationTests.test_weights);
     ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee);
     ("validate_personal_reward", `Quick, DropValidationTests.test_personal_reward);
+    ("a sworn quest", `Quick, DropValidationTests.test_sworn_quest);
     ("personal quest numbers", `Quick, DropValidationTests.test_personal_numbers)
   ]
 ;;

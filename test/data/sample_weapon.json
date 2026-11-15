@@ -40,7 +40,8 @@
       "health_regen": 0.0,
       "experience_modifier": 0.0,
       "gold_modifier": 0.0,
-      "life_steal": 0.0
+      "life_steal": 0.0,
+      "health_modifier": 1.0
     },
     "equip_index": "MainHand",
     "sheathe_location": "Back",
