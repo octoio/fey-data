@@ -201,6 +201,7 @@ let slot_order : anchor_slot -> int = function
   | `Healing -> 12
   | `Lever -> 13
   | `GatePack -> 14
+  | `ChestGuard -> 15
 ;;
 
 type slot_demand =
@@ -282,7 +283,7 @@ let role_of_slot : anchor_slot -> room_role option = function
   | `PackSpawn -> Some `Combat
   | `BossSpawn | `ExitPortal -> Some `Boss
   | `Shrine -> Some `Rest
-  | `Chest -> Some `Treasure
+  | `Chest | `ChestGuard -> Some `Treasure
   | `ObjectiveZone -> Some `Objective
   | `PlayerSpawn
   | `EntryPortal

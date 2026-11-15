@@ -356,6 +356,7 @@ let extract_entity_reference_from_entity_definition
       (fun (r : Data.Personal_quest_t.personal_reward) -> Option.value r.weapons ~default:[])
       entity.rewards
   | `Anchor { entity = `Merchant merchant; _ } -> merchant.outfit
+  | `Anchor { entity = `Chest chest; _ } -> [ chest.guard ]
   | `QuestDifficulty _
   | `Balance _
   | `WeaponClass _

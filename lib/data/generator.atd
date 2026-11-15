@@ -43,6 +43,8 @@ type anchor_slot =
   | Lever
   (* in the corridor just behind the locked gate: where the pack it wakes appears *)
   | GatePack
+  (* in the room of a chest: where the monsters that guard it appear, round the chest (the room's pack area) *)
+  | ChestGuard
   ]
 
 (* The theme turns it into units *)

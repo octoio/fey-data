@@ -605,12 +605,24 @@ let curve : Data.Drop_t.rarity_curve =
   }
 ;;
 
-let drop_table_dataset ?(equipment = minimal_equipment) ?curve:(rarity_curve = None) ?guarantees entries =
+let some_item_chances : Data.Drop_t.item_chances option =
+  let rule : Data.Drop_t.item_rule = { equipment = 0.1; weapon = 0.05 } in
+  Some { normal = rule; elite = rule; boss = rule }
+;;
+
+let drop_table_dataset
+  ?(equipment = minimal_equipment)
+  ?curve:(rarity_curve = None)
+  ?guarantees
+  ?(item_chances = some_item_chances)
+  entries
+  =
   let table =
     { minimal_drop_table with
       equipment_drops = entries;
       rarity_curve;
-      guarantees
+      guarantees;
+      item_chances
     }
   in
   let table_def : Data.Entity_t.entity_definition_internal =
@@ -638,7 +650,7 @@ let drop_table_dataset ?(equipment = minimal_equipment) ?curve:(rarity_curve = N
 ;;
 
 let guarantee ?(min_quality = `Rare) () : Data.Drop_t.drop_guarantee =
-  { min_rank = `Boss; kind = `Equipment; min_quality }
+  { min_rank = `Boss; kind = `Equipment; min_quality; per_player = None }
 ;;
 
 let test_drop_table_without_curve_is_valid () =
@@ -708,6 +720,20 @@ let test_drop_guarantee_needs_a_matching_entry () =
              ~equipment:rare
              ~guarantees:[ guarantee () ]
              [ equipment_entry ~gate:elite_gate () ])))
+;;
+
+let test_drop_item_entries_need_item_chances () =
+  check
+    int
+    "equipment entries without item_chances are rejected"
+    1
+    (List.length
+       (drop_errors (drop_table_dataset ~item_chances:None [ equipment_entry () ])));
+  check
+    int
+    "a table without item entries needs none"
+    0
+    (List.length (drop_errors (drop_table_dataset ~item_chances:None [])))
 ;;
 
 (* Quest tiers: unique orders, an identity base tier, gates on tiers that exist *)
@@ -1123,6 +1149,50 @@ let test_kill_objective_without_spawn_is_not_completable () =
     (List.length (completability_errors dataset))
 ;;
 
+(* A chest's guards are a bonus: no objective may need the monsters spawned at the guard anchor *)
+let chest_definition ~min_quality guard : Data.Entity_t.entity_definition_internal =
+  `Anchor
+    { Data.Entity_t.owner = "ownr";
+      entity_type = `Anchor;
+      key = "TheChest";
+      version = 1;
+      id = "ownr:Anchor:TheChest:1";
+      entity =
+        `Chest
+          { Data.Anchor_t.anchor_type = `Chest;
+            metadata = minimal_metadata;
+            transform = minimal_transform;
+            binding = None;
+            model = "Chest";
+            min_quality;
+            guard
+          }
+    }
+;;
+
+let test_a_kill_objective_cannot_need_the_monsters_guarding_a_chest () =
+  let root =
+    sequence_node 0 [ `Action (spawn_action_node 1); `Objective (kill_objective_node 2) ]
+  in
+  let with_chest guard =
+    TestFixtures.create_dataset_with_definitions
+      [ ("data/json/character_file.json", minimal_character_entity_definition);
+        ("data/json/quest_file.json", quest_definition_with_root root);
+        ("data/json/anchor_file.json", chest_definition ~min_quality:`Uncommon guard)
+      ]
+  in
+  check
+    int
+    "the spawn at the chest's guard anchor does not count toward the kill"
+    1
+    (List.length (completability_errors (with_chest minimal_spawn_anchor_reference)));
+  check
+    int
+    "a spawn at another anchor does"
+    0
+    (List.length (completability_errors (with_chest minimal_anchor_reference)))
+;;
+
 let test_kill_objective_after_spawn_is_completable () =
   let root =
     sequence_node 0 [ `Action (spawn_action_node 1); `Objective (kill_objective_node 2) ]
@@ -1527,6 +1597,10 @@ let dataset_tests =
       "Drop guarantee needs a matching entry"
       `Quick
       test_drop_guarantee_needs_a_matching_entry;
+    test_case
+      "Drop item entries need item_chances"
+      `Quick
+      test_drop_item_entries_need_item_chances;
     test_case "Quest tiers" `Quick test_quest_tiers;
     test_case "Run ending" `Quick test_run_ending;
     (* Quest Completability *)
@@ -1535,9 +1609,14 @@ let dataset_tests =
       `Quick
       test_kill_objective_without_spawn_is_not_completable;
     test_case
+      "A kill objective cannot need the monsters guarding a chest"
+      `Quick
+      test_a_kill_objective_cannot_need_the_monsters_guarding_a_chest;
+    test_case
       "Kill objective after spawn is completable"
       `Quick
       test_kill_objective_after_spawn_is_completable;
+
     test_case
       "Kill objective before spawn is not completable"
       `Quick

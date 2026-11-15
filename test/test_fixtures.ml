@@ -688,6 +688,7 @@ let minimal_drop_table =
     skill_book_drops = [];
     rarity_curve = None;
     guarantees = None;
+    item_chances = None;
     distribution = None;
     party_scaling = None
   }
