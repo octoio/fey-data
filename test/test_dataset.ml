@@ -1104,6 +1104,102 @@ let test_a_category_is_in_one_weapon_class () =
     (count [ weapon_class_definition "Swords" [ `OneHandSword; `Dagger ]; weapon_class_definition "Knives" [ `Dagger ] ])
 ;;
 
+let basic_attack_swing_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"has no hit_delay"
+      | None -> false)
+    validated.errors
+;;
+
+(* A skill whose tree strikes with a direct hit, or launches a projectile instead *)
+let strike_skill_definition key ~strikes ~hit_delay =
+  let node : Data.Skill_t.skill_action_node_internal =
+    if strikes
+    then
+      `Hit
+        { skill_action_node_type = `Hit;
+          name = "hit";
+          hit_effect =
+            { hit_type = `Damage;
+              scalers = [];
+              target_mechanic = `Selected { mechanic_type = `Selected };
+              target = `Enemy;
+              hit_sound = minimal_entity_reference;
+              can_crit = false;
+              can_miss = false;
+              school = None;
+              execute = None;
+              knockback = None;
+              pull = None;
+              mana_on_hit = None
+            }
+        }
+    else
+      `Projectile
+        { skill_action_node_type = `Projectile;
+          name = "bolt";
+          projectile = minimal_entity_reference;
+          spawn_position =
+            { position_type = `Character; position = minimal_vector3; offset = minimal_vector3 };
+          direction = minimal_vector3
+        }
+  in
+  let base = minimal_skill in
+  ( "data/json/" ^ key ^ ".skill.json",
+    `Skill
+      ({ owner = "ownr";
+         entity_type = `Skill;
+         key;
+         version = 1;
+         id = "ownr:Skill:" ^ key ^ ":1";
+         entity = { base with execution_root = { base.execution_root with child = node }; hit_delay }
+       }
+        : Data.Entity_t.skill_entity_definition) )
+;;
+
+let weapon_with_basic_attack key skill_key =
+  ( "data/json/" ^ key ^ ".weapon.json",
+    `Weapon
+      ({ owner = "ownr";
+         entity_type = `Weapon;
+         key;
+         version = 1;
+         id = "ownr:Weapon:" ^ key ^ ":1";
+         entity =
+           { minimal_weapon with
+             basic_attack =
+               Some
+                 { minimal_entity_reference with
+                   entity_type = `Skill;
+                   key = skill_key;
+                   id = "ownr:Skill:" ^ skill_key ^ ":1"
+                 }
+           }
+       }
+        : Data.Entity_t.weapon_entity_definition) )
+;;
+
+let test_a_striking_basic_attack_has_a_hit_delay () =
+  let count ~strikes ~hit_delay =
+    List.length
+      (basic_attack_swing_errors
+         [ strike_skill_definition "Attack" ~strikes ~hit_delay;
+           weapon_with_basic_attack "Blade" "Attack"
+         ])
+  in
+  check int "a swing without a timing" 1 (count ~strikes:true ~hit_delay:None);
+  check int "a swing with a timing" 0 (count ~strikes:true ~hit_delay:(Some 0.5));
+  check int "a projectile needs none" 0 (count ~strikes:false ~hit_delay:None)
+;;
+
 let test_weapon_and_visual_references () =
   let class_ref =
     Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
@@ -1626,6 +1722,7 @@ let dataset_tests =
       `Quick
       test_kill_objective_concurrent_with_spawn_is_completable;
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
+    test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "Kill amount exceeding spawns is not completable"
