@@ -574,7 +574,7 @@ let minimal_stat =
     color = minimal_color;
     clamp = None;
     conversions = None;
-    display = { format = `Flat; decimals = 0; unit = ""; lower_is_better = false; label = None }
+    display = { format = `Flat; decimals = 0; unit = ""; lower_is_better = false; label = None; scale = None }
   }
 ;;
 

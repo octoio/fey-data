@@ -1817,6 +1817,13 @@ module StatRulesTests = struct
     check bool "too many decimals" false (stat_decimals 5)
   ;;
 
+  let test_display_scale () =
+    check bool "absent" true (stat_scale None);
+    check bool "positive" true (stat_scale (Some 3.));
+    check bool "zero" false (stat_scale (Some 0.));
+    check bool "negative" false (stat_scale (Some (-1.)))
+  ;;
+
   let stat_json display =
     Printf.sprintf
       {|{"metadata":{"title":"T","description":""},"color":{"r":0.5,"g":0.5,"b":0.5,"a":1.0},"type":"Vit"%s}|}
@@ -1851,6 +1858,7 @@ end
 let stat_rules_tests =
   [ ("clamp bounds", `Quick, StatRulesTests.test_clamp_bounds);
     ("display decimals", `Quick, StatRulesTests.test_display_decimals);
+    ("display scale", `Quick, StatRulesTests.test_display_scale);
     ("display round trips", `Quick, StatRulesTests.test_display_round_trips);
     ("stat without display is rejected", `Quick, StatRulesTests.test_stat_without_display_is_rejected);
     ("conversion attribute", `Quick, StatRulesTests.test_conversion_attribute)

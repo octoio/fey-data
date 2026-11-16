@@ -284,6 +284,9 @@ let validate_stat_clamp ({ min; max } : Stat_t.stat_clamp) =
 (* The most decimals a stat shows *)
 let stat_decimals = int_between 0 4
 
+(* A display scale is a positive number *)
+let stat_scale (x : float option) = Option.fold ~none:true ~some:(fun x -> x > 0.) x
+
 (* Only the four attributes convert into other stats *)
 let stat_attribute (stat : Stat_t.stat_type) =
   match stat with

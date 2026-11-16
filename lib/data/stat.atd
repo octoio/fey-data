@@ -61,6 +61,8 @@ type stat_display = {
     lower_is_better: bool;
     (* a short name for lines where the title is too long; absent = the title *)
     ?label: string option;
+    (* the value is multiplied by this before it is formatted (movement speed counts in 3 metres per second); absent = 1 *)
+    ?scale: float option <ocaml valid="Validation.stat_scale">;
 }
 
 type stat = {
