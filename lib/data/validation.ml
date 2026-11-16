@@ -252,6 +252,9 @@ let validate_cooldown_per_level (x : float option) =
   Option.fold ~none:true ~some:(float_between 0. 0.1) x
 ;;
 
+(* A health share: above 0, at most 1 *)
+let share_if_some (x : float option) = Option.fold ~none:true ~some:(fun x -> x > 0. && x <= 1.) x
+
 let validate_max_level (x : int option) = Option.fold ~none:true ~some:(int_min 1) x
 
 (* A trigger effect does exactly one thing *)
