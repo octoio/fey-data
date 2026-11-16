@@ -159,7 +159,7 @@ let rec has_hit p (node : Skill_t.skill_action_node_internal) =
   | `Sequence n -> List.exists (has_hit p) n.children
   | `Parallel n -> List.exists (has_hit p) n.children
   | `Requirement n -> has_hit p n.child
-  | `Delay _ | `Animation _ | `Sound _ | `Status _ | `Summon _ | `Projectile _ | `Move _ | `Interrupt _ -> false
+  | `Delay _ | `Animation _ | `Sound _ | `Status _ | `Summon _ | `CallDrain _ | `Projectile _ | `Move _ | `Interrupt _ -> false
 ;;
 
 (* Whether a hit of the action tree revives *)

@@ -87,6 +87,7 @@ let extract_entity_reference_from_skill_entity
     | `Delay _ -> []
     | `Status { status_effect; _ } -> [ status_effect.status ]
     | `Summon { summon_entity; _ } -> [ summon_entity ]
+    | `CallDrain _ -> []
     | `Projectile { projectile; _ } -> [ projectile ]
     | `Move _ -> []
     | `Interrupt { on_interrupt; _ } ->
@@ -232,6 +233,7 @@ let extract_entity_reference_from_quest_action
   | `ActivatePortalToStage { anchor; destination; remains_of; _ } ->
     anchor :: destination :: Option.to_list remains_of
   | `StartEscalation { nest; spawn; _ } -> [ nest; spawn ]
+  | `StartDrains { anchor; spawn; _ } -> [ anchor; spawn ]
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ -> []
 ;;

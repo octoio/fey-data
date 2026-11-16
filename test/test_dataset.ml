@@ -389,6 +389,17 @@ let test_nest_and_escalation_name_their_references () =
              cap = 12;
              rewards = false
            }));
+  check int "drains name their anchor and what they pour" 2
+    (refs
+       (`StartDrains
+           { Data.Quest_t.action_type = `StartDrains;
+             anchor = reference `Anchor;
+             spawn = reference `Character;
+             batch = { min = 8; max = 12 };
+             batches = { min = 2; max = 3 };
+             gap = 20.;
+             cap = 30
+           }));
   check int "a spawn at remains names both characters" 2
     (refs
        (`SpawnAtRemains
