@@ -573,7 +573,8 @@ let minimal_stat =
     stat_type = `Vit;
     color = minimal_color;
     clamp = None;
-    conversions = None
+    conversions = None;
+    display = { format = `Flat; decimals = 0; unit = ""; lower_is_better = false; label = None }
   }
 ;;
 

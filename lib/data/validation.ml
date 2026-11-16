@@ -281,6 +281,9 @@ let validate_stat_clamp ({ min; max } : Stat_t.stat_clamp) =
   | _ -> true
 ;;
 
+(* The most decimals a stat shows *)
+let stat_decimals = int_between 0 4
+
 (* Only the four attributes convert into other stats *)
 let stat_attribute (stat : Stat_t.stat_type) =
   match stat with
