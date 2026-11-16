@@ -152,15 +152,22 @@ let validate_interrupt_node (n : Skill_t.skill_action_interrupt_node) =
   | Some _ -> false
 ;;
 
-(* Whether a hit of the action tree revives *)
-let rec has_revive_hit (node : Skill_t.skill_action_node_internal) =
+(* Whether a hit of the action tree satisfies [p] *)
+let rec has_hit p (node : Skill_t.skill_action_node_internal) =
   match node with
-  | `Hit n -> n.hit_effect.hit_type = `Revive
-  | `Sequence n -> List.exists has_revive_hit n.children
-  | `Parallel n -> List.exists has_revive_hit n.children
-  | `Requirement n -> has_revive_hit n.child
+  | `Hit n -> p n
+  | `Sequence n -> List.exists (has_hit p) n.children
+  | `Parallel n -> List.exists (has_hit p) n.children
+  | `Requirement n -> has_hit p n.child
   | `Delay _ | `Animation _ | `Sound _ | `Status _ | `Summon _ | `Projectile _ | `Move _ | `Interrupt _ -> false
 ;;
+
+(* Whether a hit of the action tree revives *)
+let has_revive_hit = has_hit (fun n -> n.hit_effect.hit_type = `Revive)
+
+(* A skill that strikes in its own tree (a direct hit, not a projectile's) is a swing: the client plays the
+   weapon's attack clip only for a skill with a [hit_delay], else a cast *)
+let is_strike (skill : Skill_t.skill) = has_hit (fun _ -> true) (`Requirement skill.execution_root)
 
 (* A skill that revives targets a dead ally and a skill that targets a dead ally revives: the target type names
    the corpse the revive hit stands up *)
