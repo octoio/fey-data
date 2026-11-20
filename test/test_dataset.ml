@@ -389,11 +389,12 @@ let test_nest_and_escalation_name_their_references () =
              cap = 12;
              rewards = false
            }));
-  check int "drains name their anchor and what they pour" 2
+  check int "drains name their anchor, their call-only anchor and what they pour" 3
     (refs
        (`StartDrains
            { Data.Quest_t.action_type = `StartDrains;
              anchor = reference `Anchor;
+             call_anchor = Some (reference `Anchor);
              spawn = reference `Character;
              batch = { min = 8; max = 12 };
              batches = { min = 2; max = 3 };

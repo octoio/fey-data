@@ -240,12 +240,15 @@ type quest_action_start_escalation = {
 (* The drains pour: every anchor [anchor] expands to (a template, [every]) is a drain of the stage. A living player within
    reach of a drain that still has batches wakes it; a second later it pours a batch of [batch] (min..max) [spawn]
    monsters, aimed at the party, and rests [gap] seconds before its next one. A drain has [batches] (min..max) batches,
-   then it is spent. No more than [cap] of the monsters it poured are alive at once (a drain at the cap waits). A skill
-   whose node is [CallDrain] makes the nearest unspent drain pour at once (fey-rs docs/systems/quests.md, "Drains"). The
-   drains end with the stage. *)
+   then it is spent. [cap] counts every living monster of the [spawn] kind on the stage, whoever poured it: a resting
+   drain does not wake while that many live, and nothing else is held back by it (a call ignores it). A skill whose node
+   is [CallDrain] makes the nearest unspent drain pour at once (fey-rs docs/systems/quests.md, "Drains"); the drains of
+   [call_anchor] (another template, [every]) wake for no passing player, only for a call, and a call opens the nearest
+   of them first, then the nearest of the others once those are spent. The drains end with the stage. *)
 type quest_action_start_drains = {
   action_type <json name="type">: quest_action_type;
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+  ?call_anchor: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Anchor">;
   spawn: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   batch: int_range <ocaml valid="Validation.int_range_between {min=1; max=100}">;
   batches: int_range <ocaml valid="Validation.int_range_between {min=1; max=100}">;
