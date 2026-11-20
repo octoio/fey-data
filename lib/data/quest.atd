@@ -165,6 +165,7 @@ type quest_action_type =
   | EnableQuestBoardQuest
   | StartEscalation
   | StartDrains
+  | StopDrains
   | SpawnAtRemains
   ]
 
@@ -244,7 +245,9 @@ type quest_action_start_escalation = {
    drain does not wake while that many live, and nothing else is held back by it (a call ignores it). A skill whose node
    is [CallDrain] makes the nearest unspent drain pour at once (fey-rs docs/systems/quests.md, "Drains"); the drains of
    [call_anchor] (another template, [every]) wake for no passing player, only for a call, and a call opens the nearest
-   of them first, then the nearest of the others once those are spent. The drains end with the stage. *)
+   of them first, then the nearest of the others once those are spent. The drains end with the stage.
+   [StopDrains] (no field) spends the batches of every drain a player wakes; a drain already rumbling pours that one batch;
+   the call-only drains keep theirs. *)
 type quest_action_start_drains = {
   action_type <json name="type">: quest_action_type;
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
@@ -276,6 +279,7 @@ type quest_action_internal =
   | EnableQuestBoardQuest of quest_action_enable_quest_board_quest
   | StartEscalation of quest_action_start_escalation
   | StartDrains of quest_action_start_drains
+  | StopDrains of quest_action
   | SpawnAtRemains of quest_action_spawn_at_remains
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 

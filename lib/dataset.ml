@@ -236,7 +236,7 @@ let extract_entity_reference_from_quest_action
   | `StartDrains { anchor; spawn; call_anchor; _ } ->
     anchor :: spawn :: Option.to_list call_anchor
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
-  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ -> []
+  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ | `StopDrains _ -> []
 ;;
 
 let rec extract_entity_reference_from_quest_node

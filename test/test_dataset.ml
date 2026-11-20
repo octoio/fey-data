@@ -401,6 +401,8 @@ let test_nest_and_escalation_name_their_references () =
              gap = 20.;
              cap = 30
            }));
+  check int "stopping the drains names nothing" 0
+    (refs (`StopDrains { Data.Quest_t.action_type = `StopDrains }));
   check int "a spawn at remains names both characters" 2
     (refs
        (`SpawnAtRemains
