@@ -136,9 +136,10 @@ type skill_action_summon_node = {
   ?controlled: bool option;
 } <ocaml valid="Validation.validate_summon_control">
 
-(* The nearest drain of the stage that still has batches (a [StartDrains] quest action made them) pours one at once,
-   wherever the caster stands. Nothing happens when every drain is spent or the stage has none. The monsters are the
-   stage's, not the caster's: they do not vanish with it. *)
+(* The nearest drain within 24 units of the caster that is not spent (a [StartDrains] quest action made them; the
+   drains of its [call_anchor] are never spent) pours one batch at once, those first. Nothing happens when every drain in
+   reach is spent, when the swarm is at the quest's cap, or when the stage has none. The monsters are the stage's, not
+   the caster's: they do not vanish with it. *)
 type skill_action_call_drain_node = {
   skill_action_node_type <json name="type">: skill_action_node_type;
   name: string;
