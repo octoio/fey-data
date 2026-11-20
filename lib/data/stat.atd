@@ -42,6 +42,29 @@ type stat_conversion = {
     per_point: float;
 }
 
+(* How a stat's number reads: Flat is the number, Percent a share stored as 0.125 and shown 12.5%,
+   Change a factor round 1.0 shown as the change from normal (1.08 is +8%, 0.7 is -30%) *)
+type stat_format =
+    [ Flat
+    | Percent
+    | Change
+    ]
+
+(* The display rule of a stat, read by every screen that writes the stat *)
+type stat_display = {
+    format: stat_format;
+    (* the most decimals shown; trailing zeros are dropped *)
+    decimals: int <ocaml valid="Validation.stat_decimals">;
+    (* text after the number (per second, metres per second), empty for most *)
+    unit: string;
+    (* true where less is good (damage taken): comparisons and colours point the other way *)
+    lower_is_better: bool;
+    (* a short name for lines where the title is too long; absent = the title *)
+    ?label: string option;
+    (* the value is multiplied by this before it is formatted (movement speed counts in 3 metres per second); absent = 1 *)
+    ?scale: float option <ocaml valid="Validation.stat_scale">;
+}
+
 type stat = {
     metadata: metadata;
     stat_type <json name="type">: stat_type;
@@ -50,6 +73,7 @@ type stat = {
     ?clamp: stat_clamp option;
     (* what the attributes (Vit, Str, Int, Dex) add to this stat; absent = nothing *)
     ?conversions: stat_conversion list option;
+    display: stat_display;
 }
 
 
