@@ -763,6 +763,14 @@ module MoveNodeValidationTests = struct
     check bool "two" true (validate_charges (Some 2));
     check bool "zero" false (validate_charges (Some 0))
   ;;
+
+  let test_share_if_some () =
+    check bool "absent" true (share_if_some None);
+    check bool "half" true (share_if_some (Some 0.5));
+    check bool "the whole health" true (share_if_some (Some 1.));
+    check bool "zero" false (share_if_some (Some 0.));
+    check bool "above one" false (share_if_some (Some 1.5))
+  ;;
 end
 
 module InterruptNodeValidationTests = struct
@@ -1025,7 +1033,8 @@ let presentation_validation_tests =
 
 let move_node_validation_tests =
   [ "validate_move_node", `Quick, MoveNodeValidationTests.test_validate_move_node;
-    "validate_charges", `Quick, MoveNodeValidationTests.test_validate_charges
+    "validate_charges", `Quick, MoveNodeValidationTests.test_validate_charges;
+    "share_if_some", `Quick, MoveNodeValidationTests.test_share_if_some
   ]
 ;;
 

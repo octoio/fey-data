@@ -251,6 +251,9 @@ type skill = {
   ?interruptible: bool option;
   (* the caster must carry this status to cast the skill (a lunge that only follows a dive) *)
   ?needs_status: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Status">;
+  (* the caster may cast the skill only while its health is below this share of its maximum, in (0, 1] (a boss's
+     last-stand cast; with a cooldown longer than the fight it is cast once, the first time the health is under it) *)
+  ?needs_health_below: float option <ocaml valid="Validation.share_if_some">;
   (* charges the cooldown refills one at a time; absent = 1. A cast spends one charge, so a skill with 2 charges can
      be cast twice in a row and then every [cooldown] seconds *)
   ?charges: int option <ocaml valid="Validation.validate_charges">;

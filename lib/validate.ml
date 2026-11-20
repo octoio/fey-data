@@ -658,6 +658,33 @@ let weapon_class_error_messages definitions =
     categories
 ;;
 
+(* A weapon's basic attack that strikes in its own tree (a melee weapon: a bow, a wand and a staff launch a
+   projectile) has a swing timing, else the client plays a cast instead of the swing (#398) *)
+let basic_attack_swing_error_messages definitions =
+  let skills =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Skill { id; entity; _ } -> Some (id, entity)
+        | _ -> None)
+      definitions
+  in
+  List.filter_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Weapon { key; entity = { basic_attack = Some attack; _ }; _ } ->
+        (match List.assoc_opt attack.id skills with
+         | Some skill when Data.Validation.is_strike skill && skill.hit_delay = None ->
+           Some
+             (Printf.sprintf
+                "Weapon %s: its basic attack %s strikes but has no hit_delay, so the client would cast instead of swinging"
+                key
+                attack.key)
+         | _ -> None)
+      | _ -> None)
+    definitions
+;;
+
 (* Map generation (docs/design/mapgen.md): a stage with a generator spec must be generatable. The spec is
    feasible (the static checks of the Rust generator), every anchor of the stage is bound to a generated slot
    with contiguous ordinals, and every quest played on the stage finds its anchors and its rooms in the spec.
@@ -958,6 +985,7 @@ let validate_entity_definitions dataset =
   let drop_table_errors = drop_table_error_messages (take_definitions dataset) in
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
+  let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let errors =
@@ -977,6 +1005,7 @@ let validate_entity_definitions dataset =
        @ drop_table_errors
        @ tier_errors
        @ weapon_class_errors
+       @ basic_attack_swing_errors
        @ generator_errors
        @ run_ending_errors)
   in
