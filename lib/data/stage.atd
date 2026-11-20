@@ -67,11 +67,15 @@ type stage_prop = {
 
 (* Which ground a ground zone is. Water is walkable but slows everyone inside it to 60% speed (unless the character
    swims); Dry is the ground on an island; Boardwalk is the ground under a boardwalk, walked exactly like Dry but
-   with its own look and footstep sound. *)
+   with its own look and footstep sound. Road (a packed dirt road or yard), Tilled (a ploughed field) and Mud
+   (trampled mud) are walked exactly like Dry too: they only change how the ground is painted and how it sounds. *)
 type ground_kind =
   [ Water
   | Dry
   | Boardwalk
+  | Road
+  | Tilled
+  | Mud
   ]
 
 (* A patch of ground, in stage coordinates: a circle ([radius]) or an oriented box ([half_x], [half_z], turned by [yaw]
