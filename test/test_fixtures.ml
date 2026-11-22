@@ -463,6 +463,7 @@ let minimal_character =
   { Data.Character_t.metadata = minimal_metadata;
     character_type = `Adventurer;
     variant = None;
+    body_radius = None;
     faction = None;
     pivot_offset = minimal_vector3;
     vision_range = 1.0;

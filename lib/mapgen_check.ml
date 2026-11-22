@@ -202,6 +202,7 @@ let slot_order : anchor_slot -> int = function
   | `Lever -> 13
   | `GatePack -> 14
   | `ChestGuard -> 15
+  | `CallSpawn -> 16
 ;;
 
 type slot_demand =
@@ -293,7 +294,8 @@ let role_of_slot : anchor_slot -> room_role option = function
   | `Marker
   | `Healing
   | `Lever
-  | `GatePack -> None
+  | `GatePack
+  | `CallSpawn -> None
 ;;
 
 let new_requirement role n size : room_requirement =

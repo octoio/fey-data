@@ -45,6 +45,8 @@ type anchor_slot =
   | GatePack
   (* in the room of a chest: where the monsters that guard it appear, round the chest (the room's pack area) *)
   | ChestGuard
+  (* in a room that holds a drain only a call opens (the Rat King's heap): the quest's [call_anchor] drains, no room is asked for *)
+  | CallSpawn
   ]
 
 (* The theme turns it into units *)
