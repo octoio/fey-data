@@ -288,16 +288,19 @@ let quest_completability_error_messages definitions =
         | _ -> None)
       definitions
   in
-  let spawn_counts (spawn : Data.Spawn_t.spawn) =
-    match List.assoc_opt spawn.character character_type_by_reference with
+  let counts_at character anchor count =
+    match List.assoc_opt character character_type_by_reference with
     (* a missing character definition is reported by the generic reference check *)
     | None -> []
-    | Some _ when List.mem spawn.anchor guard_anchors -> []
+    | Some _ when List.mem anchor guard_anchors -> []
     | Some character_type ->
       let anchors =
-        Option.value (List.assoc_opt spawn.anchor min_anchors_by_reference) ~default:1
+        Option.value (List.assoc_opt anchor min_anchors_by_reference) ~default:1
       in
-      [ character_type, spawn.spawn_count * anchors ]
+      [ character_type, count * anchors ]
+  in
+  let spawn_counts (spawn : Data.Spawn_t.spawn) =
+    counts_at spawn.character spawn.anchor spawn.spawn_count
   in
   let action_spawn_counts (action : Data.Quest_t.quest_action_internal) =
     match action with
@@ -307,6 +310,9 @@ let quest_completability_error_messages definitions =
         (fun (step : Data.Spawn_t.spawn_sequence_step) ->
           List.concat_map spawn_counts step.spawns)
         spawn_sequence.steps
+    (* the least a drain pours: its fewest batches of the smallest size *)
+    | `StartDrains { spawn; anchor; batch; batches; _ } ->
+      counts_at spawn anchor (batch.min * batches.min)
     | _ -> []
   in
   let rec subtree_spawns (node : Data.Quest_t.quest_node_internal) =

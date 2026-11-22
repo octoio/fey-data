@@ -1474,6 +1474,26 @@ let nest_validation_tests =
   [ "generated nest", `Quick, NestValidationTests.test_generated_nest ]
 ;;
 
+module BodyRadiusValidationTests = struct
+  (* The minimal character is not a valid entity on its own (placeholder references): the radius counts only
+     when it changes what the validator says about it. *)
+  let verdict body_radius =
+    Data.Character_v.validate_character [] { Test_fixtures.minimal_character with body_radius }
+  ;;
+
+  let test_body_radius () =
+    let baseline = verdict None in
+    check bool "a rat's body adds nothing" true (verdict (Some 0.6) = baseline);
+    check bool "the least adds nothing" true (verdict (Some 0.1) = baseline);
+    check bool "a point is refused" true (verdict (Some 0.05) <> baseline);
+    check bool "negative is refused" true (verdict (Some (-0.6)) <> baseline)
+  ;;
+end
+
+let body_radius_validation_tests =
+  [ "body_radius", `Quick, BodyRadiusValidationTests.test_body_radius ]
+;;
+
 module MerchantOutfitTests = struct
   let merchant outfit = Test_fixtures.minimal_anchor_merchant outfit
   let valid outfit = Data.Anchor_v.validate_anchor_merchant [] (merchant outfit) = None
@@ -1819,6 +1839,45 @@ module StatRulesTests = struct
     check bool "both open" true (validate_stat_clamp (clamp None None))
   ;;
 
+  let test_display_decimals () =
+    check bool "0 decimals" true (stat_decimals 0);
+    check bool "4 decimals" true (stat_decimals 4);
+    check bool "negative decimals" false (stat_decimals (-1));
+    check bool "too many decimals" false (stat_decimals 5)
+  ;;
+
+  let test_display_scale () =
+    check bool "absent" true (stat_scale None);
+    check bool "positive" true (stat_scale (Some 3.));
+    check bool "zero" false (stat_scale (Some 0.));
+    check bool "negative" false (stat_scale (Some (-1.)))
+  ;;
+
+  let stat_json display =
+    Printf.sprintf
+      {|{"metadata":{"title":"T","description":""},"color":{"r":0.5,"g":0.5,"b":0.5,"a":1.0},"type":"Vit"%s}|}
+      display
+  ;;
+
+  let test_display_round_trips () =
+    let parsed =
+      Data.Stat_j.stat_of_string
+        (stat_json
+           {|,"display":{"format":"Change","decimals":0,"unit":"","lower_is_better":true,"label":"Damage taken"}|})
+    in
+    check bool "format" true (parsed.display.format = `Change);
+    check bool "lower is better" true parsed.display.lower_is_better;
+    check bool "label" true (parsed.display.label = Some "Damage taken");
+    check bool "round trip" true (Data.Stat_j.stat_of_string (Data.Stat_j.string_of_stat parsed) = parsed)
+  ;;
+
+  let test_stat_without_display_is_rejected () =
+    check bool "rejected" true
+      (match Data.Stat_j.stat_of_string (stat_json "") with
+       | _ -> false
+       | exception _ -> true)
+  ;;
+
   let test_conversion_attribute () =
     List.iter (fun a -> check bool "attribute" true (stat_attribute a)) [ `Vit; `Str; `Int; `Dex ];
     List.iter (fun a -> check bool "not an attribute" false (stat_attribute a)) [ `Armor; `Health ]
@@ -1827,6 +1886,10 @@ end
 
 let stat_rules_tests =
   [ ("clamp bounds", `Quick, StatRulesTests.test_clamp_bounds);
+    ("display decimals", `Quick, StatRulesTests.test_display_decimals);
+    ("display scale", `Quick, StatRulesTests.test_display_scale);
+    ("display round trips", `Quick, StatRulesTests.test_display_round_trips);
+    ("stat without display is rejected", `Quick, StatRulesTests.test_stat_without_display_is_rejected);
     ("conversion attribute", `Quick, StatRulesTests.test_conversion_attribute)
   ]
 ;;
@@ -1856,6 +1919,7 @@ let () =
       ("Cone And Burst Validation", cone_and_burst_validation_tests);
       ("Nest Validation", nest_validation_tests);
       ("Level Growth Validation", level_growth_validation_tests);
+      ("Body Radius Validation", body_radius_validation_tests);
       ("Drop Validation", drop_validation_tests);
       ("Merchant Outfit Validation", merchant_outfit_tests);
       ("Chest Validation", chest_tests);

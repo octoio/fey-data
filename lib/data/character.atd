@@ -79,6 +79,9 @@ type character =
   { metadata: metadata;
     character_type <json name="type">: character_type;
     ?variant: character_variant option;
+    (* The collision radius in units when the body is not the type's base radius times [variant.scale.x] (a slender
+       creature drawn large: the Plague Rat is drawn at 1.5 and bodies as a 0.6 rat). Absent = base times scale. *)
+    ?body_radius: float option <ocaml valid="Validation.float_min_if_some 0.1">;
     (* The side the character fights for; absent = Neutral (attacked by nobody, attacks nobody) *)
     ?faction: faction option;
     pivot_offset: vector3;

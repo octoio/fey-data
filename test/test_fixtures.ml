@@ -463,6 +463,7 @@ let minimal_character =
   { Data.Character_t.metadata = minimal_metadata;
     character_type = `Adventurer;
     variant = None;
+    body_radius = None;
     faction = None;
     pivot_offset = minimal_vector3;
     vision_range = 1.0;
@@ -574,7 +575,8 @@ let minimal_stat =
     stat_type = `Vit;
     color = minimal_color;
     clamp = None;
-    conversions = None
+    conversions = None;
+    display = { format = `Flat; decimals = 0; unit = ""; lower_is_better = false; label = None; scale = None }
   }
 ;;
 

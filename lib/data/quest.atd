@@ -1,5 +1,6 @@
 type metadata <ocaml from="Common"> = abstract
 type color <ocaml from="Common"> = abstract
+type int_range <ocaml from="Common"> = abstract
 type entity_reference <ocaml from="Common"> = abstract
 type character_type <ocaml from="Character"> = abstract
 type achievement_type <ocaml from="Achievement"> = abstract
@@ -163,6 +164,8 @@ type quest_action_type =
   | Message
   | EnableQuestBoardQuest
   | StartEscalation
+  | StartDrains
+  | StopDrains
   | SpawnAtRemains
   ]
 
@@ -235,6 +238,27 @@ type quest_action_start_escalation = {
   rewards: bool;
 }
 
+(* The drains pour: every anchor [anchor] expands to (a template, [every]) is a drain of the stage. A living player within
+   reach of a drain that still has batches wakes it; a second later it pours a batch of [batch] (min..max) [spawn]
+   monsters, aimed at the party, and rests [gap] seconds before its next one. A drain has [batches] (min..max) batches,
+   then it is spent. [cap] counts every living monster of the [spawn] kind on the stage, whoever poured it: a resting
+   drain does not wake while that many live, and a call pours nothing then. A skill whose node is [CallDrain] makes the
+   nearest unspent drain within 24 units of the caster pour at once (fey-rs docs/systems/quests.md, "Drains"); the drains of
+   [call_anchor] (another template, [every]) wake for no passing player, only for a call, and a call opens the nearest
+   of them first, then the nearest of the others once those are spent. A call-only drain is never spent. The drains end with the stage.
+   [StopDrains] (no field) spends the batches of every drain a player wakes; a drain already rumbling pours that one batch;
+   the call-only drains are not touched. *)
+type quest_action_start_drains = {
+  action_type <json name="type">: quest_action_type;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+  ?call_anchor: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Anchor">;
+  spawn: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  batch: int_range <ocaml valid="Validation.int_range_between {min=1; max=100}">;
+  batches: int_range <ocaml valid="Validation.int_range_between {min=1; max=100}">;
+  gap: float <ocaml valid="Validation.float_min 1.">;
+  cap: int <ocaml valid="Validation.int_min 1">;
+}
+
 (* [character] rises where the latest dead [remains_of] character fell (its body is still on the stage) *)
 type quest_action_spawn_at_remains = {
   action_type <json name="type">: quest_action_type;
@@ -254,6 +278,8 @@ type quest_action_internal =
   | Message of quest_action_message
   | EnableQuestBoardQuest of quest_action_enable_quest_board_quest
   | StartEscalation of quest_action_start_escalation
+  | StartDrains of quest_action_start_drains
+  | StopDrains of quest_action
   | SpawnAtRemains of quest_action_spawn_at_remains
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 

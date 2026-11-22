@@ -389,6 +389,20 @@ let test_nest_and_escalation_name_their_references () =
              cap = 12;
              rewards = false
            }));
+  check int "drains name their anchor, their call-only anchor and what they pour" 3
+    (refs
+       (`StartDrains
+           { Data.Quest_t.action_type = `StartDrains;
+             anchor = reference `Anchor;
+             call_anchor = Some (reference `Anchor);
+             spawn = reference `Character;
+             batch = { min = 8; max = 12 };
+             batches = { min = 2; max = 3 };
+             gap = 20.;
+             cap = 30
+           }));
+  check int "stopping the drains names nothing" 0
+    (refs (`StopDrains { Data.Quest_t.action_type = `StopDrains }));
   check int "a spawn at remains names both characters" 2
     (refs
        (`SpawnAtRemains
@@ -1343,6 +1357,43 @@ let test_kill_objective_amount_exceeding_spawns_is_not_completable () =
     (List.length (completability_errors (completability_dataset root)))
 ;;
 
+(* The drains of a quest pour at least their fewest batches of the smallest size: a kill objective may lean on that and no more *)
+let drains_action_node id =
+  { Data.Quest_t.node_type = `Action;
+    id;
+    name = "drains";
+    action =
+      `StartDrains
+        { Data.Quest_t.action_type = `StartDrains;
+          anchor = minimal_spawn_anchor_reference;
+          call_anchor = None;
+          spawn = minimal_character_reference;
+          batch = { min = 4; max = 6 };
+          batches = { min = 2; max = 3 };
+          gap = 20.;
+          cap = 30
+        }
+  }
+;;
+
+let test_a_kill_objective_may_lean_on_the_least_the_drains_pour () =
+  let kills amount =
+    sequence_node
+      0
+      [ `Action (drains_action_node 1); `Objective (kill_objective_node ~amount 2) ]
+  in
+  check
+    int
+    "the fewest batches of the smallest size (2 of 4) are enough"
+    0
+    (List.length (completability_errors (completability_dataset (kills 8))));
+  check
+    int
+    "one more kill than the drains are sure to pour is an error"
+    1
+    (List.length (completability_errors (completability_dataset (kills 9))))
+;;
+
 (* A spawn at an anchor template (bound with every and a min_count) runs once per anchor, at least min_count times *)
 let template_spawn_dataset ~min_count root =
   let template : Data.Entity_t.entity_definition_internal =
@@ -1724,6 +1775,10 @@ let dataset_tests =
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
     test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
+    test_case
+      "A kill objective may lean on the least the drains pour"
+      `Quick
+      test_a_kill_objective_may_lean_on_the_least_the_drains_pour;
     test_case
       "Kill amount exceeding spawns is not completable"
       `Quick

@@ -61,6 +61,7 @@ type skill_action_node_type =
   | Hit
   | Status
   | Summon
+  | CallDrain
   | Requirement
   | Projectile
   | Move
@@ -135,6 +136,15 @@ type skill_action_summon_node = {
   ?controlled: bool option;
 } <ocaml valid="Validation.validate_summon_control">
 
+(* The nearest drain within 24 units of the caster that is not spent (a [StartDrains] quest action made them; the
+   drains of its [call_anchor] are never spent) pours one batch at once, those first. Nothing happens when every drain in
+   reach is spent, when the swarm is at the quest's cap, or when the stage has none. The monsters are the stage's, not
+   the caster's: they do not vanish with it. *)
+type skill_action_call_drain_node = {
+  skill_action_node_type <json name="type">: skill_action_node_type;
+  name: string;
+}
+
 type skill_action_requirement_node = {
   skill_action_node_type <json name="type">: skill_action_node_type;
   name: string;
@@ -191,6 +201,7 @@ type skill_action_node_internal =
   | Hit of skill_action_hit_effect_node
   | Status of skill_action_status_effect_node
   | Summon of skill_action_summon_node
+  | CallDrain of skill_action_call_drain_node
   | Requirement of skill_action_requirement_node
   | Projectile of skill_action_projectile_node
   | Move of skill_action_move_node
