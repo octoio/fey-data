@@ -477,7 +477,8 @@ module SpawnSequenceValidationTests = struct
         [ { Data.Spawn_t.spawn_count = 1;
             character = make_entity_reference ~entity_type:`Character ();
             anchor = make_entity_reference ~entity_type:`Anchor ();
-            target_adventurer_on_spawn = false
+            target_adventurer_on_spawn = false;
+            assault = None
           }
         ]
     }
@@ -508,8 +509,24 @@ module SpawnSequenceValidationTests = struct
   ;;
 end
 
+let test_a_spawn_cannot_assault_and_target_the_adventurers () =
+  let spawn adventurer assault =
+    { Data.Spawn_t.spawn_count = 1;
+      character = make_entity_reference ~entity_type:`Character ();
+      anchor = make_entity_reference ~entity_type:`Anchor ();
+      target_adventurer_on_spawn = adventurer;
+      assault
+    }
+  in
+  let doors = Some (make_entity_reference ~entity_type:`Character ()) in
+  check bool "no order, no flag" true (validate_spawn (spawn false None));
+  check bool "the flag alone" true (validate_spawn (spawn true None));
+  check bool "an order alone" true (validate_spawn (spawn false doors));
+  check bool "an order and the flag together are invalid" false (validate_spawn (spawn true doors))
+;;
+
 let spawn_sequence_validation_tests =
-  [ ( "validate_spawn_sequence_steps",
+  [ ("validate_spawn assault", `Quick, test_a_spawn_cannot_assault_and_target_the_adventurers); ( "validate_spawn_sequence_steps",
       `Quick,
       SpawnSequenceValidationTests.test_validate_spawn_sequence_steps )
   ]

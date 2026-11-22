@@ -17,13 +17,17 @@ type character_type =
 
 (* Whom a character sides with. Factions are separate from the controller: who steers a character (an AI brain or
    any client) can change at runtime, its faction does not. Whether two factions fight is a relation between them
-   (hostile, neutral or friendly), decided by the game rules, not per character. Players are Adventurers. *)
+   (hostile, neutral or friendly), decided by the game rules, not per character. Players are Adventurers. Folk is
+   what the party protects (the barn doors): friendly to the Adventurers, hostile to the monster factions, never
+   chosen by a monster except on an order (the spawn's [assault]), and not part of the party (fey-rs
+   docs/systems/factions.md). *)
 type faction =
   [ Adventurers
   | Wilds
   | Slimes
   | Crypt
   | Neutral
+  | Folk
   ]
 
 (* How dangerous a monster is: scales the rarity of its drops and unlocks gated drops (see drop.atd) *)
@@ -119,6 +123,10 @@ type character =
     ?lurks: bool option;
     (* Present: the character is a breeding nest, see [nest] *)
     ?nest: nest option;
+    (* true: the character is a structure: it has no brain, never moves (placed exactly on its anchor, not pushed, pulled
+       or charged) and takes no status; it only stands and takes damage. It shows a name and a health plate, no level.
+       Absent = false. A plain flag, not a record like [nest]: it needs no field of its own (as [swims] and [lurks]). *)
+    ?structure: bool option;
     (* Player characters: the equipment and weapons a new character starts with (equipped on creation);
        absent = nothing *)
     ?starting_equipment: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Equipment">;

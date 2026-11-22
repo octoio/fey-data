@@ -142,9 +142,9 @@ let interact_error_messages definitions =
     match node with
     | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
       List.concat_map interact_anchors children
-    | `Timer { child; _ } -> interact_anchors child
+    | `Timer { child; _ } | `Protect { child; _ } -> interact_anchors child
     | `Objective { condition = `Channel { anchors; _ }; _ } -> anchors
-    | `Objective _ | `Action _ -> []
+    | `Objective _ | `Action _ | `Wait _ -> []
   in
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
@@ -321,8 +321,8 @@ let quest_completability_error_messages definitions =
     | `Sequence { children; _ } -> List.concat_map subtree_spawns children
     | `Parallel { children; _ } -> List.concat_map subtree_spawns children
     | `Any { children; _ } -> List.concat_map subtree_spawns children
-    | `Timer { child; _ } -> subtree_spawns child
-    | `Objective _ -> []
+    | `Timer { child; _ } | `Protect { child; _ } -> subtree_spawns child
+    | `Objective _ | `Wait _ -> []
   in
   let available_count character_types available =
     List.fold_left
@@ -333,7 +333,7 @@ let quest_completability_error_messages definitions =
   in
   let rec walk quest_reference (node : Data.Quest_t.quest_node_internal) available =
     match node with
-    | `Action _ -> []
+    | `Action _ | `Wait _ -> []
     | `Objective { condition; name; id; _ } ->
       (match condition with
        | `KillSpecific { Data.Quest_t.character_types; amount; _ } ->
@@ -369,7 +369,7 @@ let quest_completability_error_messages definitions =
     | `Any { children; _ } ->
       let concurrent = available @ List.concat_map subtree_spawns children in
       List.concat_map (fun child -> walk quest_reference child concurrent) children
-    | `Timer { child; _ } ->
+    | `Timer { child; _ } | `Protect { child; _ } ->
       walk quest_reference child (available @ subtree_spawns child)
   in
   List.concat_map

@@ -493,6 +493,35 @@ let test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest ()
   check int "a character names the pool of its next personal quests" (n minimal_character_entity_definition + 2) (n with_pool)
 ;;
 
+let test_protect_wait_and_call_round_trip_and_name_their_references () =
+  let anchor = {|{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}|} in
+  let character = {|{"owner":"ownr","type":"Character","key":"C","version":1,"id":"ownr:Character:C:1"}|} in
+  let json =
+    Printf.sprintf
+      {|{"type":"Protect","id":1,"name":"p","title":"Hold","character":%s,"child":{"type":"Sequence","id":2,"name":"s","children":[{"type":"Wait","id":3,"name":"w","duration":5.0},{"type":"Action","id":4,"name":"c","action":{"type":"Call","anchors":[%s],"message":"Boars on the road!"}}]}}|}
+      character
+      anchor
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string json in
+  (match node with
+   | `Protect { child = `Sequence { children = [ `Wait { duration = 5.0; _ }; `Action { action = `Call { anchors = [ _ ]; _ }; _ } ]; _ }; _ } -> ()
+   | _ -> Alcotest.fail "expected a Protect over a Wait and a Call");
+  check
+    bool
+    "serializing and parsing again gives the same node"
+    true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a protect node names the protected character, a call its anchors" 2
+    (List.length (Dataset.extract_entity_reference_from_quest_node node))
+;;
+
+let test_an_assaulting_spawn_names_the_assaulted_character () =
+  let reference = { minimal_entity_reference with Data.Common_t.entity_type = `Character } in
+  let n s = List.length (Dataset.extract_entity_reference_from_spawn s) in
+  check int "an order names its target too" (n minimal_spawn + 1)
+    (n { minimal_spawn with Data.Spawn_t.assault = Some reference })
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1724,6 +1753,14 @@ let dataset_tests =
       "Personal quest names its weapon pool"
       `Quick
       test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest;
+    test_case
+      "Protect, Wait and Call round trip and name their references"
+      `Quick
+      test_protect_wait_and_call_round_trip_and_name_their_references;
+    test_case
+      "An assaulting spawn names the assaulted character"
+      `Quick
+      test_an_assaulting_spawn_names_the_assaulted_character;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick
