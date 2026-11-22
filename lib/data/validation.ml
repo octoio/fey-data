@@ -178,6 +178,9 @@ let validate_skill (skill : Skill_t.skill) =
   has_revive_hit (`Requirement skill.execution_root) = (skill.target_type = `DeadAlly)
 ;;
 
+(* A health share: above 0, at most 1 *)
+let share_if_some (x : float option) = Option.fold ~none:true ~some:(fun x -> x > 0. && x <= 1.) x
+
 (* An execute bonus: below a fraction of the health in (0, 1], a factor of at least 1 *)
 let validate_execute_bonus (b : Effect_t.execute_bonus) = b.below > 0. && b.below <= 1. && b.factor >= 1.
 
@@ -190,6 +193,7 @@ let validate_hit_effect (effect : Effect_t.hit_effect) =
     && effect.knockback = None
     && effect.pull = None
     && effect.mana_on_hit = None
+    && effect.structure_share = None
   in
   match effect.hit_type with
   | `Revive ->
@@ -204,6 +208,7 @@ let validate_hit_effect (effect : Effect_t.hit_effect) =
     positive effect.knockback
     && positive effect.pull
     && positive effect.mana_on_hit
+    && share_if_some effect.structure_share
     && (effect.knockback = None || effect.pull = None)
   | `Heal -> damage_only
   | `Threat | `Mana -> effect.school = None && damage_only
@@ -255,8 +260,6 @@ let validate_cooldown_per_level (x : float option) =
   Option.fold ~none:true ~some:(float_between 0. 0.1) x
 ;;
 
-(* A health share: above 0, at most 1 *)
-let share_if_some (x : float option) = Option.fold ~none:true ~some:(fun x -> x > 0. && x <= 1.) x
 
 let validate_max_level (x : int option) = Option.fold ~none:true ~some:(int_min 1) x
 

@@ -1194,6 +1194,7 @@ module ReviveHitValidationTests = struct
     ?knockback
     ?pull
     ?mana_on_hit
+    ?structure_share
     scalers
     : Data.Effect_t.hit_effect
     =
@@ -1208,7 +1209,8 @@ module ReviveHitValidationTests = struct
       execute;
       knockback;
       pull;
-      mana_on_hit
+      mana_on_hit;
+      structure_share
     }
   ;;
 
@@ -1286,6 +1288,20 @@ module ReviveHitValidationTests = struct
       (validate_hit_effect (effect ~hit_type:`Heal ~target:`Ally ~mana_on_hit:1. [ scaler 5. ]))
   ;;
 
+  let test_structure_share () =
+    let damage = effect ~hit_type:`Damage ~target:`Enemy in
+    check bool "a share of a structure" true
+      (validate_hit_effect (damage ~structure_share:0.25 [ scaler 5. ]));
+    check bool "the whole of it" true
+      (validate_hit_effect (damage ~structure_share:1. [ scaler 5. ]));
+    check bool "no share" false
+      (validate_hit_effect (damage ~structure_share:0. [ scaler 5. ]));
+    check bool "more than all" false
+      (validate_hit_effect (damage ~structure_share:1.5 [ scaler 5. ]));
+    check bool "a share on a heal" false
+      (validate_hit_effect (effect ~hit_type:`Heal ~target:`Ally ~structure_share:0.5 [ scaler 5. ]))
+  ;;
+
   let test_pull () =
     let damage = effect ~hit_type:`Damage ~target:`Enemy in
     check bool "a pull on a damage hit" true
@@ -1353,6 +1369,7 @@ let revive_hit_validation_tests =
     "execute and knockback", `Quick, ReviveHitValidationTests.test_execute_and_knockback;
     "pull", `Quick, ReviveHitValidationTests.test_pull;
     "mana on hit", `Quick, ReviveHitValidationTests.test_mana_on_hit;
+    "structure share", `Quick, ReviveHitValidationTests.test_structure_share;
     "validate_execute_bonus", `Quick, ReviveHitValidationTests.test_validate_execute_bonus;
     "validate_skill", `Quick, ReviveHitValidationTests.test_validate_skill
   ]
@@ -1708,7 +1725,8 @@ module TriggerValidationTests = struct
       execute = None;
       knockback = None;
       pull = None;
-      mana_on_hit = None
+      mana_on_hit = None;
+      structure_share = None
     }
   ;;
 

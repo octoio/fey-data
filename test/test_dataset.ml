@@ -1182,7 +1182,8 @@ let strike_skill_definition key ~strikes ~hit_delay =
               execute = None;
               knockback = None;
               pull = None;
-              mana_on_hit = None
+              mana_on_hit = None;
+              structure_share = None
             }
         }
     else
