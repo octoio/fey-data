@@ -68,6 +68,14 @@ let check_schema_coverage modules =
     exit 1
 ;;
 
+(* Last, once validation, coverage and the index passed: the json folder's stamp *)
+let write_data_stamp () =
+  Gamedata.Io.write_file
+    Config.Constants.data_stamp_file
+    (Gamedata.Data_stamp.of_directory Config.Constants.json_folder ^ "\n");
+  Gamedata.Io.print_success "Data stamp written."
+;;
+
 let generate_rust_types modules =
   Gamedata.Io.print_info "Generating Rust files...";
   Rust.Main.generate_rust modules
@@ -89,5 +97,6 @@ let () =
     check_schema_coverage modules;
     write_entity_index dataset;
     generate_rust_types modules;
+    write_data_stamp ();
     Gamedata.Io.print_success "Process completed successfully."
 ;;

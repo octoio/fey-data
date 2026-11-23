@@ -45,3 +45,7 @@ let json_sub_folder = "/json"
 let coverage_allowlist_file =
   read_config_value "coverage_allowlist_path" "coverage-allowlist.txt"
 ;;
+
+(* What `gamedata` ran against: the stamp of the json folder, written beside the index (see data_stamp.ml) *)
+let data_stamp_file = read_config_value "data_stamp_path" "../fey-rs/data/data-stamp.txt"
+;;

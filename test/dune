@@ -64,3 +64,8 @@
  (name test_portrait)
  (modules test_portrait)
  (libraries gamedata gamedata.data alcotest str))
+
+(test
+ (name test_stamp)
+ (modules test_stamp)
+ (libraries gamedata alcotest unix))
