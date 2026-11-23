@@ -227,7 +227,7 @@ type light_look =
   | Lamplit
   ]
 
-(* The light of the stage goes to the look [look] over [seconds] (0 = at once), from the look it is at now. The look is
+(* The light of the stage goes to the look [look] over [seconds] (0 = at once), from the look it is at (or was going to) when the action runs. The look is
    state of the stage like an open gate: a player who joins later sees the light the stage is at. *)
 type quest_action_set_light = {
   action_type <json name="type">: quest_action_type;
