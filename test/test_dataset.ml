@@ -1228,16 +1228,13 @@ let beam_definition key range =
              { Data.Projectile_t.metadata = minimal_metadata;
                projectile_type = `Beam;
                model = minimal_projectile_model;
-               lifetime = 3.0;
                spawn_offset = minimal_vector3;
                max_hit_count = 1;
                on_impact = [];
                on_end = [];
                vfx = None;
                range;
-               width = 0.8;
-               tick_interval = 0.5;
-               rotation_speed = 90.0
+               width = 0.8
              }
        }
         : Data.Entity_t.projectile_entity_definition) )
@@ -1292,6 +1289,9 @@ let channel_errors defs =
         || Base.String.is_substring
              (Atdgen_runtime.Util.Validation.string_of_error e)
              ~substring:"cast distance"
+        || Base.String.is_substring
+             (Atdgen_runtime.Util.Validation.string_of_error e)
+             ~substring:"Beam is pulsed"
       | None -> false)
     validated.errors
 ;;
@@ -1300,6 +1300,7 @@ let test_channel_pulses_through_one_beam_of_its_range () =
   let count defs = List.length (channel_errors defs) in
   check int "a channel and a beam of its range" 0
     (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:10. ]);
+  check int "a beam no channel uses" 1 (count [ beam_definition "Ray" 10. ]);
   check int "a cast distance that is not the range" 1
     (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:8. ]);
   check int "a projectile that is not a beam" 1

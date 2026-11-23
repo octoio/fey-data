@@ -1076,23 +1076,6 @@ module ProjectileKindValidationTests = struct
     }
   ;;
 
-  let beam ~lifetime ~tick_interval : Data.Projectile_t.projectile_beam =
-    { metadata = { Data.Common_t.title = "t"; description = "d" };
-      projectile_type = `Beam;
-      model;
-      lifetime;
-      spawn_offset = make_vector3 0. 0. 0.;
-      max_hit_count = 1;
-      on_impact = [];
-      on_end = [];
-      vfx = None;
-      range = 10.;
-      width = 0.8;
-      tick_interval;
-      rotation_speed = 90.
-    }
-  ;;
-
   let test_kinds () =
     check bool "skillshot covers its range in time" true
       (validate_projectile_straight (straight ~lifetime:1.5 ~speed:20. ~max_range:18.));
@@ -1101,11 +1084,7 @@ module ProjectileKindValidationTests = struct
     check bool "lob lands in time" true
       (validate_projectile_arc (arc ~lifetime:2. ~flight_time:1.));
     check bool "lob outlives its lifetime" false
-      (validate_projectile_arc (arc ~lifetime:1. ~flight_time:1.5));
-    check bool "beam ticks while it lasts" true
-      (validate_projectile_beam (beam ~lifetime:3. ~tick_interval:0.5));
-    check bool "beam never ticks" false
-      (validate_projectile_beam (beam ~lifetime:0.3 ~tick_interval:0.5))
+      (validate_projectile_arc (arc ~lifetime:1. ~flight_time:1.5))
   ;;
 end
 

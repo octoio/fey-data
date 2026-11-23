@@ -692,7 +692,8 @@ let basic_attack_swing_error_messages definitions =
 ;;
 
 (* A channelled skill pulses through exactly one Beam projectile, and its cast distance is that beam's range (the
-   client draws the line from it, so the two numbers must agree) *)
+   client draws the line from it, so the two numbers must agree). A Beam is pulsed only by a channel, so a Beam no
+   channelled skill uses would pulse on nothing *)
 let channel_error_messages definitions =
   let beams =
     List.filter_map
@@ -702,7 +703,27 @@ let channel_error_messages definitions =
         | _ -> None)
       definitions
   in
-  List.filter_map
+  let channelled_beams =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Skill { entity = { channel = Some _; _ } as skill; _ } ->
+          List.map
+            (fun (reference : Data.Common_t.entity_reference) -> reference.id)
+            (Data.Validation.projectile_nodes (`Requirement skill.execution_root))
+        | _ -> [])
+      definitions
+  in
+  let unused_beams =
+    List.filter_map
+      (fun (id, _) ->
+        if List.mem id channelled_beams
+        then None
+        else Some (Printf.sprintf "Projectile %s: a Beam is pulsed only by a channelled skill and none uses it" id))
+      beams
+  in
+  unused_beams
+  @ List.filter_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
       match definition with
       | `Skill { key; entity = { channel = Some _; _ } as skill; _ } ->
