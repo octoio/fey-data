@@ -994,6 +994,7 @@ let validate_entity_definitions dataset =
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
+  let status_errors = Status_check.error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1013,7 +1014,8 @@ let validate_entity_definitions dataset =
        @ weapon_class_errors
        @ basic_attack_swing_errors
        @ generator_errors
-       @ run_ending_errors)
+       @ run_ending_errors
+       @ status_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

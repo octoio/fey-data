@@ -64,3 +64,8 @@
  (name test_portrait)
  (modules test_portrait)
  (libraries gamedata gamedata.data alcotest str))
+
+(test
+ (name test_status_check)
+ (modules test_status_check)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
