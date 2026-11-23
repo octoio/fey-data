@@ -237,7 +237,11 @@ let extract_entity_reference_from_quest_action
     anchor :: spawn :: Option.to_list call_anchor
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Call { anchors; _ } -> anchors
-  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ | `StopDrains _ -> []
+  | `Message _
+  | `EnableQuestBoardQuest _
+  | `OpenGate _
+  | `StopDrains _
+  | `SetLight _ -> []
 ;;
 
 let rec extract_entity_reference_from_quest_node

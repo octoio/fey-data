@@ -493,6 +493,29 @@ let test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest ()
   check int "a character names the pool of its next personal quests" (n minimal_character_entity_definition + 2) (n with_pool)
 ;;
 
+let test_set_light_names_a_known_look_and_no_reference () =
+  let action look =
+    Printf.sprintf {|{"type":"Action","id":4,"name":"l","action":{"type":"SetLight","look":"%s","seconds":20.0}}|} look
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string (action "Dusk") in
+  (match node with
+   | `Action { action = `SetLight { look = `Dusk; seconds = 20.0; _ }; _ } -> ()
+   | _ -> Alcotest.fail "expected a SetLight to Dusk over 20 seconds");
+  check
+    bool
+    "serializing and parsing again gives the same node"
+    true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a light names no reference" 0 (List.length (Dataset.extract_entity_reference_from_quest_node node));
+  check
+    bool
+    "a look the client does not know does not parse"
+    true
+    (match Data.Quest_j.quest_node_internal_of_string (action "Midnight") with
+     | _ -> false
+     | exception _ -> true)
+;;
+
 let test_protect_wait_and_call_round_trip_and_name_their_references () =
   let anchor = {|{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}|} in
   let character = {|{"owner":"ownr","type":"Character","key":"C","version":1,"id":"ownr:Character:C:1"}|} in
@@ -1753,6 +1776,10 @@ let dataset_tests =
       "Personal quest names its weapon pool"
       `Quick
       test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest;
+    test_case
+      "SetLight names a known look and no reference"
+      `Quick
+      test_set_light_names_a_known_look_and_no_reference;
     test_case
       "Protect, Wait and Call round trip and name their references"
       `Quick

@@ -867,7 +867,7 @@ module GateValidationTests = struct
       obstacle =
         { kind = `Wall; shape = `Box; x = 1.; z = 2.; radius = None; half_x = Some 2.; half_z = Some 0.5;
           yaw = None; blocks_sight = None; prop = None };
-      starts_open = None; opening; lever; side_x; side_z; drains = None }
+      starts_open = None; opening; lever; side_x; side_z; drains = None; open_prop = None }
   ;;
 
   let test_validate_gates () =
