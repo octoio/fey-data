@@ -136,6 +136,9 @@ let validate_projectile_straight (p : Projectile_t.projectile_straight) =
 (* A lob must land before its lifetime runs out *)
 let validate_projectile_arc (p : Projectile_t.projectile_arc) = p.flight_time <= p.lifetime
 
+(* A beam never ends by itself (its channel ends it): nodes at its end would never run *)
+let validate_projectile_beam (p : Projectile_t.projectile_beam) = p.on_end = []
+
 let validate_charges = function
   | Some n -> n >= 1
   | None -> true

@@ -1076,6 +1076,39 @@ module ProjectileKindValidationTests = struct
     }
   ;;
 
+  let beam ~on_end : Data.Projectile_t.projectile_beam =
+    { metadata = { Data.Common_t.title = "t"; description = "d" };
+      projectile_type = `Beam;
+      model;
+      spawn_offset = make_vector3 0. 0. 0.;
+      max_hit_count = 1;
+      on_impact = [];
+      on_end;
+      vfx = None;
+      range = 10.;
+      width = 0.8
+    }
+  ;;
+
+  (* A beam never ends by itself (its channel ends it): nodes at its end would never run *)
+  let test_beam_has_no_end () =
+    let status : Data.Projectile_t.projectile_impact_internal =
+      `Status
+        { impact_type = `Status;
+          status_effect =
+            { target_mechanic = `Self { mechanic_type = `Self };
+              target = `Any;
+              durations = [];
+              scalers = [];
+              status = make_entity_reference ~entity_type:`Status ();
+              dispel = Some true
+            }
+        }
+    in
+    check bool "a beam with nothing at its end" true (validate_projectile_beam (beam ~on_end:[]));
+    check bool "a beam with nodes at its end" false (validate_projectile_beam (beam ~on_end:[ status ]))
+  ;;
+
   let test_kinds () =
     check bool "skillshot covers its range in time" true
       (validate_projectile_straight (straight ~lifetime:1.5 ~speed:20. ~max_range:18.));
@@ -1089,7 +1122,9 @@ module ProjectileKindValidationTests = struct
 end
 
 let projectile_kind_validation_tests =
-  [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds ]
+  [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds;
+    "a beam has no end", `Quick, ProjectileKindValidationTests.test_beam_has_no_end
+  ]
 ;;
 
 module ChannelValidationTests = struct
