@@ -1,6 +1,6 @@
 (* One status per meaning, named and pictured for what it does to the character (fey-rs #427).
    - A status's title is never the name of a stat ("Damage Taken", "Movement Speed"): a player reads what
-     happened to the character, not the mechanism. A stat's name is its key or its title, read without case,
+     happened to the character, not the mechanism. A stat's name is its key, its title or its display label, read without case,
      spaces or a trailing "Modifier".
    - A StatChange status is applied one way only, as a gain or as a loss of its stat (the sign of its
      scalers, read against the stat's [lower_is_better]), and its picture family agrees: a [buff/] effect for
@@ -47,7 +47,12 @@ let title_error_messages definitions =
   let stat_readings =
     List.concat_map
       (fun (key, (stat : Data.Stat_t.stat)) ->
-        [ stat_name_reading key, key; stat_name_reading stat.metadata.title, key ])
+        List.filter_map
+          Fun.id
+          [ Some (stat_name_reading key, key);
+            Some (stat_name_reading stat.metadata.title, key);
+            Option.map (fun label -> stat_name_reading label, key) stat.display.label
+          ])
       (stats definitions)
   in
   List.filter_map
@@ -119,14 +124,13 @@ let picture_family (status : Data.Status_t.status) =
     status.vfx
 ;;
 
-let direction_error_messages definitions =
+let direction_error_messages definitions applied =
   let lower_is_better stat =
     List.find_map
       (fun (_, (s : Data.Stat_t.stat)) ->
         if s.stat_type = stat then Some s.display.lower_is_better else None)
       (stats definitions)
   in
-  let applied = all_applications definitions in
   List.concat_map
     (fun (id, key, (status : Data.Status_t.status)) ->
       match status.mechanic with
@@ -162,6 +166,27 @@ let direction_error_messages definitions =
     (statuses definitions)
 ;;
 
+(* The walk finds applications by the shape of the data; should a schema change hide them all, the rule would
+   pass for ever, so a dataset with StatChange statuses and no application found fails instead. *)
+let blind_walk_error_messages definitions applied =
+  let stat_changes =
+    List.exists
+      (fun (_, _, (status : Data.Status_t.status)) ->
+        match status.mechanic with
+        | `StatChange _ -> true
+        | _ -> false)
+      (statuses definitions)
+  in
+  if stat_changes && applied = []
+  then
+    [ "Status check: StatChange statuses exist but no application of any status was found: the walk in lib/status_check.ml no longer matches the schema"
+    ]
+  else []
+;;
+
 let error_messages definitions =
-  title_error_messages definitions @ direction_error_messages definitions
+  let applied = all_applications definitions in
+  title_error_messages definitions
+  @ blind_walk_error_messages definitions applied
+  @ direction_error_messages definitions applied
 ;;
