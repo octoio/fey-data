@@ -1113,6 +1113,41 @@ let projectile_kind_validation_tests =
   [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds ]
 ;;
 
+module ChannelValidationTests = struct
+  let channel ?(pulse_interval = 0.5) ?(pulse_cost = 1) ?(turn_rate = 120.) () : Data.Skill_t.skill_channel =
+    { pulse_interval; pulse_cost; turn_rate }
+  ;;
+
+  let valid c = Data.Skill_v.validate_skill_channel [] c = None
+
+  let test_bounds () =
+    check bool "the first values" true (valid (channel ()));
+    check bool "a fixed beam" true (valid (channel ~turn_rate:0. ()));
+    check bool "no pulse cost: mana would not be the limit" false (valid (channel ~pulse_cost:0 ()));
+    check bool "a pulse faster than a tenth of a second" false (valid (channel ~pulse_interval:0.05 ()));
+    check bool "a negative turn rate" false (valid (channel ~turn_rate:(-1.) ()))
+  ;;
+
+  let test_skill () =
+    let skill target_type walk_while_casting : Data.Skill_t.skill =
+      { Test_fixtures.minimal_skill with
+        target_type;
+        walk_while_casting;
+        channel = Some (channel ())
+      }
+    in
+    check bool "an aimed channel" true (validate_skill (skill `None None));
+    check bool "a channel on a target" false (validate_skill (skill `Enemy None));
+    check bool "a channel that walks" false (validate_skill (skill `None (Some true)))
+  ;;
+end
+
+let channel_validation_tests =
+  [ "channel bounds", `Quick, ChannelValidationTests.test_bounds;
+    "channel skill", `Quick, ChannelValidationTests.test_skill
+  ]
+;;
+
 module StatusDispelValidationTests = struct
   let effect ?dispel ~durations ~scalers () : Data.Effect_t.status_effect =
     { target_mechanic = `Self { mechanic_type = `Self };
@@ -1914,6 +1949,7 @@ let () =
       ("Zone Id Validation", zone_id_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
+      ("Channel Validation", channel_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Cone And Burst Validation", cone_and_burst_validation_tests);

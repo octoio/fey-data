@@ -691,6 +691,36 @@ let basic_attack_swing_error_messages definitions =
     definitions
 ;;
 
+(* A channelled skill pulses through exactly one Beam projectile, and its cast distance is that beam's range (the
+   client draws the line from it, so the two numbers must agree) *)
+let channel_error_messages definitions =
+  let beams =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Projectile { id; entity = `Beam b; _ } -> Some (id, b)
+        | _ -> None)
+      definitions
+  in
+  List.filter_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Skill { key; entity = { channel = Some _; _ } as skill; _ } ->
+        (match Data.Validation.projectile_nodes (`Requirement skill.execution_root) with
+         | [ reference ] ->
+           (match List.assoc_opt reference.id beams with
+            | Some beam when beam.range = skill.cast_distance.max -> None
+            | Some beam ->
+              Some
+                (Printf.sprintf
+                   "Skill %s: its cast distance %g is not the range %g of its beam"
+                   key skill.cast_distance.max beam.range)
+            | None -> Some (Printf.sprintf "Skill %s: a channel pulses through a Beam projectile, %s is not one" key reference.key))
+         | _ -> Some (Printf.sprintf "Skill %s: a channel needs exactly one Projectile node (its beam)" key))
+      | _ -> None)
+    definitions
+;;
+
 (* Map generation (docs/design/mapgen.md): a stage with a generator spec must be generatable. The spec is
    feasible (the static checks of the Rust generator), every anchor of the stage is bound to a generated slot
    with contiguous ordinals, and every quest played on the stage finds its anchors and its rooms in the spec.
@@ -993,6 +1023,7 @@ let validate_entity_definitions dataset =
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
+  let channel_errors = channel_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let errors =
     List.map
@@ -1013,6 +1044,7 @@ let validate_entity_definitions dataset =
        @ weapon_class_errors
        @ basic_attack_swing_errors
        @ generator_errors
+       @ channel_errors
        @ run_ending_errors)
   in
   { dataset with errors = errors @ dataset.errors }

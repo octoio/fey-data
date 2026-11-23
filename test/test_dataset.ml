@@ -1214,6 +1214,116 @@ let test_a_striking_basic_attack_has_a_hit_delay () =
   check int "a projectile needs none" 0 (count ~strikes:false ~hit_delay:None)
 ;;
 
+(* A beam projectile and a channelled skill that pulses through the projectile [beam_key] *)
+let beam_definition key range =
+  ( "data/json/" ^ key ^ ".projectile.json",
+    `Projectile
+      ({ owner = "ownr";
+         entity_type = `Projectile;
+         key;
+         version = 1;
+         id = "ownr:Projectile:" ^ key ^ ":1";
+         entity =
+           `Beam
+             { Data.Projectile_t.metadata = minimal_metadata;
+               projectile_type = `Beam;
+               model = minimal_projectile_model;
+               lifetime = 3.0;
+               spawn_offset = minimal_vector3;
+               max_hit_count = 1;
+               on_impact = [];
+               on_end = [];
+               vfx = None;
+               range;
+               width = 0.8;
+               tick_interval = 0.5;
+               rotation_speed = 90.0
+             }
+       }
+        : Data.Entity_t.projectile_entity_definition) )
+;;
+
+let channel_skill_definition key ~beam_key ~cast_distance =
+  let node : Data.Skill_t.skill_action_node_internal =
+    `Projectile
+      { skill_action_node_type = `Projectile;
+        name = "beam";
+        projectile =
+          { minimal_entity_reference with
+            entity_type = `Projectile;
+            key = beam_key;
+            id = "ownr:Projectile:" ^ beam_key ^ ":1"
+          };
+        spawn_position =
+          { position_type = `Character; position = minimal_vector3; offset = minimal_vector3 };
+        direction = minimal_vector3
+      }
+  in
+  let base = minimal_skill in
+  ( "data/json/" ^ key ^ ".skill.json",
+    `Skill
+      ({ owner = "ownr";
+         entity_type = `Skill;
+         key;
+         version = 1;
+         id = "ownr:Skill:" ^ key ^ ":1";
+         entity =
+           { base with
+             target_type = `None;
+             execution_root = { base.execution_root with child = node };
+             cast_distance = { Data.Skill_t.max = cast_distance };
+             channel = Some { Data.Skill_t.pulse_interval = 0.5; pulse_cost = 1; turn_rate = 120. }
+           }
+       }
+        : Data.Entity_t.skill_entity_definition) )
+;;
+
+let channel_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"channel"
+        || Base.String.is_substring
+             (Atdgen_runtime.Util.Validation.string_of_error e)
+             ~substring:"cast distance"
+      | None -> false)
+    validated.errors
+;;
+
+let test_channel_pulses_through_one_beam_of_its_range () =
+  let count defs = List.length (channel_errors defs) in
+  check int "a channel and a beam of its range" 0
+    (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:10. ]);
+  check int "a cast distance that is not the range" 1
+    (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:8. ]);
+  check int "a projectile that is not a beam" 1
+    (count [ minimal_projectile_entity_definition |> (fun d -> ("data/json/MinimalProjectile.projectile.json", d));
+             channel_skill_definition "Siphon" ~beam_key:"MinimalProjectile" ~cast_distance:10. ]);
+  check int "a channel with no projectile node" 1
+    (count
+       [ ( "data/json/Bare.skill.json",
+           `Skill
+             ({ owner = "ownr";
+                entity_type = `Skill;
+                key = "Bare";
+                version = 1;
+                id = "ownr:Skill:Bare:1";
+                entity =
+                  { minimal_skill with
+                    target_type = `None;
+                    channel = Some { Data.Skill_t.pulse_interval = 0.5; pulse_cost = 1; turn_rate = 0. }
+                  }
+              }
+               : Data.Entity_t.skill_entity_definition) )
+       ])
+;;
+
 let test_weapon_and_visual_references () =
   let class_ref =
     Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
@@ -1774,6 +1884,7 @@ let dataset_tests =
       test_kill_objective_concurrent_with_spawn_is_completable;
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
     test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
+    test_case "A channel pulses through one beam of its range" `Quick test_channel_pulses_through_one_beam_of_its_range;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "A kill objective may lean on the least the drains pour"

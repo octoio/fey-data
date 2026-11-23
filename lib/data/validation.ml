@@ -169,10 +169,22 @@ let has_revive_hit = has_hit (fun n -> n.hit_effect.hit_type = `Revive)
    weapon's attack clip only for a skill with a [hit_delay], else a cast *)
 let is_strike (skill : Skill_t.skill) = has_hit (fun _ -> true) (`Requirement skill.execution_root)
 
+(* The projectile references of the Projectile nodes of an action tree *)
+let rec projectile_nodes (node : Skill_t.skill_action_node_internal) =
+  match node with
+  | `Projectile n -> [ n.projectile ]
+  | `Sequence n -> List.concat_map projectile_nodes n.children
+  | `Parallel n -> List.concat_map projectile_nodes n.children
+  | `Requirement n -> projectile_nodes n.child
+  | `Delay _ | `Animation _ | `Sound _ | `Hit _ | `Status _ | `Summon _ | `CallDrain _ | `Move _ | `Interrupt _ -> []
+;;
+
 (* A skill that revives targets a dead ally and a skill that targets a dead ally revives: the target type names
    the corpse the revive hit stands up *)
 let validate_skill (skill : Skill_t.skill) =
   has_revive_hit (`Requirement skill.execution_root) = (skill.target_type = `DeadAlly)
+  && (skill.channel = None
+      || (skill.target_type = `None && skill.walk_while_casting <> Some true))
 ;;
 
 (* An execute bonus: below a fraction of the health in (0, 1], a factor of at least 1 *)
