@@ -19,6 +19,9 @@ If linking fails against OpenSSL after a Homebrew upgrade, the `ssl` bindings we
 - Rust serde types: `../fey-rs/crates/fey_data/src/generated` (`rust_output_path`). Commit the regenerated output in `fey-rs`.
 - Never hand-edit generated code; change the ATD schema and regenerate.
 
+## Schema coverage
+`dune exec gamedata` fails when a sum-type variant or an optional field (`?f`, or `f : T option`) reachable from the entity root is used by no entity of `data/json`, unless `coverage-allowlist.txt` names it as `module.type.name: reason` (`coverage_allowlist_path` of `fey-data.config`). `lib/rust/coverage.ml` walks the schema through the emitter's context (`Rust.Main.build_context`: one parser, one name resolution) and the JSON by the schema's types. The list can only shrink: a row that is used now, or names nothing in the schema, fails too. Delete the unused part of the schema, or give the row a real reason; do not add a row to make the run pass. Tests: `test/test_rust.ml` group `coverage`.
+
 ## Adding an entity type (registration points)
 1. `lib/data/<name>.atd` (the entity record; polymorphic parts are a sum with the `Type_field` JSON adapter).
 2. `lib/data/common.atd`: add to the `entity_type` enum.

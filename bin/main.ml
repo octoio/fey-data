@@ -28,11 +28,41 @@ let get_all_atd_files () =
     file)
 ;;
 
-let generate_rust_types atd_files =
-  Gamedata.Io.print_info "Generating Rust files...";
-  let modules =
-    List.map (fun file -> (file, snd (Rust.Utils.parse_atd_file file))) atd_files
+let parse_atd_modules atd_files =
+  List.map (fun file -> (file, snd (Rust.Utils.parse_atd_file file))) atd_files
+;;
+
+(* The entity files are all documents of the root type of entity.atd *)
+let coverage_root = ("entity", "entity_definition_internal")
+
+let check_schema_coverage modules =
+  Gamedata.Io.print_info "Checking schema coverage...";
+  let documents =
+    Gamedata.Io.find_all_files_in_directory
+      (fun file -> Filename.check_suffix file ".json")
+      Config.Constants.json_folder
+    |> List.map Yojson.Safe.from_file
   in
+  let allowlist =
+    Rust.Coverage.parse_allowlist
+      (Gamedata.Io.read_file Config.Constants.coverage_allowlist_file)
+  in
+  match
+    Rust.Coverage.check
+      ~allowlist_file:Config.Constants.coverage_allowlist_file
+      ~root:coverage_root
+      ~modules
+      ~documents
+      ~allowlist
+  with
+  | [] -> Gamedata.Io.print_success "Schema coverage holds."
+  | problems ->
+    List.iter Gamedata.Io.print_warning problems;
+    exit 1
+;;
+
+let generate_rust_types modules =
+  Gamedata.Io.print_info "Generating Rust files...";
   Rust.Main.generate_rust modules
   |> Rust.Output.write_rs_files Config.Constants.rust_output_path
   |> ignore;
@@ -47,8 +77,10 @@ let () =
     exit 1
   | Ok dataset ->
     Gamedata.Io.print_success "Validation successful";
-    write_entity_index dataset;
     Gamedata.Io.print_info "Reading ATD files...";
-    generate_rust_types (get_all_atd_files ());
+    let modules = parse_atd_modules (get_all_atd_files ()) in
+    check_schema_coverage modules;
+    write_entity_index dataset;
+    generate_rust_types modules;
     Gamedata.Io.print_success "Process completed successfully."
 ;;

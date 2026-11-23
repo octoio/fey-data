@@ -195,6 +195,89 @@ let test_unresolved_type_fails () =
   | exception Failure msg -> check_has "message" msg "unresolved type `missing`"
 ;;
 
+(* ---- schema coverage ---------------------------------------------------- *)
+
+let coverage_schema =
+  module_of
+    "root"
+    {|
+type color = [ Red | Green ]
+type shape = [ Circle | Square of side ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
+type side = { len: int; ?label: string option }
+type root = { color: color; shapes: shape list; ?note: string option }
+|}
+;;
+
+let coverage ?(allowlist = []) docs =
+  Rust.Coverage.check
+    ~allowlist_file:"allow.txt"
+    ~root:("root", "root")
+    ~modules:[ coverage_schema ]
+    ~documents:(List.map Yojson.Safe.from_string docs)
+    ~allowlist
+;;
+
+let full_doc =
+  {|{"color": "Red", "note": "n", "shapes": [{"type": "Circle"}, {"type": "Square", "len": 1, "label": "l"}]}|}
+;;
+
+let check_problems msg expected problems =
+  check (list string) msg expected (List.map (fun p -> List.hd (String.split_on_char ';' p)) problems)
+;;
+
+let test_coverage_all_used_passes () = check_problems "no problem" [] (coverage [ full_doc; {|{"color": "Green", "shapes": []}|} ])
+
+let test_coverage_unused_fails () =
+  let problems = coverage [ {|{"color": "Red", "shapes": [{"type": "Circle"}]}|} ] in
+  check int "unused: Green, Square, note, label" 4 (List.length problems);
+  let all = String.concat "\n" problems in
+  check_has "names the variant" all "variant `Green` of `root.color`";
+  check_has "names the type" all "variant `Square` of `root.shape`";
+  check_has "names the field" all "optional field `note` of `root.root`";
+  check_has "names the allowlist" all "allow.txt"
+;;
+
+let test_coverage_allowlisted_passes () =
+  let allowlist = [ ("root.color.Green", "kept for the next quest"); ("root.root.note", "r") ] in
+  let problems = coverage ~allowlist [ {|{"color": "Red", "shapes": [{"type": "Circle"}, {"type": "Square", "len": 1, "label": "x"}]}|} ] in
+  check_problems "listed rows pass" [] problems
+;;
+
+let test_coverage_row_now_used_fails () =
+  let problems = coverage ~allowlist:[ ("root.color.Red", "was unused") ] [ full_doc; {|{"color": "Green", "shapes": []}|} ] in
+  check int "one problem" 1 (List.length problems);
+  check_has "says used" (List.hd problems) "used by the data now"
+;;
+
+let test_coverage_row_gone_or_empty_fails () =
+  let docs = [ full_doc; {|{"color": "Green", "shapes": []}|} ] in
+  check_has "gone" (List.hd (coverage ~allowlist:[ ("root.color.Blue", "x") ] docs)) "names nothing in the schema";
+  let unused = [ {|{"color": "Red", "shapes": [{"type": "Circle"}]}|} ] in
+  let allowlist = [ ("root.color.Green", ""); ("root.shape.Square", "r"); ("root.root.note", "r"); ("root.side.label", "r") ] in
+  check_has "no reason" (List.hd (coverage ~allowlist unused)) "has no reason"
+;;
+
+let test_coverage_option_none_is_unused () =
+  let schema =
+    module_of "opt" "type opt = { ?a: int option; b: string option }\n"
+  in
+  let run doc =
+    Rust.Coverage.check
+      ~allowlist_file:"allow.txt"
+      ~root:("opt", "opt")
+      ~modules:[ schema ]
+      ~documents:[ Yojson.Safe.from_string doc ]
+      ~allowlist:[]
+  in
+  check int "both unused" 2 (List.length (run {|{"b": "None"}|}));
+  check int "both used" 0 (List.length (run {|{"a": 1, "b": ["Some", "x"]}|}))
+;;
+
+let test_parse_allowlist () =
+  let rows = Rust.Coverage.parse_allowlist "# comment\n\na.b.C: the reason: with colon\nbad\n" in
+  check (list (pair string string)) "rows" [ ("a.b.C", "the reason: with colon"); ("bad", "") ] rows
+;;
+
 let () =
   run
     "Rust generator"
@@ -213,6 +296,15 @@ let () =
       ( "modules",
         [ test_case "imports resolve across modules" `Quick test_imports_resolve_across_modules;
           test_case "unresolved type fails" `Quick test_unresolved_type_fails
+        ] );
+      ( "coverage",
+        [ test_case "all used passes" `Quick test_coverage_all_used_passes;
+          test_case "unused fails" `Quick test_coverage_unused_fails;
+          test_case "allowlisted passes" `Quick test_coverage_allowlisted_passes;
+          test_case "row now used fails" `Quick test_coverage_row_now_used_fails;
+          test_case "row gone or empty fails" `Quick test_coverage_row_gone_or_empty_fails;
+          test_case "option none is unused" `Quick test_coverage_option_none_is_unused;
+          test_case "allowlist parsing" `Quick test_parse_allowlist
         ] )
     ]
 ;;

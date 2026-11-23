@@ -40,3 +40,8 @@ let rust_output_path =
 
 (* Dataset paths are kept from the first "/json" on *)
 let json_sub_folder = "/json"
+
+(* Schema variants and optional fields no entity uses yet, each with a reason (the coverage check) *)
+let coverage_allowlist_file =
+  read_config_value "coverage_allowlist_path" "coverage-allowlist.txt"
+;;
