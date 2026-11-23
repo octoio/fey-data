@@ -208,14 +208,18 @@ type root = { color: color; shapes: shape list; ?note: string option }
 |}
 ;;
 
-let coverage ?(allowlist = []) docs =
+let coverage_of ?(allowlist = []) ?(other_roots = []) ~root modules docs =
   Rust.Coverage.check
     ~allowlist_file:"allow.txt"
-    ~root:("root", "root")
-    ~modules:[ coverage_schema ]
+    ~root
+    ~other_roots
+    ~modules
     ~documents:(List.map Yojson.Safe.from_string docs)
     ~allowlist
+    ()
 ;;
+
+let coverage ?allowlist docs = coverage_of ?allowlist ~root:("root", "root") [ coverage_schema ] docs
 
 let full_doc =
   {|{"color": "Red", "note": "n", "shapes": [{"type": "Circle"}, {"type": "Square", "len": 1, "label": "l"}]}|}
@@ -238,22 +242,22 @@ let test_coverage_unused_fails () =
 ;;
 
 let test_coverage_allowlisted_passes () =
-  let allowlist = [ ("root.color.Green", "kept for the next quest"); ("root.root.note", "r") ] in
+  let allowlist = [ ("root.color.Green", "for #12: the next quest"); ("root.root.note", "remove: r") ] in
   let problems = coverage ~allowlist [ {|{"color": "Red", "shapes": [{"type": "Circle"}, {"type": "Square", "len": 1, "label": "x"}]}|} ] in
   check_problems "listed rows pass" [] problems
 ;;
 
 let test_coverage_row_now_used_fails () =
-  let problems = coverage ~allowlist:[ ("root.color.Red", "was unused") ] [ full_doc; {|{"color": "Green", "shapes": []}|} ] in
+  let problems = coverage ~allowlist:[ ("root.color.Red", "remove: was unused") ] [ full_doc; {|{"color": "Green", "shapes": []}|} ] in
   check int "one problem" 1 (List.length problems);
   check_has "says used" (List.hd problems) "used by the data now"
 ;;
 
 let test_coverage_row_gone_or_empty_fails () =
   let docs = [ full_doc; {|{"color": "Green", "shapes": []}|} ] in
-  check_has "gone" (List.hd (coverage ~allowlist:[ ("root.color.Blue", "x") ] docs)) "names nothing in the schema";
+  check_has "gone" (List.hd (coverage ~allowlist:[ ("root.color.Blue", "remove: x") ] docs)) "names nothing in the schema";
   let unused = [ {|{"color": "Red", "shapes": [{"type": "Circle"}]}|} ] in
-  let allowlist = [ ("root.color.Green", ""); ("root.shape.Square", "r"); ("root.root.note", "r"); ("root.side.label", "r") ] in
+  let allowlist = [ ("root.color.Green", ""); ("root.shape.Square", "remove: r"); ("root.root.note", "remove: r"); ("root.side.label", "remove: r") ] in
   check_has "no reason" (List.hd (coverage ~allowlist unused)) "has no reason"
 ;;
 
@@ -262,15 +266,105 @@ let test_coverage_option_none_is_unused () =
     module_of "opt" "type opt = { ?a: int option; b: string option }\n"
   in
   let run doc =
-    Rust.Coverage.check
-      ~allowlist_file:"allow.txt"
-      ~root:("opt", "opt")
-      ~modules:[ schema ]
-      ~documents:[ Yojson.Safe.from_string doc ]
-      ~allowlist:[]
+    coverage_of ~root:("opt", "opt") [ schema ] [ doc ]
   in
   check int "both unused" 2 (List.length (run {|{"b": "None"}|}));
   check int "both used" 0 (List.length (run {|{"a": 1, "b": ["Some", "x"]}|}))
+;;
+
+let problems_text problems = String.concat "\n" problems
+
+let test_coverage_row_format () =
+  let unused = [ {|{"color": "Red", "shapes": [{"type": "Circle"}]}|} ] in
+  let rows reasons =
+    List.map (fun r -> ("root.color.Green", r)) reasons
+    @ [ ("root.shape.Square", "remove: r"); ("root.root.note", "remove: r"); ("root.side.label", "remove: r") ]
+  in
+  let first reason = List.hd (coverage ~allowlist:(rows [ reason ]) unused) in
+  check_has "unsettled" (first "unsettled (#433)") "starts with `unsettled (#433)`, not a verdict";
+  check_has "no colon" (first "default") "no evidence";
+  check_has "empty evidence" (first "built:  ") "no evidence";
+  check_has "for without number" (first "for #: reader") "not a verdict";
+  check_has "for with letters" (first "for #12a: reader") "not a verdict";
+  List.iter
+    (fun ok -> check_problems ("accepted " ^ ok) [] (coverage ~allowlist:(rows [ ok ]) unused))
+    [ "default: absent means 1"; "built: by the sewer generator"; "for #118: reader tested"; "remove: no data" ];
+  let twice = coverage ~allowlist:(rows [ "remove: a"; "remove: b" ]) unused in
+  check_has "duplicate" (problems_text twice) "root.color.Green` is listed twice"
+;;
+
+let test_coverage_prints_the_line_to_add () =
+  let problems = problems_text (coverage [ {|{"color": "Red", "shapes": [{"type": "Circle"}]}|} ]) in
+  check_has "variant row" problems "`root.color.Green: <default|built|for #N|remove>: <evidence>`";
+  check_has "field row" problems "`root.root.note: <default|built|for #N|remove>: <evidence>`"
+;;
+
+(* a type no root reaches *)
+let test_coverage_unreached_type () =
+  let schema = module_of "lone" "type a = { ?x: int option }\ntype b = [ B1 | B2 ]\ntype c = { ?y: int option; n: b }\n" in
+  let run ?other_roots () = coverage_of ?other_roots ~root:("lone", "a") [ schema ] [ {|{"x": 1}|} ] in
+  check_has "b and c" (problems_text (run ())) "type `lone.b` is reached from no root";
+  check_has "c" (problems_text (run ())) "type `lone.c` is reached from no root";
+  check_problems "declared as a root" [] (run ~other_roots:[ ("lone", "c") ] ())
+;;
+
+(* a row `module.type` lists an unreached type; once a root reaches it the row is stale *)
+let test_coverage_unreached_row () =
+  let schema = module_of "lone" "type a = { ?x: int option }\ntype b = [ B1 | B2 ]\n" in
+  let run ?other_roots allowlist = coverage_of ~allowlist ?other_roots ~root:("lone", "a") [ schema ] [ {|{"x": 1}|} ] in
+  check_problems "listed" [] (run [ ("lone.b", "remove: no field uses it") ]);
+  check_has "bad verdict" (problems_text (run [ ("lone.b", "maybe: later") ])) "not a verdict";
+  check_has "reached now" (problems_text (run ~other_roots:[ ("lone", "b") ] [ ("lone.b", "remove: x") ])) "names nothing in the schema"
+;;
+
+(* a type reached only through an `<ocaml from>` import still counts as reached and checked *)
+let test_coverage_through_an_import () =
+  let defs = module_of "defs" "type kind = [ A | B ]\n" in
+  let user = module_of "user" "type kind <ocaml from=\"Defs\"> = abstract\ntype top = { kind: kind }\n" in
+  let run docs = coverage_of ~root:("user", "top") [ defs; user ] docs in
+  let problems = problems_text (run [ {|{"kind": "A"}|} ]) in
+  check_has "unused variant of the imported type" problems "variant `B` of `defs.kind`";
+  check_problems "both used" [] (run [ {|{"kind": "A"}|}; {|{"kind": "B"}|} ])
+;;
+
+(* a `<json name>` rename: the data holds the JSON name *)
+let test_coverage_json_name () =
+  let schema =
+    module_of
+      "ren"
+      "type ren = { ?kind_type <json name=\"type\">: int option; ?plain: int option }\ntype side = [ A <json name=\"a\"> | B ]\ntype top = { ren: ren; side: side }\n"
+  in
+  let run doc = coverage_of ~root:("ren", "top") [ schema ] [ doc ] in
+  check_problems "renamed field and variant used"
+    [ "schema coverage: optional field `plain` of `ren.ren` is used by no entity in the data";
+      "schema coverage: variant `B` of `ren.side` is used by no entity in the data" ]
+    (run {|{"ren": {"type": 1}, "side": "a"}|} |> List.map (fun p -> List.hd (String.split_on_char ';' p)));
+  let named = problems_text (run {|{"ren": {"kind_type": 1}, "side": "B"}|}) in
+  check_has "the ATD name is not the data name" named "optional field `type` of `ren.ren`";
+  check_has "the renamed variant" named "variant `a` of `ren.side`"
+;;
+
+(* an empty required list is a field never set *)
+let test_coverage_empty_lists () =
+  let schema = module_of "lst" "type k = [ K1 | K2 ]\ntype top = { items: k list; tags: string list; m: (string * int) list <json repr=\"object\"> }\n" in
+  let run doc = problems_text (coverage_of ~root:("lst", "top") [ schema ] [ doc ]) in
+  let all_empty = run {|{"items": [], "tags": [], "m": {}}|} in
+  check_has "items" all_empty "list field `items` of `lst.top`";
+  check_has "tags" all_empty "list field `tags` of `lst.top`";
+  check_has "object map" all_empty "list field `m` of `lst.top`";
+  let set = run {|{"items": ["K1", "K2"], "tags": ["x"], "m": {"a": 1}}|} in
+  check string "nothing left when every list has something" "" set;
+  check_has "absent is empty" (run {|{"items": ["K1","K2"]}|}) "list field `tags`"
+;;
+
+(* a field with a default no entity sets, and null is no use *)
+let test_coverage_defaults_and_null () =
+  let schema = module_of "dfl" "type top = { ~n: int; ?o: int option; ~l: int list }\n" in
+  let run doc = coverage_of ~root:("dfl", "top") [ schema ] [ doc ] in
+  check int "nothing set" 3 (List.length (run {|{}|}));
+  check_has "named" (problems_text (run {|{}|})) "field with a default `n` of `dfl.top`";
+  check int "null is no use" 3 (List.length (run {|{"n": null, "o": null, "l": null}|}));
+  check int "values are uses" 0 (List.length (run {|{"n": 0, "o": 1, "l": []}|}))
 ;;
 
 let test_parse_allowlist () =
@@ -304,6 +398,14 @@ let () =
           test_case "row now used fails" `Quick test_coverage_row_now_used_fails;
           test_case "row gone or empty fails" `Quick test_coverage_row_gone_or_empty_fails;
           test_case "option none is unused" `Quick test_coverage_option_none_is_unused;
+          test_case "row format" `Quick test_coverage_row_format;
+          test_case "prints the line to add" `Quick test_coverage_prints_the_line_to_add;
+          test_case "unreached type" `Quick test_coverage_unreached_type;
+          test_case "unreached row" `Quick test_coverage_unreached_row;
+          test_case "through an import" `Quick test_coverage_through_an_import;
+          test_case "json name" `Quick test_coverage_json_name;
+          test_case "empty lists" `Quick test_coverage_empty_lists;
+          test_case "defaults and null" `Quick test_coverage_defaults_and_null;
           test_case "allowlist parsing" `Quick test_parse_allowlist
         ] )
     ]

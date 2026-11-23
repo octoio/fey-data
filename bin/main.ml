@@ -35,6 +35,11 @@ let parse_atd_modules atd_files =
 (* The entity files are all documents of the root type of entity.atd *)
 let coverage_root = ("entity", "entity_definition_internal")
 
+(* Roots whose documents are not entity files, so they only count as reaching their types: the
+   portrait metadata is a pipeline output (read by bin/portraitcheck.ml), the entity index is
+   what [write_entity_index] writes *)
+let other_roots = [ ("portrait", "portrait_meta"); ("entity", "entity_index_container") ]
+
 let check_schema_coverage modules =
   Gamedata.Io.print_info "Checking schema coverage...";
   let documents =
@@ -51,9 +56,11 @@ let check_schema_coverage modules =
     Rust.Coverage.check
       ~allowlist_file:Config.Constants.coverage_allowlist_file
       ~root:coverage_root
+      ~other_roots
       ~modules
       ~documents
       ~allowlist
+      ()
   with
   | [] -> Gamedata.Io.print_success "Schema coverage holds."
   | problems ->
