@@ -169,6 +169,7 @@ type quest_action_type =
   | SpawnAtRemains
   | Call
   | Rehome
+  | SetLight
   ]
 
 type quest_action = {
@@ -215,6 +216,23 @@ type quest_action_activate_portal_to_quest_stage = {
 type quest_action_open_gate = {
   action_type <json name="type">: quest_action_type;
   gate: string <ocaml valid="Validation.string_min_length 1">;
+}
+
+(* The looks of the light the client knows (its look table is the only place that says what each one is: the sun's
+   height and colour, the shade, the fog, the sky, the lamps). The stage's first look is its theme's; a quest moves
+   from it to these. *)
+type light_look =
+  [ Sunset
+  | Dusk
+  | Lamplit
+  ]
+
+(* The light of the stage goes to the look [look] over [seconds] (0 = at once), from the look it is at now. The look is
+   state of the stage like an open gate: a player who joins later sees the light the stage is at. *)
+type quest_action_set_light = {
+  action_type <json name="type">: quest_action_type;
+  look: light_look;
+  seconds: float <ocaml valid="Validation.float_between 0. 600.">;
 }
 
 type quest_action_message = {
@@ -302,6 +320,7 @@ type quest_action_internal =
   | SpawnAtRemains of quest_action_spawn_at_remains
   | Call of quest_action_call
   | Rehome of quest_action_rehome
+  | SetLight of quest_action_set_light
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Execution tree — mirrors the skill action node pattern.

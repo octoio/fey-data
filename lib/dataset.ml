@@ -238,7 +238,11 @@ let extract_entity_reference_from_quest_action
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
   | `Call { anchors; _ } -> anchors
   | `Rehome { character; anchor; _ } -> [ character; anchor ]
-  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ | `StopDrains _ -> []
+  | `Message _
+  | `EnableQuestBoardQuest _
+  | `OpenGate _
+  | `StopDrains _
+  | `SetLight _ -> []
 ;;
 
 let rec extract_entity_reference_from_quest_node

@@ -108,7 +108,8 @@ type gate_opening =
    open, it is gone for everybody. [id] is unique on the stage and is what a quest names. It starts closed unless [starts_open]
    is true. Opening is permanent for the stage visit; the stage resets when it is entered again. Opening also drains the
    ground zones whose [id] is in [drains]: they are gone for everybody, like the gate's obstacle (a lever that drains a
-   stretch of water). *)
+   stretch of water). [open_prop] (a pack prop, named like an obstacle's [prop]) is what stands where the obstacle
+   stood once the gate is open (a fence section broken down); a gate without one leaves nothing there. *)
 type gate = {
   id: string <ocaml valid="Validation.string_min_length 1">;
   obstacle: obstacle;
@@ -118,6 +119,7 @@ type gate = {
   ?side_x: float option;
   ?side_z: float option;
   ?drains: string list option;
+  ?open_prop: string option <ocaml valid="Validation.validate_prop_name_if_some">;
 }
 
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)
