@@ -522,6 +522,67 @@ let test_an_assaulting_spawn_names_the_assaulted_character () =
     (n { minimal_spawn with Data.Spawn_t.assault = Some reference })
 ;;
 
+let ref_json entity_type key =
+  Printf.sprintf
+    {|{"owner":"ownr","type":"%s","key":"%s","version":1,"id":"ownr:%s:%s:1"}|}
+    entity_type key entity_type key
+;;
+
+let test_a_rehome_round_trips_and_names_its_references () =
+  let json =
+    Printf.sprintf
+      {|{"type":"Action","id":1,"name":"bell","action":{"type":"Rehome","character":%s,"anchor":%s}}|}
+      (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string json in
+  (match node with
+   | `Action { action = `Rehome _; _ } -> ()
+   | _ -> Alcotest.fail "expected a Rehome action");
+  check bool "round trip" true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a rehome names the character and the anchor" 2
+    (List.length (Dataset.extract_entity_reference_from_quest_node node))
+;;
+
+let rehome_errors ~skittish ~radius =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity =
+          { minimal_character with
+            Data.Character_t.faction = Some `Folk;
+            skittish = (if skittish then Some { Data.Character_t.alarm_radius = 8.0; stroll_pace = 0.4 } else None) } }
+  in
+  let anchor : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key = "Pen"; version = 1;
+        id = "ownr:Anchor:Pen:1";
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint; metadata = minimal_metadata;
+              transform = minimal_transform; binding = None; team = None; radius } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"bell","action":{"type":"Rehome","character":%s,"anchor":%s}}|}
+         (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.rehome_error_messages [ character; anchor; quest ]
+;;
+
+let test_a_rehome_needs_an_animal_and_an_area () =
+  check int "an animal and an area" 0 (List.length (rehome_errors ~skittish:true ~radius:(Some 4.0)));
+  check int "no skittish behaviour" 1 (List.length (rehome_errors ~skittish:false ~radius:(Some 4.0)));
+  check int "an anchor without a radius" 1 (List.length (rehome_errors ~skittish:true ~radius:None))
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1761,6 +1822,14 @@ let dataset_tests =
       "An assaulting spawn names the assaulted character"
       `Quick
       test_an_assaulting_spawn_names_the_assaulted_character;
+    test_case
+      "A Rehome round trips and names its references"
+      `Quick
+      test_a_rehome_round_trips_and_names_its_references;
+    test_case
+      "A Rehome needs an animal and an area"
+      `Quick
+      test_a_rehome_needs_an_animal_and_an_area;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick

@@ -168,6 +168,7 @@ type quest_action_type =
   | StopDrains
   | SpawnAtRemains
   | Call
+  | Rehome
   ]
 
 type quest_action = {
@@ -276,6 +277,15 @@ type quest_action_call = {
   message: string <ocaml valid="Validation.plain_message">;
 }
 
+(* Every living character of [character] (an animal: it has [skittish]) now belongs to the area of [anchor] (a spawn
+   point with a radius): it goes there, hurrying while it is outside the area, and keeps to it. Nothing else changes;
+   a character that is spawned later is not moved. *)
+type quest_action_rehome = {
+  action_type <json name="type">: quest_action_type;
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
 type quest_action_internal =
   [ Spawn of quest_action_spawn
   | StartSpawnSequence of quest_action_start_spawn_sequence
@@ -291,6 +301,7 @@ type quest_action_internal =
   | StopDrains of quest_action
   | SpawnAtRemains of quest_action_spawn_at_remains
   | Call of quest_action_call
+  | Rehome of quest_action_rehome
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Execution tree — mirrors the skill action node pattern.

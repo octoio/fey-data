@@ -166,6 +166,65 @@ let interact_error_messages definitions =
     definitions
 ;;
 
+(* A Rehome sends an animal (a character with skittish) to the area of a SpawnPoint that has a radius *)
+let rehome_error_messages definitions =
+  let is_animal reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Character { entity; _ } ->
+          Option.is_some entity.Data.Character_t.skittish
+          && Dataset.entity_reference_of_entity_definition definition = reference
+        | _ -> false)
+      definitions
+  in
+  let is_area reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity = `SpawnPoint { radius = Some _; _ }; _ } ->
+          Dataset.entity_reference_of_entity_definition definition = reference
+        | _ -> false)
+      definitions
+  in
+  let rec rehomes (node : Data.Quest_t.quest_node_internal) =
+    match node with
+    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+      List.concat_map rehomes children
+    | `Timer { child; _ } | `Protect { child; _ } -> rehomes child
+    | `Action { action = `Rehome { character; anchor; _ }; _ } -> [ character, anchor ]
+    | `Action _ | `Objective _ | `Wait _ -> []
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Quest { entity; _ } ->
+        let quest =
+          Data.Common_j.string_of_entity_reference
+            (Dataset.entity_reference_of_entity_definition definition)
+        in
+        List.concat_map
+          (fun (character, anchor) ->
+            (if is_animal character
+             then []
+             else
+               [ Printf.sprintf
+                   "Quest %s rehomes %s, which has no skittish behaviour"
+                   quest
+                   (Data.Common_j.string_of_entity_reference character) ])
+            @
+            if is_area anchor
+            then []
+            else
+              [ Printf.sprintf
+                  "Quest %s rehomes to anchor %s, which is not a SpawnPoint with a radius"
+                  quest
+                  (Data.Common_j.string_of_entity_reference anchor) ])
+          (rehomes entity.root)
+      | _ -> [])
+    definitions
+;;
+
 (* The generator binding of an anchor of any kind *)
 let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
   match entity with
@@ -994,6 +1053,7 @@ let validate_entity_definitions dataset =
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
+  let rehome_errors = rehome_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1013,7 +1073,8 @@ let validate_entity_definitions dataset =
        @ weapon_class_errors
        @ basic_attack_swing_errors
        @ generator_errors
-       @ run_ending_errors)
+       @ run_ending_errors
+       @ rehome_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

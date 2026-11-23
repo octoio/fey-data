@@ -316,6 +316,25 @@ let validate_triggers (triggers : Trigger_t.trigger list option) =
     List.length keys = List.length (List.sort_uniq compare keys)
 ;;
 
+(* The body flags of a character: ambient life is Folk or Neutral and no structure or nest; an animal (skittish)
+   is Folk and no structure, nest or lurker *)
+let validate_character_body (c : Character_t.character) =
+  let flag = Option.value ~default:false in
+  let side_ok faction = Option.fold ~none:true ~some:faction c.faction in
+  let plain = (not (flag c.structure)) && Option.is_none c.nest in
+  let ambient_ok =
+    (not (flag c.ambient))
+    || (plain && side_ok (function `Folk | `Neutral -> true | _ -> false))
+  in
+  let skittish_ok =
+    Option.is_none c.skittish
+    || (plain
+        && (not (flag c.lurks))
+        && Option.fold ~none:false ~some:(function `Folk -> true | _ -> false) c.faction)
+  in
+  ambient_ok && skittish_ok
+;;
+
 (* An order to assault replaces the "go for the adventurers" flag: both together say two things *)
 let validate_spawn (s : Spawn_t.spawn) = not (s.target_adventurer_on_spawn && Option.is_some s.assault)
 ;;
