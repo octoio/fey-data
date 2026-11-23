@@ -135,16 +135,6 @@ type gold_drops =
     boss: gold_rule;
   }
 
-(* Who gets a drop. Poll (default): every eligible player rolls Need / Greed / Pass for each item.
-   Everyone: each eligible player receives their own copy at once. Individual: one eligible player
-   (drawn per item, with a pity bonus for those who have won less) receives it at once. Gold is never split: with
-   Individual each eligible player rolls their own, otherwise one roll pays every eligible player in full. *)
-type loot_distribution =
-  [ Poll
-  | Everyone
-  | Individual
-  ]
-
 type drop_table =
   { metadata: metadata;
     (* Absent: the table drops no gold *)
@@ -157,8 +147,6 @@ type drop_table =
     ?guarantees: drop_guarantee list option;
     (* Required when the table has equipment or weapon entries; absent: those chances are 0 *)
     ?item_chances: item_chances option;
-    (* Absent: Poll *)
-    ?distribution: loot_distribution option;
     (* Each eligible player beyond the first multiplies the chance of every item category by
        (1 + party_scaling), capped at 1; absent = drops do not depend on the party size *)
     ?party_scaling: float option <ocaml valid="Validation.float_min_if_some 0.">;

@@ -48,7 +48,7 @@
 (test
  (name test_rust)
  (modules test_rust)
- (libraries gamedata gamedata.rust alcotest test_fixtures))
+ (libraries gamedata gamedata.rust alcotest test_fixtures yojson))
 
 (test
  (name test_config)
@@ -64,3 +64,8 @@
  (name test_portrait)
  (modules test_portrait)
  (libraries gamedata gamedata.data alcotest str))
+
+(test
+ (name test_stamp)
+ (modules test_stamp)
+ (libraries gamedata alcotest unix))
