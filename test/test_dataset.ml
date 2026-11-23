@@ -633,6 +633,42 @@ let test_only_a_hostile_spawn_may_be_set_on_the_party () =
   check int "a neutral" 1 (List.length (aggro_spawn_errors ~faction:`Neutral))
 ;;
 
+let ambient_spawn_errors ~team ~radius =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity = { minimal_character with Data.Character_t.faction = Some `Folk; ambient = Some true } }
+  in
+  let anchor : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key = "Pen"; version = 1;
+        id = "ownr:Anchor:Pen:1";
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint; metadata = minimal_metadata;
+              transform = minimal_transform; binding = None; team; radius } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"graze","action":{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":false}}}|}
+         (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.ambient_spawn_error_messages [ character; anchor; quest ]
+;;
+
+let test_background_life_is_spawned_on_an_open_area () =
+  check int "an area with a radius" 0 (List.length (ambient_spawn_errors ~team:None ~radius:(Some 4.0)));
+  check int "no radius" 1 (List.length (ambient_spawn_errors ~team:None ~radius:None));
+  check int "a team anchor" 1 (List.length (ambient_spawn_errors ~team:(Some `Ally) ~radius:(Some 4.0)))
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1888,6 +1924,10 @@ let dataset_tests =
       "Only a hostile spawn may be set on the party"
       `Quick
       test_only_a_hostile_spawn_may_be_set_on_the_party;
+    test_case
+      "Background life is spawned on an open area"
+      `Quick
+      test_background_life_is_spawned_on_an_open_area;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick

@@ -275,6 +275,65 @@ let aggro_spawn_error_messages definitions =
     definitions
 ;;
 
+(* Background life is spawned on the area of a SpawnPoint with a radius and no team: a [team] anchor is where the party
+   appears (the engine reads it as a PlayerSpawn, which moves the arrival point and the director's wave spots), and a
+   point without a radius pins the animals to one spot *)
+let ambient_spawn_error_messages definitions =
+  let is_ambient reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Character { entity; _ } ->
+          entity.Data.Character_t.ambient = Some true
+          && Dataset.entity_reference_of_entity_definition definition = reference
+        | _ -> false)
+      definitions
+  in
+  let is_open_area reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity = `SpawnPoint { radius = Some _; team = None; _ }; _ } ->
+          Dataset.entity_reference_of_entity_definition definition = reference
+        | _ -> false)
+      definitions
+  in
+  let rec spawns (node : Data.Quest_t.quest_node_internal) =
+    match node with
+    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+      List.concat_map spawns children
+    | `Timer { child; _ } | `Protect { child; _ } -> spawns child
+    | `Action { action = `Spawn { spawn; _ }; _ } -> [ spawn ]
+    | `Action { action = `StartSpawnSequence { spawn_sequence; _ }; _ } ->
+      List.concat_map
+        (fun (step : Data.Spawn_t.spawn_sequence_step) -> step.spawns)
+        spawn_sequence.steps
+    | `Action _ | `Objective _ | `Wait _ -> []
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Quest { entity; _ } ->
+        let quest =
+          Data.Common_j.string_of_entity_reference
+            (Dataset.entity_reference_of_entity_definition definition)
+        in
+        List.filter_map
+          (fun (spawn : Data.Spawn_t.spawn) ->
+            if is_ambient spawn.character && not (is_open_area spawn.anchor)
+            then
+              Some
+                (Printf.sprintf
+                   "Quest %s spawns %s at anchor %s, which is not a SpawnPoint with a radius and no team"
+                   quest
+                   (Data.Common_j.string_of_entity_reference spawn.character)
+                   (Data.Common_j.string_of_entity_reference spawn.anchor))
+            else None)
+          (spawns entity.root)
+      | _ -> [])
+    definitions
+;;
+
 (* The generator binding of an anchor of any kind *)
 let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
   match entity with
@@ -1105,6 +1164,7 @@ let validate_entity_definitions dataset =
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let rehome_errors = rehome_error_messages (take_definitions dataset) in
   let aggro_spawn_errors = aggro_spawn_error_messages (take_definitions dataset) in
+  let ambient_spawn_errors = ambient_spawn_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1126,7 +1186,8 @@ let validate_entity_definitions dataset =
        @ generator_errors
        @ run_ending_errors
        @ rehome_errors
-       @ aggro_spawn_errors)
+       @ aggro_spawn_errors
+       @ ambient_spawn_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
