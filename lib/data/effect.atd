@@ -105,10 +105,7 @@ type damage_school =
    caster's facing, which after a dash is toward the spot the dash left. It moves like a dash (the Move node's
    motion), stopped short of obstacles (positive).
    [mana_on_hit] (Damage hits only): mana the caster gets for each target this hit lands on (not dodged), added to
-   its mana up to the maximum (positive).
-   [structure_share] (Damage hits only): against a structure (a ward such as the barn doors) the hit takes this share
-   of the structure's full health in place of its scalers, whatever the caster's level (above 0, at most 1). Other
-   targets are hit as without it. *)
+   its mana up to the maximum (positive). *)
 type hit_effect = {
   hit_type: hit_type;
   scalers: effect_scaling list;
@@ -122,7 +119,6 @@ type hit_effect = {
   ?knockback: float option;
   ?pull: float option;
   ?mana_on_hit: float option;
-  ?structure_share: float option;
 } <ocaml valid="Validation.validate_hit_effect">
 
 (* Where a status duration type lives: in effect.atd so that status.atd can import trigger.atd (which imports this file) *)
