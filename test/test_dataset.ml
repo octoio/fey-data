@@ -606,6 +606,33 @@ let test_a_rehome_needs_an_animal_and_an_area () =
   check int "an anchor without a radius" 1 (List.length (rehome_errors ~skittish:true ~radius:None))
 ;;
 
+let aggro_spawn_errors ~faction =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Beast"; version = 1;
+        id = "ownr:Character:Beast:1";
+        entity = { minimal_character with Data.Character_t.faction = Some faction } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"pour","action":{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":true}}}|}
+         (ref_json "Character" "Beast") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.aggro_spawn_error_messages [ character; quest ]
+;;
+
+let test_only_a_hostile_spawn_may_be_set_on_the_party () =
+  check int "a monster" 0 (List.length (aggro_spawn_errors ~faction:`Wilds));
+  check int "a ward" 1 (List.length (aggro_spawn_errors ~faction:`Folk));
+  check int "a neutral" 1 (List.length (aggro_spawn_errors ~faction:`Neutral))
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1857,6 +1884,10 @@ let dataset_tests =
       "A Rehome needs an animal and an area"
       `Quick
       test_a_rehome_needs_an_animal_and_an_area;
+    test_case
+      "Only a hostile spawn may be set on the party"
+      `Quick
+      test_only_a_hostile_spawn_may_be_set_on_the_party;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick

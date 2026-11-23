@@ -225,6 +225,56 @@ let rehome_error_messages definitions =
     definitions
 ;;
 
+(* A spawn "set on the party" (target_adventurer_on_spawn) must be of a character hostile to it: an animal or a ward
+   is never sent at the party *)
+let aggro_spawn_error_messages definitions =
+  let hostile_to_party reference =
+    List.exists
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Character { entity; _ } ->
+          (match entity.Data.Character_t.faction with
+           | Some (`Wilds | `Slimes | `Crypt) ->
+             Dataset.entity_reference_of_entity_definition definition = reference
+           | _ -> false)
+        | _ -> false)
+      definitions
+  in
+  let rec spawns (node : Data.Quest_t.quest_node_internal) =
+    match node with
+    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+      List.concat_map spawns children
+    | `Timer { child; _ } | `Protect { child; _ } -> spawns child
+    | `Action { action = `Spawn { spawn; _ }; _ } -> [ spawn ]
+    | `Action { action = `StartSpawnSequence { spawn_sequence; _ }; _ } ->
+      List.concat_map
+        (fun (step : Data.Spawn_t.spawn_sequence_step) -> step.spawns)
+        spawn_sequence.steps
+    | `Action _ | `Objective _ | `Wait _ -> []
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Quest { entity; _ } ->
+        let quest =
+          Data.Common_j.string_of_entity_reference
+            (Dataset.entity_reference_of_entity_definition definition)
+        in
+        List.filter_map
+          (fun (spawn : Data.Spawn_t.spawn) ->
+            if spawn.target_adventurer_on_spawn && not (hostile_to_party spawn.character)
+            then
+              Some
+                (Printf.sprintf
+                   "Quest %s sends %s at the party (target_adventurer_on_spawn), which is not hostile to it"
+                   quest
+                   (Data.Common_j.string_of_entity_reference spawn.character))
+            else None)
+          (spawns entity.root)
+      | _ -> [])
+    definitions
+;;
+
 (* The generator binding of an anchor of any kind *)
 let anchor_binding_of (entity : Data.Anchor_t.anchor_internal) =
   match entity with
@@ -1054,6 +1104,7 @@ let validate_entity_definitions dataset =
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let rehome_errors = rehome_error_messages (take_definitions dataset) in
+  let aggro_spawn_errors = aggro_spawn_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1074,7 +1125,8 @@ let validate_entity_definitions dataset =
        @ basic_attack_swing_errors
        @ generator_errors
        @ run_ending_errors
-       @ rehome_errors)
+       @ rehome_errors
+       @ aggro_spawn_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

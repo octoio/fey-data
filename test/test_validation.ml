@@ -537,7 +537,13 @@ let test_ambient_and_skittish_need_the_right_kind_of_character () =
     (ok { base with ambient = Some true; faction = Some `Folk; structure = Some true });
   check bool "a skittish Folk" true (ok { base with skittish; faction = Some `Folk });
   check bool "a skittish Neutral is invalid" false (ok { base with skittish; faction = Some `Neutral });
-  check bool "a skittish character with no faction is invalid" false (ok { base with skittish })
+  check bool "a skittish character with no faction is invalid" false (ok { base with skittish });
+  check bool "a skittish character with a skill is invalid" false
+    (ok
+       { base with
+         skittish;
+         faction = Some `Folk;
+         skills = [ Test_fixtures.minimal_entity_reference ] })
 ;;
 
 let spawn_sequence_validation_tests =

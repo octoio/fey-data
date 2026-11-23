@@ -317,7 +317,7 @@ let validate_triggers (triggers : Trigger_t.trigger list option) =
 ;;
 
 (* The body flags of a character: ambient life is Folk or Neutral and no structure or nest; an animal (skittish)
-   is Folk and no structure, nest or lurker *)
+   is Folk and no structure, nest or lurker, and has no skills of its own (its brain never casts) *)
 let validate_character_body (c : Character_t.character) =
   let flag = Option.value ~default:false in
   let side_ok faction = Option.fold ~none:true ~some:faction c.faction in
@@ -330,6 +330,7 @@ let validate_character_body (c : Character_t.character) =
     Option.is_none c.skittish
     || (plain
         && (not (flag c.lurks))
+        && c.skills = []
         && Option.fold ~none:false ~some:(function `Folk -> true | _ -> false) c.faction)
   in
   ambient_ok && skittish_ok
