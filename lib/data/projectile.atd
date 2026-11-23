@@ -115,8 +115,8 @@ type projectile_arc = {
 
 (* A line of [range] units and [width] from the caster towards the aim. It has no lifetime, no pulse and no turn rate
    of its own: the skill's [channel] pulses it, pays for it, steers it and ends it. [on_impact] is applied to the first
-   [max_hit_count] characters on the line at each pulse. A beam never ends by itself, so [on_end] stays empty (and is
-   left out of the JSON) *)
+   [max_hit_count] characters on the line at each pulse. A beam never ends by itself, so [on_end] stays empty (a
+   validator refuses nodes in it) *)
 type projectile_beam = {
   metadata: metadata;
   projectile_type <json name="type">: projectile_type;
@@ -124,7 +124,7 @@ type projectile_beam = {
   spawn_offset: vector3;
   max_hit_count: int <ocaml valid="Validation.int_min 1">;
   on_impact: projectile_impact_internal list;
-  ~on_end: projectile_impact_internal list;
+  on_end: projectile_impact_internal list;
   ?vfx: projectile_vfx option;
   range: float <ocaml valid="Validation.float_min 0.5">;
   width: float <ocaml valid="Validation.float_min 0.1">;
