@@ -1214,6 +1214,50 @@ let test_a_striking_basic_attack_has_a_hit_delay () =
   check int "a projectile needs none" 0 (count ~strikes:false ~hit_delay:None)
 ;;
 
+let skill_description_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter_map
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        let message = Atdgen_runtime.Util.Validation.string_of_error e in
+        if Base.String.is_substring message ~substring:"description is"
+        then Some message
+        else None
+      | None -> None)
+    validated.errors
+;;
+
+let skill_with_description key description =
+  ( "data/json/" ^ key ^ ".skill.json",
+    `Skill
+      ({ owner = "ownr";
+         entity_type = `Skill;
+         key;
+         version = 1;
+         id = "ownr:Skill:" ^ key ^ ":1";
+         entity = { minimal_skill with metadata = { minimal_metadata with description } }
+       }
+        : Data.Entity_t.skill_entity_definition) )
+;;
+
+(* TB-450: the card shows a description whole, so one the card cannot hold is refused; the length counts
+   characters of the text as written *)
+let test_a_skill_description_fits_the_card () =
+  let errors description = skill_description_errors [ skill_with_description "Dash" description ] in
+  check int "exactly the limit" 0 (List.length (errors (String.make 200 'a')));
+  check int "multibyte characters count once" 0 (List.length (errors (String.concat "" (List.init 200 (fun _ -> "\xC3\xA9")))));
+  (match errors (String.make 201 'a') with
+   | [ message ] ->
+     check bool "names the skill, the length and the limit" true
+       (List.for_all
+          (fun substring -> Base.String.is_substring message ~substring)
+          [ "Dash"; "201"; "200" ])
+   | other -> Alcotest.failf "expected one error, got %d" (List.length other))
+;;
+
 let test_weapon_and_visual_references () =
   let class_ref =
     Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
@@ -1774,6 +1818,7 @@ let dataset_tests =
       test_kill_objective_concurrent_with_spawn_is_completable;
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
     test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
+    test_case "A skill description fits the card" `Quick test_a_skill_description_fits_the_card;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "A kill objective may lean on the least the drains pour"

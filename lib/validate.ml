@@ -691,6 +691,36 @@ let basic_attack_swing_error_messages definitions =
     definitions
 ;;
 
+(* The skill card shows a skill's description as written (#450), so the validation owns how long it may be:
+   the card's limit, counted in characters (not bytes) *)
+let skill_description_max = 200
+
+let char_count text =
+  String.fold_left
+    (fun count c -> if Char.code c land 0xC0 = 0x80 then count else count + 1)
+    0
+    text
+;;
+
+let skill_description_error_messages definitions =
+  List.filter_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Skill { key; entity; _ } ->
+        let length = char_count entity.metadata.description in
+        if length > skill_description_max
+        then
+          Some
+            (Printf.sprintf
+               "Skill %s: its description is %d characters, the card shows at most %d"
+               key
+               length
+               skill_description_max)
+        else None
+      | _ -> None)
+    definitions
+;;
+
 (* Map generation (docs/design/mapgen.md): a stage with a generator spec must be generatable. The spec is
    feasible (the static checks of the Rust generator), every anchor of the stage is bound to a generated slot
    with contiguous ordinals, and every quest played on the stage finds its anchors and its rooms in the spec.
@@ -992,6 +1022,7 @@ let validate_entity_definitions dataset =
   let tier_errors = tier_error_messages (take_definitions dataset) in
   let weapon_class_errors = weapon_class_error_messages (take_definitions dataset) in
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
+  let skill_description_errors = skill_description_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let errors =
@@ -1012,6 +1043,7 @@ let validate_entity_definitions dataset =
        @ tier_errors
        @ weapon_class_errors
        @ basic_attack_swing_errors
+       @ skill_description_errors
        @ generator_errors
        @ run_ending_errors)
   in
