@@ -691,37 +691,110 @@ let basic_attack_swing_error_messages definitions =
     definitions
 ;;
 
-(* A stat's conversion is a visible change on the card: [per_point], written by the display rule of the stat
-   it feeds (format, scale, decimals), is at least one step of the last displayed decimal. A gain the card cannot
-   show cannot be in the table (#453) *)
+(* The smallest change of a stat that its display rule shows: one unit of the last displayed decimal, taken
+   back to the stored unit (format, scale and decimals of the rule). Read by every check that a number must
+   show on the card (#453) *)
+let smallest_change_shown (display : Data.Stat_t.stat_display) =
+  let to_shown =
+    Option.value display.scale ~default:1.0
+    *. (match display.format with
+        | `Flat -> 1.0
+        | `Percent | `Change -> 100.0)
+  in
+  10. ** float_of_int (-display.decimals) /. to_shown
+;;
+
+let stat_type_name stat_type =
+  Base.String.strip ~drop:(fun c -> c = '"') (Data.Stat_j.string_of_stat_type stat_type)
+;;
+
+(* A stat's conversion is a visible change on the card: [per_point] is at least the smallest change that the
+   display rule shows. A gain the card cannot show cannot be in the table (#453) *)
 let conversion_error_messages definitions =
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
       match definition with
       | `Stat { key; entity = { conversions = Some conversions; display; _ }; _ } ->
-        let to_shown =
-          Option.value display.scale ~default:1.0
-          *. (match display.format with
-              | `Flat -> 1.0
-              | `Percent | `Change -> 100.0)
-        in
-        let step = 10. ** float_of_int (-display.decimals) in
+        let step = smallest_change_shown display in
         List.filter_map
           (fun ({ attribute; per_point } : Data.Stat_t.stat_conversion) ->
-            if Float.abs per_point *. to_shown >= step *. (1. -. 1e-9)
+            if Float.abs per_point >= step *. (1. -. 1e-9)
             then None
             else
               Some
                 (Printf.sprintf
-                   "Stat %s: %s gives too little to show: %g per point reads as a change of less than %g at %d decimals; the smallest that shows is %g"
+                   "Stat %s: %s gives too little to show: %g per point reads as a change of less than the %g that %d decimals show"
                    key
-                   (Base.String.strip ~drop:(fun c -> c = '"')
-                      (Data.Stat_j.string_of_stat_type attribute))
+                   (stat_type_name attribute)
                    per_point
                    step
-                   display.decimals
-                   (step /. to_shown)))
+                   display.decimals))
           conversions
+      | _ -> [])
+    definitions
+;;
+
+(* The stats of a sheet read by the sheet's fields, the attributes (whole numbers) left out *)
+let sheet_stats (sheet : Data.Stat_t.stat_sheet) : (Data.Stat_t.stat_type * float) list =
+  [ `Armor, sheet.armor;
+    `MagicResist, sheet.magic_resist;
+    `Health, sheet.health;
+    `Mana, sheet.mana;
+    `DamageTakenModifier, sheet.damage_taken_modifier;
+    `DamageModifier, sheet.damage_modifier;
+    `MovementSpeed, sheet.movement_speed;
+    `MovementSpeedModifier, sheet.movement_speed_modifier;
+    `AttackSpeed, sheet.attack_speed;
+    `AttackPower, sheet.attack_power;
+    `AbilityPower, sheet.ability_power;
+    `CriticalChance, sheet.critical_chance;
+    `CriticalDamage, sheet.critical_damage;
+    `CooldownReduction, sheet.cooldown_reduction;
+    `DodgeChance, sheet.dodge_chance;
+    `ManaRegen, sheet.mana_regen;
+    `HealthRegen, sheet.health_regen;
+    `ExperienceModifier, sheet.experience_modifier;
+    `GoldModifier, sheet.gold_modifier;
+    `LifeSteal, sheet.life_steal;
+    `HealthModifier, sheet.health_modifier
+  ]
+;;
+
+(* A character a player can be (type Adventurer: the data names no other mark) starts with a sheet the card
+   writes as it is: each base value is a whole number of the smallest change its stat's display shows (#453).
+   Monsters keep the fractions folded into their sheets until #352 *)
+let player_sheet_error_messages definitions =
+  let displays =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stat { entity = { stat_type; display; _ }; _ } -> Some (stat_type, display)
+        | _ -> None)
+      definitions
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Character { key; entity = { character_type = `Adventurer; stat_sheet; _ }; _ } ->
+        List.filter_map
+          (fun (stat_type, value) ->
+            match List.assoc_opt stat_type displays with
+            | None -> None
+            | Some display ->
+              let step = smallest_change_shown display in
+              let steps = value /. step in
+              if Float.abs (steps -. Float.round steps) < 1e-6
+              then None
+              else
+                Some
+                  (Printf.sprintf
+                     "Character %s: base %s %g does not show as it is; the nearest values that show are %g and %g"
+                     key
+                     (stat_type_name stat_type)
+                     value
+                     (Float.floor steps *. step)
+                     (Float.ceil steps *. step)))
+          (sheet_stats stat_sheet)
       | _ -> [])
     definitions
 ;;
@@ -1030,6 +1103,7 @@ let validate_entity_definitions dataset =
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let conversion_errors = conversion_error_messages (take_definitions dataset) in
+  let player_sheet_errors = player_sheet_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1050,7 +1124,8 @@ let validate_entity_definitions dataset =
        @ basic_attack_swing_errors
        @ generator_errors
        @ run_ending_errors
-       @ conversion_errors)
+       @ conversion_errors
+       @ player_sheet_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
