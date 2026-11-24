@@ -24,17 +24,40 @@ let lookup ctx ~module_name name =
       (Printf.sprintf "rust: unresolved type `%s` in module `%s`" name module_name)
 ;;
 
+(* The JSON name of a field or variant: its `<json name="...">`, else the ATD name *)
+let json_name annot name = Option.value (get_json annot "name") ~default:name
+
+(* A required `f : T option`: atdgen's `"None"` / `["Some", v]`, not an omitted key *)
+let is_plain_option kind te =
+  kind = Atd.Ast.Required
+  &&
+  match te with
+  | Atd.Ast.Option _ -> true
+  | _ -> false
+;;
+
+(* `(string * T) list <json repr="object">` is a JSON object: its value type *)
+let object_map_value (te : Atd.Ast.type_expr) : Atd.Ast.type_expr option =
+  match te with
+  | Atd.Ast.List
+      ( _,
+        Atd.Ast.Tuple (_, [ (_, Atd.Ast.Name (_, (_, "string", []), _), _); (_, value, _) ], _),
+        annot )
+    when get_json annot "repr" = Some "object" -> Some value
+  | _ -> None
+;;
+
 (* ATD type -> Rust type. [owner] is the type being generated (to decide on Box),
    [inline] is false below a Vec, where recursion needs no indirection. *)
 let rec rust_type ctx ~module_name ~owner ~inline (te : Atd.Ast.type_expr) : string =
   let recur = rust_type ctx ~module_name ~owner in
+  match object_map_value te with
+  | Some value -> Printf.sprintf "std::collections::BTreeMap<String, %s>" (recur ~inline:false value)
+  | None -> rust_type_of ctx ~module_name ~owner ~inline te
+
+and rust_type_of ctx ~module_name ~owner ~inline (te : Atd.Ast.type_expr) : string =
+  let recur = rust_type ctx ~module_name ~owner in
   match te with
-  | Atd.Ast.List (_, Atd.Ast.Tuple (_, [ (_, Atd.Ast.Name (_, (_, "string", []), _), _); (_, value, _) ], _), annot)
-    when get_json annot "repr" = Some "object" ->
-    (* `(string * T) list <json repr="object">` is a JSON object *)
-    Printf.sprintf
-      "std::collections::BTreeMap<String, %s>"
-      (recur ~inline:false value)
   | Atd.Ast.List (_, arg, _) -> Printf.sprintf "Vec<%s>" (recur ~inline:false arg)
   | Atd.Ast.Option (_, arg, _) | Atd.Ast.Nullable (_, arg, _) ->
     Printf.sprintf "Option<%s>" (recur ~inline arg)
@@ -90,13 +113,8 @@ let generate_field ctx ~module_name ~owner (field : Atd.Ast.field) : string =
     else (
       let buf = Buffer.create 128 in
       let ident = escape_ident name in
-      let json_name = Option.value (get_json annot "name") ~default:name in
-      let is_plain_option =
-        kind = Atd.Ast.Required
-        && (match te with
-            | Atd.Ast.Option _ -> true
-            | _ -> false)
-      in
+      let json_name = json_name annot name in
+      let is_plain_option = is_plain_option kind te in
       let lenient =
         (* atdgen reads ints from JSON strings too; mirror that for the common shapes *)
         match get_rs annot "usetype", te with
@@ -165,7 +183,7 @@ let variants_of (entry : entry) (vs : Atd.Ast.variant list) : variant list =
     (fun (v : Atd.Ast.variant) ->
       match v with
       | Atd.Ast.Variant (_, (name, annot), payload) ->
-        let tag = Option.value (get_json annot "name") ~default:name in
+        let tag = json_name annot name in
         { tag; ident = variant_ident name; payload }
       | Atd.Ast.Inherit _ ->
         failwith ("rust: `inherit` is not supported in " ^ entry.atd_name))
