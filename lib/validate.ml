@@ -691,6 +691,41 @@ let basic_attack_swing_error_messages definitions =
     definitions
 ;;
 
+(* A stat's conversion is a visible change on the card: [per_point], written by the display rule of the stat
+   it feeds (format, scale, decimals), is at least one step of the last displayed decimal. A gain the card cannot
+   show cannot be in the table (#453) *)
+let conversion_error_messages definitions =
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Stat { key; entity = { conversions = Some conversions; display; _ }; _ } ->
+        let to_shown =
+          Option.value display.scale ~default:1.0
+          *. (match display.format with
+              | `Flat -> 1.0
+              | `Percent | `Change -> 100.0)
+        in
+        let step = 10. ** float_of_int (-display.decimals) in
+        List.filter_map
+          (fun ({ attribute; per_point } : Data.Stat_t.stat_conversion) ->
+            if Float.abs per_point *. to_shown >= step *. (1. -. 1e-9)
+            then None
+            else
+              Some
+                (Printf.sprintf
+                   "Stat %s: %s gives too little to show: %g per point reads as a change of less than %g at %d decimals; the smallest that shows is %g"
+                   key
+                   (Base.String.strip ~drop:(fun c -> c = '"')
+                      (Data.Stat_j.string_of_stat_type attribute))
+                   per_point
+                   step
+                   display.decimals
+                   (step /. to_shown)))
+          conversions
+      | _ -> [])
+    definitions
+;;
+
 (* Map generation (docs/design/mapgen.md): a stage with a generator spec must be generatable. The spec is
    feasible (the static checks of the Rust generator), every anchor of the stage is bound to a generated slot
    with contiguous ordinals, and every quest played on the stage finds its anchors and its rooms in the spec.
@@ -994,6 +1029,7 @@ let validate_entity_definitions dataset =
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
+  let conversion_errors = conversion_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1013,7 +1049,8 @@ let validate_entity_definitions dataset =
        @ weapon_class_errors
        @ basic_attack_swing_errors
        @ generator_errors
-       @ run_ending_errors)
+       @ run_ending_errors
+       @ conversion_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
