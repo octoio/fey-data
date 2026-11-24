@@ -669,6 +669,96 @@ let test_background_life_is_spawned_on_an_open_area () =
   check int "a team anchor" 1 (List.length (ambient_spawn_errors ~team:(Some `Ally) ~radius:(Some 4.0)))
 ;;
 
+(* An anchor as JSON: its [body] fields and its place on the x axis *)
+let area_anchor_json body x =
+  Printf.sprintf
+    {|{%s,"metadata":{"title":"t","description":""},"transform":{"position":{"x":%s,"y":0.0,"z":0.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}}|}
+    body x
+;;
+
+let party_anchor kind x = area_anchor_json (Printf.sprintf {|"type":"%s"|} kind) x
+
+(* The animal area of these tests: a disc of radius 4 at the origin, spawned on by an ambient sheep or rehomed to;
+   [other] is one more anchor ([stage_has_it] false: one of another stage) *)
+let animal_area_errors ?(stage_has_it = true) ~rehome ~other () =
+  let anchor key json : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key; version = 1;
+        id = Printf.sprintf "ownr:Anchor:%s:1" key;
+        entity = Data.Anchor_j.anchor_internal_of_string json }
+  in
+  let sheep : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity =
+          { minimal_character with
+            Data.Character_t.faction = Some `Folk;
+            ambient = Some true;
+            skittish = Some { Data.Character_t.alarm_radius = 8.0; stroll_pace = 0.4 } } }
+  in
+  let action =
+    if rehome
+    then
+      Printf.sprintf {|{"type":"Rehome","character":%s,"anchor":%s}|}
+        (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+    else
+      Printf.sprintf
+        {|{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":false}}|}
+        (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf {|{"type":"Action","id":1,"name":"a","action":%s}|} action)
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  let reference key = Data.Common_j.entity_reference_of_string (ref_json "Anchor" key) in
+  let stage key anchors : Data.Entity_t.entity_definition_internal =
+    `Stage
+      { Data.Entity_t.owner = "ownr"; entity_type = `Stage; key; version = 1;
+        id = Printf.sprintf "ownr:Stage:%s:1" key;
+        entity = { Test_fixtures.minimal_stage with Data.Stage_t.anchors } }
+  in
+  let stages =
+    if stage_has_it
+    then [ stage "S" [ reference "Pen"; reference "Other" ] ]
+    else [ stage "S" [ reference "Pen" ]; stage "T" [ reference "Other" ] ]
+  in
+  Validate.animal_area_error_messages
+    ([ sheep; quest;
+       anchor "Pen" (area_anchor_json {|"type":"SpawnPoint","radius":4.0|} "0.0");
+       anchor "Other" other ]
+     @ stages)
+;;
+
+let test_an_animal_area_holds_nothing_the_party_uses () =
+  let errors ?stage_has_it ~rehome other = List.length (animal_area_errors ?stage_has_it ~rehome ~other ()) in
+  List.iter
+    (fun rehome ->
+      let at = if rehome then "a rehome target" else "an ambient spawn" in
+      check int (at ^ ": a portal on the disc's edge") 1 (errors ~rehome (party_anchor "Portal" "4.0"));
+      check int (at ^ ": a portal inside the disc grown by its pad (4 + 2)") 1
+        (errors ~rehome (party_anchor "Portal" "5.9"));
+      check int (at ^ ": a portal beyond it") 0 (errors ~rehome (party_anchor "Portal" "6.0"));
+      check int (at ^ ": a lever is an interactable") 1 (errors ~rehome (area_anchor_json {|"type":"Lever","model":"lever"|} "5.0"));
+      check int (at ^ ": the place the party appears") 1
+        (errors ~rehome (area_anchor_json {|"type":"SpawnPoint","team":"Ally"|} "5.0"));
+      check int (at ^ ": a monster spawn point is not the party's") 0
+        (errors ~rehome (area_anchor_json {|"type":"SpawnPoint","radius":2.0|} "1.0"));
+      check int (at ^ ": a zone counts by its own radius (4 + 3)") 1
+        (errors ~rehome
+           (area_anchor_json
+              {|"type":"Zone","detection":"Overlap","radius":3.0,"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"show_vfx":false|}
+              "6.5"));
+      check int (at ^ ": an anchor of another stage is not in the way") 0
+        (errors ~stage_has_it:false ~rehome (party_anchor "Portal" "1.0")))
+    [ false; true ]
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1928,6 +2018,10 @@ let dataset_tests =
       "Background life is spawned on an open area"
       `Quick
       test_background_life_is_spawned_on_an_open_area;
+    test_case
+      "An animal area holds nothing the party uses"
+      `Quick
+      test_an_animal_area_holds_nothing_the_party_uses;
     test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick

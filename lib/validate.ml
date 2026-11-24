@@ -166,6 +166,29 @@ let interact_error_messages definitions =
     definitions
 ;;
 
+(* Every spawn of a quest tree, and every (character, anchor) a Rehome of it names *)
+let rec quest_spawns (node : Data.Quest_t.quest_node_internal) =
+  match node with
+  | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+    List.concat_map quest_spawns children
+  | `Timer { child; _ } | `Protect { child; _ } -> quest_spawns child
+  | `Action { action = `Spawn { spawn; _ }; _ } -> [ spawn ]
+  | `Action { action = `StartSpawnSequence { spawn_sequence; _ }; _ } ->
+    List.concat_map
+      (fun (step : Data.Spawn_t.spawn_sequence_step) -> step.spawns)
+      spawn_sequence.steps
+  | `Action _ | `Objective _ | `Wait _ -> []
+;;
+
+let rec quest_rehomes (node : Data.Quest_t.quest_node_internal) =
+  match node with
+  | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
+    List.concat_map quest_rehomes children
+  | `Timer { child; _ } | `Protect { child; _ } -> quest_rehomes child
+  | `Action { action = `Rehome { character; anchor; _ }; _ } -> [ character, anchor ]
+  | `Action _ | `Objective _ | `Wait _ -> []
+;;
+
 (* A Rehome sends an animal (a character with skittish) to the area of a SpawnPoint that has a radius *)
 let rehome_error_messages definitions =
   let is_animal reference =
@@ -186,14 +209,6 @@ let rehome_error_messages definitions =
           Dataset.entity_reference_of_entity_definition definition = reference
         | _ -> false)
       definitions
-  in
-  let rec rehomes (node : Data.Quest_t.quest_node_internal) =
-    match node with
-    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
-      List.concat_map rehomes children
-    | `Timer { child; _ } | `Protect { child; _ } -> rehomes child
-    | `Action { action = `Rehome { character; anchor; _ }; _ } -> [ character, anchor ]
-    | `Action _ | `Objective _ | `Wait _ -> []
   in
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
@@ -220,7 +235,7 @@ let rehome_error_messages definitions =
                   "Quest %s rehomes to anchor %s, which is not a SpawnPoint with a radius"
                   quest
                   (Data.Common_j.string_of_entity_reference anchor) ])
-          (rehomes entity.root)
+          (quest_rehomes entity.root)
       | _ -> [])
     definitions
 ;;
@@ -240,18 +255,6 @@ let aggro_spawn_error_messages definitions =
         | _ -> false)
       definitions
   in
-  let rec spawns (node : Data.Quest_t.quest_node_internal) =
-    match node with
-    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
-      List.concat_map spawns children
-    | `Timer { child; _ } | `Protect { child; _ } -> spawns child
-    | `Action { action = `Spawn { spawn; _ }; _ } -> [ spawn ]
-    | `Action { action = `StartSpawnSequence { spawn_sequence; _ }; _ } ->
-      List.concat_map
-        (fun (step : Data.Spawn_t.spawn_sequence_step) -> step.spawns)
-        spawn_sequence.steps
-    | `Action _ | `Objective _ | `Wait _ -> []
-  in
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
       match definition with
@@ -270,8 +273,19 @@ let aggro_spawn_error_messages definitions =
                    quest
                    (Data.Common_j.string_of_entity_reference spawn.character))
             else None)
-          (spawns entity.root)
+          (quest_spawns entity.root)
       | _ -> [])
+    definitions
+;;
+
+let is_ambient_character definitions reference =
+  List.exists
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Character { entity; _ } ->
+        entity.Data.Character_t.ambient = Some true
+        && Dataset.entity_reference_of_entity_definition definition = reference
+      | _ -> false)
     definitions
 ;;
 
@@ -279,16 +293,7 @@ let aggro_spawn_error_messages definitions =
    appears (the engine reads it as a PlayerSpawn, which moves the arrival point and the director's wave spots), and a
    point without a radius pins the animals to one spot *)
 let ambient_spawn_error_messages definitions =
-  let is_ambient reference =
-    List.exists
-      (fun (definition : Data.Entity_t.entity_definition_internal) ->
-        match definition with
-        | `Character { entity; _ } ->
-          entity.Data.Character_t.ambient = Some true
-          && Dataset.entity_reference_of_entity_definition definition = reference
-        | _ -> false)
-      definitions
-  in
+  let is_ambient = is_ambient_character definitions in
   let is_open_area reference =
     List.exists
       (fun (definition : Data.Entity_t.entity_definition_internal) ->
@@ -297,18 +302,6 @@ let ambient_spawn_error_messages definitions =
           Dataset.entity_reference_of_entity_definition definition = reference
         | _ -> false)
       definitions
-  in
-  let rec spawns (node : Data.Quest_t.quest_node_internal) =
-    match node with
-    | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
-      List.concat_map spawns children
-    | `Timer { child; _ } | `Protect { child; _ } -> spawns child
-    | `Action { action = `Spawn { spawn; _ }; _ } -> [ spawn ]
-    | `Action { action = `StartSpawnSequence { spawn_sequence; _ }; _ } ->
-      List.concat_map
-        (fun (step : Data.Spawn_t.spawn_sequence_step) -> step.spawns)
-        spawn_sequence.steps
-    | `Action _ | `Objective _ | `Wait _ -> []
   in
   List.concat_map
     (fun (definition : Data.Entity_t.entity_definition_internal) ->
@@ -329,7 +322,96 @@ let ambient_spawn_error_messages definitions =
                    (Data.Common_j.string_of_entity_reference spawn.character)
                    (Data.Common_j.string_of_entity_reference spawn.anchor))
             else None)
-          (spawns entity.root)
+          (quest_spawns entity.root)
+      | _ -> [])
+    definitions
+;;
+
+(* The ground the party is given around what it uses (the stage keeps decor and scenery off it: [DECOR_CLEARANCE] of
+   fey-rs, world/stage.rs). A zone's footprint is its own radius; a monster spawn point is not the party's *)
+let party_footprint (anchor : Data.Anchor_t.anchor_internal) =
+  let clearance = 2.0 in
+  match anchor with
+  | `Zone { radius; _ } -> Some radius
+  | `SpawnPoint { team = Some _; _ } -> Some clearance
+  | `SpawnPoint _ -> None
+  | `Portal _ | `QuestBoard _ | `LampPost _ | `HealingShrine _ | `Lever _ | `Merchant _ | `Chest _ ->
+    Some clearance
+;;
+
+let anchor_transform (anchor : Data.Anchor_t.anchor_internal) =
+  match anchor with
+  | `Zone a -> a.transform
+  | `SpawnPoint a -> a.transform
+  | `Portal a -> a.transform
+  | `QuestBoard a -> a.transform
+  | `LampPost a -> a.transform
+  | `HealingShrine a -> a.transform
+  | `Lever a -> a.transform
+  | `Merchant a -> a.transform
+  | `Chest a -> a.transform
+;;
+
+(* The area animals live in (the anchor of an ambient spawn, the target of a Rehome) holds nothing the party uses of
+   its own stage: no portal, board, lamp, shrine, lever, merchant, chest, zone or party spawn point within the disc
+   grown by that anchor's footprint. A flight may cross anything; this is where they stroll *)
+let animal_area_error_messages definitions =
+  let name = Data.Common_j.string_of_entity_reference in
+  let area_references =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Quest { entity; _ } ->
+          List.filter_map
+            (fun (spawn : Data.Spawn_t.spawn) ->
+              if is_ambient_character definitions spawn.character then Some spawn.anchor else None)
+            (quest_spawns entity.root)
+          @ List.map snd (quest_rehomes entity.root)
+        | _ -> [])
+      definitions
+  in
+  let anchors =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Anchor { entity; _ } -> Some (Dataset.entity_reference_of_entity_definition definition, entity)
+        | _ -> None)
+      definitions
+  in
+  let distance a b =
+    let a = (anchor_transform a).position
+    and b = (anchor_transform b).position in
+    Float.hypot (a.x -. b.x) (a.z -. b.z)
+  in
+  let holds stage (area_reference, area, radius) (reference, other) =
+    match party_footprint other with
+    | Some footprint when reference <> area_reference && distance area other < radius +. footprint ->
+      Some
+        (Printf.sprintf
+           "Stage %s: the animal area %s (radius %.1f) holds %s, which the party uses (%.1f away, within %.1f of its own footprint)"
+           stage (name area_reference) radius (name reference) (distance area other) footprint)
+    | _ -> None
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Stage { entity; _ } ->
+        let stage = name (Dataset.entity_reference_of_entity_definition definition) in
+        let own =
+          List.filter_map
+            (fun reference -> Option.map (fun a -> reference, a) (List.assoc_opt reference anchors))
+            entity.anchors
+        in
+        let areas =
+          List.filter_map
+            (fun (reference, (anchor : Data.Anchor_t.anchor_internal)) ->
+              match anchor with
+              | `SpawnPoint { radius = Some radius; _ } when List.mem reference area_references ->
+                Some (reference, anchor, radius)
+              | _ -> None)
+            own
+        in
+        List.concat_map (fun area -> List.filter_map (holds stage area) own) areas
       | _ -> [])
     definitions
 ;;
@@ -1165,6 +1247,7 @@ let validate_entity_definitions dataset =
   let rehome_errors = rehome_error_messages (take_definitions dataset) in
   let aggro_spawn_errors = aggro_spawn_error_messages (take_definitions dataset) in
   let ambient_spawn_errors = ambient_spawn_error_messages (take_definitions dataset) in
+  let animal_area_errors = animal_area_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1187,7 +1270,8 @@ let validate_entity_definitions dataset =
        @ run_ending_errors
        @ rehome_errors
        @ aggro_spawn_errors
-       @ ambient_spawn_errors)
+       @ ambient_spawn_errors
+       @ animal_area_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;
