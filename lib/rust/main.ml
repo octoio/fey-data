@@ -26,31 +26,35 @@ let entries_of_module (module_name : string) (body : Atd.Ast.module_body) : entr
     body
 ;;
 
-(* Names of the user types a type expression contains inline (not behind a Vec) *)
-let rec inline_names (te : Atd.Ast.type_expr) : string list =
+(* Names of the user types a type expression contains; [through_lists] also looks inside
+   lists (the schema walk), otherwise only what is held inline, not behind a Vec (Box analysis) *)
+let rec names_in ~through_lists (te : Atd.Ast.type_expr) : string list =
+  let recur = names_in ~through_lists in
   match te with
-  | Atd.Ast.List _ -> []
+  | Atd.Ast.List (_, a, _) -> if through_lists then recur a else []
   | Atd.Ast.Option (_, a, _)
   | Atd.Ast.Nullable (_, a, _)
   | Atd.Ast.Shared (_, a, _)
-  | Atd.Ast.Wrap (_, a, _) -> inline_names a
-  | Atd.Ast.Tuple (_, cells, _) -> List.concat_map (fun (_, t, _) -> inline_names t) cells
+  | Atd.Ast.Wrap (_, a, _) -> recur a
+  | Atd.Ast.Tuple (_, cells, _) -> List.concat_map (fun (_, t, _) -> recur t) cells
   | Atd.Ast.Record (_, fields, _) ->
     List.concat_map
       (function
-        | `Field (_, (_, _, annot), t) -> if is_ignored annot then [] else inline_names t
+        | `Field (_, (_, _, annot), t) -> if is_ignored annot then [] else recur t
         | `Inherit _ -> [])
       fields
   | Atd.Ast.Sum (_, variants, _) ->
     List.concat_map
       (fun (v : Atd.Ast.variant) ->
         match v with
-        | Atd.Ast.Variant (_, _, Some t) -> inline_names t
+        | Atd.Ast.Variant (_, _, Some t) -> recur t
         | _ -> [])
       variants
   | Atd.Ast.Name (_, (_, name, _), _) -> if is_primitive name then [] else [ name ]
   | Atd.Ast.Tvar _ -> []
 ;;
+
+let inline_names = names_in ~through_lists:false
 
 let build_context (modules : (string * Atd.Ast.module_body) list) : context =
   let entries = Hashtbl.create 512 in
@@ -140,6 +144,14 @@ let generate_module ctx (module_name, body) : rs_file =
 (* ---- entry point -------------------------------------------------------- *)
 
 (* [atd_files] are (path, parsed module body); the module name is the file's base name *)
+(* The values the pipeline's checks share with the game ([Gamedata.Shared]) *)
+let constants_source =
+  generated_comment_header
+  ^ Printf.sprintf
+      "\n/// How far scenery (and any light the client places) keeps from an anchor (fey-data `lib/shared.ml`).\npub const DECOR_CLEARANCE: f32 = %.1f;\n"
+      Gamedata.Shared.decor_clearance
+;;
+
 let generate_rust (atd_modules : (string * Atd.Ast.module_body) list) : rs_file list =
   let modules =
     atd_modules
@@ -150,10 +162,11 @@ let generate_rust (atd_modules : (string * Atd.Ast.module_body) list) : rs_file 
   let module_files = List.map (generate_module ctx) modules in
   let mod_rs =
     generated_comment_header
-    ^ "\npub mod runtime;\n"
+    ^ "\npub mod runtime;\npub mod constants;\n"
     ^ String.concat "" (List.map (fun (m, _) -> Printf.sprintf "pub mod %s;\n" m) modules)
   in
   ({ name = "runtime"; content = Runtime.source }
+   :: { name = "constants"; content = constants_source }
    :: { name = "mod"; content = mod_rs }
    :: module_files)
 ;;

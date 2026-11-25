@@ -196,7 +196,7 @@ let extract_entity_reference_from_projectile_entity
 ;;
 
 let extract_entity_reference_from_spawn (spawn : Data.Spawn_t.spawn) =
-  [ spawn.character; spawn.anchor ]
+  [ spawn.character; spawn.anchor ] @ Option.to_list spawn.assault
 ;;
 
 let extract_entity_reference_from_spawn_sequence
@@ -236,7 +236,13 @@ let extract_entity_reference_from_quest_action
   | `StartDrains { anchor; spawn; call_anchor; _ } ->
     anchor :: spawn :: Option.to_list call_anchor
   | `SpawnAtRemains { character; remains_of; _ } -> [ character; remains_of ]
-  | `Message _ | `EnableQuestBoardQuest _ | `OpenGate _ | `StopDrains _ -> []
+  | `Call { anchors; _ } -> anchors
+  | `Rehome { character; anchor; _ } -> [ character; anchor ]
+  | `Message _
+  | `EnableQuestBoardQuest _
+  | `OpenGate _
+  | `StopDrains _
+  | `SetLight _ -> []
 ;;
 
 let rec extract_entity_reference_from_quest_node
@@ -246,6 +252,9 @@ let rec extract_entity_reference_from_quest_node
   | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
     List.concat_map extract_entity_reference_from_quest_node children
   | `Timer { child; _ } -> extract_entity_reference_from_quest_node child
+  | `Protect { character; child; _ } ->
+    character :: extract_entity_reference_from_quest_node child
+  | `Wait _ -> []
   | `Objective { condition; _ } -> extract_entity_reference_from_quest_condition condition
   | `Action { action; _ } -> extract_entity_reference_from_quest_action action
 ;;

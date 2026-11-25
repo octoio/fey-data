@@ -493,6 +493,272 @@ let test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest ()
   check int "a character names the pool of its next personal quests" (n minimal_character_entity_definition + 2) (n with_pool)
 ;;
 
+let test_set_light_names_a_known_look_and_no_reference () =
+  let action look =
+    Printf.sprintf {|{"type":"Action","id":4,"name":"l","action":{"type":"SetLight","look":"%s","seconds":20.0}}|} look
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string (action "Dusk") in
+  (match node with
+   | `Action { action = `SetLight { look = `Dusk; seconds = 20.0; _ }; _ } -> ()
+   | _ -> Alcotest.fail "expected a SetLight to Dusk over 20 seconds");
+  check
+    bool
+    "serializing and parsing again gives the same node"
+    true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a light names no reference" 0 (List.length (Dataset.extract_entity_reference_from_quest_node node));
+  check
+    bool
+    "a look the client does not know does not parse"
+    true
+    (match Data.Quest_j.quest_node_internal_of_string (action "Midnight") with
+     | _ -> false
+     | exception _ -> true)
+;;
+
+let test_protect_wait_and_call_round_trip_and_name_their_references () =
+  let anchor = {|{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}|} in
+  let character = {|{"owner":"ownr","type":"Character","key":"C","version":1,"id":"ownr:Character:C:1"}|} in
+  let json =
+    Printf.sprintf
+      {|{"type":"Protect","id":1,"name":"p","title":"Hold","character":%s,"child":{"type":"Sequence","id":2,"name":"s","children":[{"type":"Wait","id":3,"name":"w","duration":5.0},{"type":"Action","id":4,"name":"c","action":{"type":"Call","anchors":[%s],"message":"Boars on the road!"}}]}}|}
+      character
+      anchor
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string json in
+  (match node with
+   | `Protect { child = `Sequence { children = [ `Wait { duration = 5.0; _ }; `Action { action = `Call { anchors = [ _ ]; _ }; _ } ]; _ }; _ } -> ()
+   | _ -> Alcotest.fail "expected a Protect over a Wait and a Call");
+  check
+    bool
+    "serializing and parsing again gives the same node"
+    true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a protect node names the protected character, a call its anchors" 2
+    (List.length (Dataset.extract_entity_reference_from_quest_node node))
+;;
+
+let test_an_assaulting_spawn_names_the_assaulted_character () =
+  let reference = { minimal_entity_reference with Data.Common_t.entity_type = `Character } in
+  let n s = List.length (Dataset.extract_entity_reference_from_spawn s) in
+  check int "an order names its target too" (n minimal_spawn + 1)
+    (n { minimal_spawn with Data.Spawn_t.assault = Some reference })
+;;
+
+let ref_json entity_type key =
+  Printf.sprintf
+    {|{"owner":"ownr","type":"%s","key":"%s","version":1,"id":"ownr:%s:%s:1"}|}
+    entity_type key entity_type key
+;;
+
+let test_a_rehome_round_trips_and_names_its_references () =
+  let json =
+    Printf.sprintf
+      {|{"type":"Action","id":1,"name":"bell","action":{"type":"Rehome","character":%s,"anchor":%s}}|}
+      (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+  in
+  let node = Data.Quest_j.quest_node_internal_of_string json in
+  (match node with
+   | `Action { action = `Rehome _; _ } -> ()
+   | _ -> Alcotest.fail "expected a Rehome action");
+  check bool "round trip" true
+    (Data.Quest_j.quest_node_internal_of_string (Data.Quest_j.string_of_quest_node_internal node) = node);
+  check int "a rehome names the character and the anchor" 2
+    (List.length (Dataset.extract_entity_reference_from_quest_node node))
+;;
+
+let rehome_errors ~skittish ~radius =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity =
+          { minimal_character with
+            Data.Character_t.faction = Some `Folk;
+            skittish = (if skittish then Some { Data.Character_t.alarm_radius = 8.0; stroll_pace = 0.4 } else None) } }
+  in
+  let anchor : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key = "Pen"; version = 1;
+        id = "ownr:Anchor:Pen:1";
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint; metadata = minimal_metadata;
+              transform = minimal_transform; binding = None; team = None; radius } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"bell","action":{"type":"Rehome","character":%s,"anchor":%s}}|}
+         (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.rehome_error_messages [ character; anchor; quest ]
+;;
+
+let test_a_rehome_needs_an_animal_and_an_area () =
+  check int "an animal and an area" 0 (List.length (rehome_errors ~skittish:true ~radius:(Some 4.0)));
+  check int "no skittish behaviour" 1 (List.length (rehome_errors ~skittish:false ~radius:(Some 4.0)));
+  check int "an anchor without a radius" 1 (List.length (rehome_errors ~skittish:true ~radius:None))
+;;
+
+let aggro_spawn_errors ~faction =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Beast"; version = 1;
+        id = "ownr:Character:Beast:1";
+        entity = { minimal_character with Data.Character_t.faction = Some faction } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"pour","action":{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":true}}}|}
+         (ref_json "Character" "Beast") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.aggro_spawn_error_messages [ character; quest ]
+;;
+
+let test_only_a_hostile_spawn_may_be_set_on_the_party () =
+  check int "a monster" 0 (List.length (aggro_spawn_errors ~faction:`Wilds));
+  check int "a ward" 1 (List.length (aggro_spawn_errors ~faction:`Folk));
+  check int "a neutral" 1 (List.length (aggro_spawn_errors ~faction:`Neutral))
+;;
+
+let ambient_spawn_errors ~team ~radius =
+  let character : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity = { minimal_character with Data.Character_t.faction = Some `Folk; ambient = Some true } }
+  in
+  let anchor : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key = "Pen"; version = 1;
+        id = "ownr:Anchor:Pen:1";
+        entity =
+          `SpawnPoint
+            { Data.Anchor_t.anchor_type = `SpawnPoint; metadata = minimal_metadata;
+              transform = minimal_transform; binding = None; team; radius } }
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf
+         {|{"type":"Action","id":1,"name":"graze","action":{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":false}}}|}
+         (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen"))
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  Validate.ambient_spawn_error_messages [ character; anchor; quest ]
+;;
+
+let test_background_life_is_spawned_on_an_open_area () =
+  check int "an area with a radius" 0 (List.length (ambient_spawn_errors ~team:None ~radius:(Some 4.0)));
+  check int "no radius" 1 (List.length (ambient_spawn_errors ~team:None ~radius:None));
+  check int "a team anchor" 1 (List.length (ambient_spawn_errors ~team:(Some `Ally) ~radius:(Some 4.0)))
+;;
+
+(* An anchor as JSON: its [body] fields and its place on the x axis *)
+let area_anchor_json body x =
+  Printf.sprintf
+    {|{%s,"metadata":{"title":"t","description":""},"transform":{"position":{"x":%s,"y":0.0,"z":0.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}}|}
+    body x
+;;
+
+let party_anchor kind x = area_anchor_json (Printf.sprintf {|"type":"%s"|} kind) x
+
+(* The animal area of these tests: a disc of radius 4 at the origin, spawned on by an ambient sheep or rehomed to;
+   [other] is one more anchor ([stage_has_it] false: one of another stage) *)
+let animal_area_errors ?(stage_has_it = true) ~rehome ~other () =
+  let anchor key json : Data.Entity_t.entity_definition_internal =
+    `Anchor
+      { Data.Entity_t.owner = "ownr"; entity_type = `Anchor; key; version = 1;
+        id = Printf.sprintf "ownr:Anchor:%s:1" key;
+        entity = Data.Anchor_j.anchor_internal_of_string json }
+  in
+  let sheep : Data.Entity_t.entity_definition_internal =
+    `Character
+      { Data.Entity_t.owner = "ownr"; entity_type = `Character; key = "Sheep"; version = 1;
+        id = "ownr:Character:Sheep:1";
+        entity =
+          { minimal_character with
+            Data.Character_t.faction = Some `Folk;
+            ambient = Some true;
+            skittish = Some { Data.Character_t.alarm_radius = 8.0; stroll_pace = 0.4 } } }
+  in
+  let action =
+    if rehome
+    then
+      Printf.sprintf {|{"type":"Rehome","character":%s,"anchor":%s}|}
+        (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+    else
+      Printf.sprintf
+        {|{"type":"Spawn","spawn":{"spawn_count":1,"character":%s,"anchor":%s,"target_adventurer_on_spawn":false}}|}
+        (ref_json "Character" "Sheep") (ref_json "Anchor" "Pen")
+  in
+  let root =
+    Data.Quest_j.quest_node_internal_of_string
+      (Printf.sprintf {|{"type":"Action","id":1,"name":"a","action":%s}|} action)
+  in
+  let quest : Data.Entity_t.entity_definition_internal =
+    `Quest
+      { Data.Entity_t.owner = "ownr"; entity_type = `Quest; key = "Q"; version = 1;
+        id = "ownr:Quest:Q:1"; entity = { minimal_quest with Data.Quest_t.root } }
+  in
+  let reference key = Data.Common_j.entity_reference_of_string (ref_json "Anchor" key) in
+  let stage key anchors : Data.Entity_t.entity_definition_internal =
+    `Stage
+      { Data.Entity_t.owner = "ownr"; entity_type = `Stage; key; version = 1;
+        id = Printf.sprintf "ownr:Stage:%s:1" key;
+        entity = { Test_fixtures.minimal_stage with Data.Stage_t.anchors } }
+  in
+  let stages =
+    if stage_has_it
+    then [ stage "S" [ reference "Pen"; reference "Other" ] ]
+    else [ stage "S" [ reference "Pen" ]; stage "T" [ reference "Other" ] ]
+  in
+  Validate.animal_area_error_messages
+    ([ sheep; quest;
+       anchor "Pen" (area_anchor_json {|"type":"SpawnPoint","radius":4.0|} "0.0");
+       anchor "Other" other ]
+     @ stages)
+;;
+
+let test_an_animal_area_holds_nothing_the_party_uses () =
+  let errors ?stage_has_it ~rehome other = List.length (animal_area_errors ?stage_has_it ~rehome ~other ()) in
+  List.iter
+    (fun rehome ->
+      let at = if rehome then "a rehome target" else "an ambient spawn" in
+      check int (at ^ ": a portal on the disc's edge") 1 (errors ~rehome (party_anchor "Portal" "4.0"));
+      check int (at ^ ": a portal inside the disc grown by its pad (4 + 2)") 1
+        (errors ~rehome (party_anchor "Portal" "5.9"));
+      check int (at ^ ": a portal beyond it") 0 (errors ~rehome (party_anchor "Portal" "6.0"));
+      check int (at ^ ": a lever is an interactable") 1 (errors ~rehome (area_anchor_json {|"type":"Lever","model":"lever"|} "5.0"));
+      check int (at ^ ": the place the party appears") 1
+        (errors ~rehome (area_anchor_json {|"type":"SpawnPoint","team":"Ally"|} "5.0"));
+      check int (at ^ ": a monster spawn point is not the party's") 0
+        (errors ~rehome (area_anchor_json {|"type":"SpawnPoint","radius":2.0|} "1.0"));
+      check int (at ^ ": a zone counts by its own radius (4 + 3)") 1
+        (errors ~rehome
+           (area_anchor_json
+              {|"type":"Zone","detection":"Overlap","radius":3.0,"color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"show_vfx":false|}
+              "6.5"));
+      check int (at ^ ": an anchor of another stage is not in the way") 0
+        (errors ~stage_has_it:false ~rehome (party_anchor "Portal" "1.0")))
+    [ false; true ]
+;;
+
 let test_timer_restart_and_new_fields_round_trip_through_json () =
   let json =
     {|{"type":"Timer","id":3,"name":"t","duration":20.0,"on_timeout":"Restart","child":{"type":"Objective","id":4,"name":"o","metadata":{"title":"t","description":"d"},"is_optional":false,"condition":{"type":"Channel","anchors":[{"owner":"ownr","type":"Anchor","key":"A","version":1,"id":"ownr:Anchor:A:1"}],"amount":1,"seconds":0.0,"spawns":[],"raises_book":false}}}|}
@@ -1325,6 +1591,50 @@ let test_channel_pulses_through_one_beam_of_its_range () =
        ])
 ;;
 
+let skill_description_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter_map
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        let message = Atdgen_runtime.Util.Validation.string_of_error e in
+        if Base.String.is_substring message ~substring:"description is"
+        then Some message
+        else None
+      | None -> None)
+    validated.errors
+;;
+
+let skill_with_description key description =
+  ( "data/json/" ^ key ^ ".skill.json",
+    `Skill
+      ({ owner = "ownr";
+         entity_type = `Skill;
+         key;
+         version = 1;
+         id = "ownr:Skill:" ^ key ^ ":1";
+         entity = { minimal_skill with metadata = { minimal_metadata with description } }
+       }
+        : Data.Entity_t.skill_entity_definition) )
+;;
+
+(* TB-450: the card shows a description whole, so one the card cannot hold is refused; the length counts
+   characters of the text as written *)
+let test_a_skill_description_fits_the_card () =
+  let errors description = skill_description_errors [ skill_with_description "Dash" description ] in
+  check int "exactly the limit" 0 (List.length (errors (String.make 200 'a')));
+  check int "multibyte characters count once" 0 (List.length (errors (String.concat "" (List.init 200 (fun _ -> "\xC3\xA9")))));
+  (match errors (String.make 201 'a') with
+   | [ message ] ->
+     check bool "names the skill, the length and the limit" true
+       (List.for_all
+          (fun substring -> Base.String.is_substring message ~substring)
+          [ "Dash"; "201"; "200" ])
+   | other -> Alcotest.failf "expected one error, got %d" (List.length other))
+;;
+
 let test_weapon_and_visual_references () =
   let class_ref =
     Dataset.entity_reference_of_entity_definition minimal_weapon_class_entity_definition
@@ -1836,6 +2146,38 @@ let dataset_tests =
       `Quick
       test_personal_quest_names_its_weapon_pool_and_a_character_its_first_quest;
     test_case
+      "SetLight names a known look and no reference"
+      `Quick
+      test_set_light_names_a_known_look_and_no_reference;
+    test_case
+      "Protect, Wait and Call round trip and name their references"
+      `Quick
+      test_protect_wait_and_call_round_trip_and_name_their_references;
+    test_case
+      "An assaulting spawn names the assaulted character"
+      `Quick
+      test_an_assaulting_spawn_names_the_assaulted_character;
+    test_case
+      "A Rehome round trips and names its references"
+      `Quick
+      test_a_rehome_round_trips_and_names_its_references;
+    test_case
+      "A Rehome needs an animal and an area"
+      `Quick
+      test_a_rehome_needs_an_animal_and_an_area;
+    test_case
+      "Only a hostile spawn may be set on the party"
+      `Quick
+      test_only_a_hostile_spawn_may_be_set_on_the_party;
+    test_case
+      "Background life is spawned on an open area"
+      `Quick
+      test_background_life_is_spawned_on_an_open_area;
+    test_case
+      "An animal area holds nothing the party uses"
+      `Quick
+      test_an_animal_area_holds_nothing_the_party_uses;
+    test_case
       "Timer Restart and Channel round trip through JSON"
       `Quick
       test_timer_restart_and_new_fields_round_trip_through_json;
@@ -1886,6 +2228,7 @@ let dataset_tests =
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
     test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
     test_case "A channel pulses through one beam of its range" `Quick test_channel_pulses_through_one_beam_of_its_range;
+    test_case "A skill description fits the card" `Quick test_a_skill_description_fits_the_card;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "A kill objective may lean on the least the drains pour"

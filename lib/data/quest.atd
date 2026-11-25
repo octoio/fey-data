@@ -167,6 +167,9 @@ type quest_action_type =
   | StartDrains
   | StopDrains
   | SpawnAtRemains
+  | Call
+  | Rehome
+  | SetLight
   ]
 
 type quest_action = {
@@ -213,6 +216,23 @@ type quest_action_activate_portal_to_quest_stage = {
 type quest_action_open_gate = {
   action_type <json name="type">: quest_action_type;
   gate: string <ocaml valid="Validation.string_min_length 1">;
+}
+
+(* The looks of the light the client knows (its look table is the only place that says what each one is: the sun's
+   height and colour, the shade, the fog, the sky, the lamps). The stage's first look is its theme's; a quest moves
+   from it to these. *)
+type light_look =
+  [ Sunset
+  | Dusk
+  | Lamplit
+  ]
+
+(* The light of the stage goes to the look [look] over [seconds] (0 = at once), from the look it is at (or was going to) when the action runs. The look is
+   state of the stage like an open gate: a player who joins later sees the light the stage is at. *)
+type quest_action_set_light = {
+  action_type <json name="type">: quest_action_type;
+  look: light_look;
+  seconds: float <ocaml valid="Validation.float_between 0. 600.">;
 }
 
 type quest_action_message = {
@@ -267,6 +287,23 @@ type quest_action_spawn_at_remains = {
   target_adventurer_on_spawn: bool;
 }
 
+(* A warning to the party: the [message] goes up on screen and the minimap marks each of [anchors] for a few seconds.
+   It completes at once and changes nothing in the world. *)
+type quest_action_call = {
+  action_type <json name="type">: quest_action_type;
+  anchors: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 1 `Anchor">;
+  message: string <ocaml valid="Validation.plain_message">;
+}
+
+(* Every living character of [character] (an animal: it has [skittish]) now belongs to the area of [anchor] (a spawn
+   point with a radius): it goes there, hurrying while it is outside the area, and keeps to it. Nothing else changes;
+   a character that is spawned later is not moved. *)
+type quest_action_rehome = {
+  action_type <json name="type">: quest_action_type;
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
+}
+
 type quest_action_internal =
   [ Spawn of quest_action_spawn
   | StartSpawnSequence of quest_action_start_spawn_sequence
@@ -281,6 +318,9 @@ type quest_action_internal =
   | StartDrains of quest_action_start_drains
   | StopDrains of quest_action
   | SpawnAtRemains of quest_action_spawn_at_remains
+  | Call of quest_action_call
+  | Rehome of quest_action_rehome
+  | SetLight of quest_action_set_light
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 (* Execution tree — mirrors the skill action node pattern.
@@ -294,6 +334,8 @@ type quest_node_type =
   | Timer
   | Objective
   | Action
+  | Protect
+  | Wait
   ]
 
 (* Restart cancels the child subtree and starts it and the timer again: a wave that repeats until beaten *)
@@ -369,6 +411,30 @@ type quest_action_node = {
   action: quest_action_internal;
 }
 
+(* The party protects [character]: while [child] runs, if no character of that definition lives on the stage the quest
+   is lost (the doors fell). Completes with the child. It shows as a line of the tracker, named [title], whose bar is
+   the health of the protected one (fey-rs docs/systems/quests.md, "Protect"). *)
+type quest_protect_node = {
+  node_type <json name="type">: quest_node_type;
+  id: int;
+  name: string;
+  ?optional: bool option;
+  ?bonus_achievement: achievement_type option;
+  title: string <ocaml valid="Validation.string_min_length 1">;
+  character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
+  child: quest_node_internal;
+}
+
+(* A leaf that completes after [duration] seconds. It is not tracked. *)
+type quest_wait_node = {
+  node_type <json name="type">: quest_node_type;
+  id: int;
+  name: string;
+  ?optional: bool option;
+  ?bonus_achievement: achievement_type option;
+  duration: float <ocaml valid="Validation.float_min 0.">;
+}
+
 type quest_node_internal =
   [ Sequence of quest_sequence_node
   | Parallel of quest_parallel_node
@@ -376,6 +442,8 @@ type quest_node_internal =
   | Timer of quest_timer_node
   | Objective of quest_objective_node
   | Action of quest_action_node
+  | Protect of quest_protect_node
+  | Wait of quest_wait_node
   ] <json adapter.ocaml="Atdgen_runtime.Json_adapter.Type_field">
 
 type quest = {

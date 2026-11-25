@@ -17,13 +17,17 @@ type character_type =
 
 (* Whom a character sides with. Factions are separate from the controller: who steers a character (an AI brain or
    any client) can change at runtime, its faction does not. Whether two factions fight is a relation between them
-   (hostile, neutral or friendly), decided by the game rules, not per character. Players are Adventurers. *)
+   (hostile, neutral or friendly), decided by the game rules, not per character. Players are Adventurers. Folk is
+   what the party protects (the barn doors): friendly to the Adventurers, hostile to the monster factions, never
+   chosen by a monster except on an order (the spawn's [assault]), and not part of the party (fey-rs
+   docs/systems/factions.md). *)
 type faction =
   [ Adventurers
   | Wilds
   | Slimes
   | Crypt
   | Neutral
+  | Folk
   ]
 
 (* How dangerous a monster is: scales the rarity of its drops and unlocks gated drops (see drop.atd) *)
@@ -75,6 +79,16 @@ type nest = {
   burst_count: int <ocaml valid="Validation.int_min 1">;
 }
 
+(* How a background creature behaves (a sheep, a hen): it wanders inside its home area (the area of the anchor it was
+   spawned at, or the one a quest's Rehome gave it), runs from the hostile characters that come within [alarm_radius]
+   units of it and strolls at [stroll_pace] (a fraction of its movement speed; fleeing and hurrying home are at full
+   speed). A character with it has the animal brain instead of a monster's, so it must be Folk (a flight needs a
+   hostile relation) and never a structure, a nest or a lurker. *)
+type skittish = {
+  alarm_radius: float <ocaml valid="Validation.float_min 1.">;
+  stroll_pace: float <ocaml valid="Validation.float_between 0.1 1.">;
+}
+
 type character =
   { metadata: metadata;
     character_type <json name="type">: character_type;
@@ -85,7 +99,8 @@ type character =
     (* The side the character fights for; absent = Neutral (attacked by nobody, attacks nobody) *)
     ?faction: faction option;
     pivot_offset: vector3;
-    vision_range: float;
+    (* The aggro radius in units: how far this character notices an enemy. Strictly positive. *)
+    vision_range: float <ocaml valid="Validation.float_positive">;
     auto_attack: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;
     skills: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Skill">;
     stat_sheet: stat_sheet;
@@ -119,6 +134,17 @@ type character =
     ?lurks: bool option;
     (* Present: the character is a breeding nest, see [nest] *)
     ?nest: nest option;
+    (* true: the character is a structure: it has no brain, never moves (placed exactly on its anchor, not pushed, pulled
+       or charged) and takes no status; it only stands and takes damage. It shows a name and a health plate, no level.
+       Absent = false. A plain flag, not a record like [nest]: it needs no field of its own (as [swims] and [lurks]). *)
+    ?structure: bool option;
+    (* true: the character is background life: other characters walk through it (and it keeps apart from the other
+       ambient bodies by the soft push), it has no name, shows a health bar only once hurt, has no mark on the small
+       map, and takes its id from its own range so that it never renumbers the fight. Only Folk or Neutral (a monster
+       or a party character is never passable and unmarked), never a structure or a nest. Absent = false. *)
+    ?ambient: bool option;
+    (* Present: the character is an animal, see [skittish] *)
+    ?skittish: skittish option;
     (* Player characters: the equipment and weapons a new character starts with (equipped on creation);
        absent = nothing *)
     ?starting_equipment: entity_reference list option <ocaml valid="Validation.entity_reference_list_of_type_if_some `Equipment">;
@@ -134,4 +160,4 @@ type character =
        attack cue comes from the skill. *)
     ?model_family: string option <ocaml valid="Validation.validate_model_family_if_some">;
     ?visual_layers: visual_layer list option;
-  }
+  } <ocaml valid="Validation.validate_character_body">

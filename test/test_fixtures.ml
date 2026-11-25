@@ -488,6 +488,9 @@ let minimal_character =
     level_growth = None;
     rank = None;
     nest = None;
+    structure = None;
+    ambient = None;
+    skittish = None;
     director_cost = None;
     model_family = None;
     visual_layers = None
@@ -693,7 +696,6 @@ let minimal_drop_table =
     rarity_curve = None;
     guarantees = None;
     item_chances = None;
-    distribution = None;
     party_scaling = None
   }
 ;;
@@ -958,7 +960,8 @@ let minimal_spawn =
   { Data.Spawn_t.spawn_count = 1;
     character = minimal_character_reference;
     anchor = minimal_spawn_anchor_reference;
-    target_adventurer_on_spawn = true
+    target_adventurer_on_spawn = true;
+    assault = None
   }
 ;;
 

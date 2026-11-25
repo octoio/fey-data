@@ -1,11 +1,17 @@
 type entity_reference <ocaml from="Common"> = abstract
 
+(* [assault]: the spawned monsters carry an order: they go for the nearest living character of that definition (they
+   know where it is: no sight, no aggro radius, no leash home while one lives) and attack it with their normal kit.
+   The order holds: only a taunt takes them off it (they go back to it when it ends, never home); being hit, the
+   threat table and a party member in their aggro reach do not turn them. It cannot be combined with
+   [target_adventurer_on_spawn] (fey-rs docs/systems/ai.md, "Assault"). *)
 type spawn = {
   spawn_count: int <ocaml valid="Validation.int_min 1">;
   character: entity_reference <ocaml valid="Validation.entity_reference_of_type `Character">;
   anchor: entity_reference <ocaml valid="Validation.entity_reference_of_type `Anchor">;
   target_adventurer_on_spawn: bool;
-}
+  ?assault: entity_reference option <ocaml valid="Validation.entity_reference_of_type_if_some `Character">;
+} <ocaml valid="Validation.validate_spawn">
 
 type spawn_sequence_step = {
   timing: float <ocaml valid="Validation.float_between 0. 1.">;

@@ -266,7 +266,8 @@ let spawn_node id anchor : Data.Quest_t.quest_node_internal =
               { Data.Spawn_t.spawn_count = 1;
                 character;
                 anchor;
-                target_adventurer_on_spawn = false
+                target_adventurer_on_spawn = false;
+                assault = None
               }
           }
     }
@@ -460,7 +461,8 @@ let gates_of_crypt : G.gate_rules =
             [ { Data.Spawn_t.spawn_count = 2;
                 character;
                 anchor = anchor_ref "GatePack";
-                target_adventurer_on_spawn = false
+                target_adventurer_on_spawn = false;
+                assault = None
               }
             ]
         }
@@ -569,7 +571,8 @@ let lamp_definition key binding : Data.Entity_t.entity_definition_internal =
             metadata = minimal_metadata;
             transform = minimal_transform;
             binding;
-            model = "Lamp"
+            model = "Lamp";
+            body = None
           }
     }
 ;;
@@ -802,7 +805,7 @@ let test_a_gated_stage_needs_its_levers_and_its_gate_pack () =
     true
     (mentions ~substring:"must be bound with every" (errors (stage [ single; pack ])));
   let elsewhere = anchor_definition "Pack" (Some (binding `PackSpawn 0)) in
-  let wrong = { gated with gates = Some { gates_of_crypt with locked = Some { wake = [ { Data.Spawn_t.spawn_count = 1; character; anchor = anchor_ref "Pack"; target_adventurer_on_spawn = false } ] } } } in
+  let wrong = { gated with gates = Some { gates_of_crypt with locked = Some { wake = [ { Data.Spawn_t.spawn_count = 1; character; anchor = anchor_ref "Pack"; target_adventurer_on_spawn = false; assault = None } ] } } } in
   check
     bool
     "the wake spawn must stand on the gate pack"
