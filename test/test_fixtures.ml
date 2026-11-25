@@ -695,7 +695,6 @@ let minimal_drop_table =
     rarity_curve = None;
     guarantees = None;
     item_chances = None;
-    distribution = None;
     party_scaling = None
   }
 ;;

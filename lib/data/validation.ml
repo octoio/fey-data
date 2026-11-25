@@ -5,6 +5,7 @@ let int_max max x = (x : int) <= max
 let int_between min max (x : int) = int_min min x && int_max max x
 let float_min min (x : float) = min <= x
 let float_max max (x : float) = x <= max
+let float_positive (x : float) = Float.is_finite x && x > 0.
 let float_between min max (x : float) = float_min min x && float_max max x
 let string_starts_with prefix s = String.starts_with ~prefix s
 let string_ends_with suffix s = String.ends_with ~suffix s

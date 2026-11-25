@@ -3,6 +3,7 @@
  (name gamedata)
  (modules
   dataset
+  data_stamp
   io
   mapgen_check
   parity

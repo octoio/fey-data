@@ -1671,6 +1671,14 @@ module DropValidationTests = struct
       (validate_personal_quest (quest ~oath:`NoFlask [ with_floor `Piece; reward ~gold:5 `Gold ]))
   ;;
 
+  let test_vision_range_is_positive () =
+    check bool "8" true (float_positive 8.);
+    check bool "tiny" true (float_positive 0.01);
+    check bool "zero" false (float_positive 0.);
+    check bool "negative" false (float_positive (-1.));
+    check bool "nan" false (float_positive Float.nan)
+  ;;
+
   let test_personal_numbers () =
     check bool "growth absent" true (float_min_if_some 0. None);
     check bool "growth 0.5" true (float_min_if_some 0. (Some 0.5));
@@ -1714,7 +1722,8 @@ let drop_validation_tests =
     ("guarantee and tilt", `Quick, DropValidationTests.test_guarantee);
     ("validate_personal_reward", `Quick, DropValidationTests.test_personal_reward);
     ("a sworn quest", `Quick, DropValidationTests.test_sworn_quest);
-    ("personal quest numbers", `Quick, DropValidationTests.test_personal_numbers)
+    ("personal quest numbers", `Quick, DropValidationTests.test_personal_numbers);
+    ("vision range is positive", `Quick, DropValidationTests.test_vision_range_is_positive)
   ]
 ;;
 

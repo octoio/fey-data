@@ -571,7 +571,8 @@ let lamp_definition key binding : Data.Entity_t.entity_definition_internal =
             metadata = minimal_metadata;
             transform = minimal_transform;
             binding;
-            model = "Lamp"
+            model = "Lamp";
+            body = None
           }
     }
 ;;

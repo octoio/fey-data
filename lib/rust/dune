@@ -9,5 +9,6 @@
   generator_types
   generator_serde
   output
-  main)
- (libraries atd gamedata))
+  main
+  coverage)
+ (libraries atd gamedata yojson))

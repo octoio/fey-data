@@ -99,7 +99,8 @@ type character =
     (* The side the character fights for; absent = Neutral (attacked by nobody, attacks nobody) *)
     ?faction: faction option;
     pivot_offset: vector3;
-    vision_range: float;
+    (* The aggro radius in units: how far this character notices an enemy. Strictly positive. *)
+    vision_range: float <ocaml valid="Validation.float_positive">;
     auto_attack: entity_reference <ocaml valid="Validation.entity_reference_of_type `Skill">;
     skills: entity_reference list <ocaml valid="Validation.entity_reference_list_of_type 0 `Skill">;
     stat_sheet: stat_sheet;
