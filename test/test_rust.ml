@@ -168,6 +168,16 @@ let test_runtime_is_emitted () =
   check_has "option module" r "pub mod atd_option"
 ;;
 
+(* The values the checks and the game both read are written once, from [Gamedata.Shared] *)
+let test_shared_constants_are_emitted () =
+  let files = generate [ module_of "sample" "type s = { n: string }\n" ] in
+  check_has
+    "the clearance"
+    (find_file files "constants")
+    (Printf.sprintf "pub const DECOR_CLEARANCE: f32 = %.1f;" Gamedata.Shared.decor_clearance);
+  check_has "listed" (find_file files "mod") "pub mod constants;"
+;;
+
 let test_object_maps () =
   let files =
     generate
@@ -385,7 +395,8 @@ let () =
       ( "serde",
         [ test_case "payload sum uses atd encoding" `Quick test_payload_sum_uses_atd_encoding;
           test_case "type field adapter" `Quick test_type_field_adapter;
-          test_case "runtime is emitted" `Quick test_runtime_is_emitted
+          test_case "runtime is emitted" `Quick test_runtime_is_emitted;
+          test_case "shared constants are emitted" `Quick test_shared_constants_are_emitted
         ] );
       ( "modules",
         [ test_case "imports resolve across modules" `Quick test_imports_resolve_across_modules;

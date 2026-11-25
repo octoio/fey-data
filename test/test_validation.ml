@@ -477,7 +477,8 @@ module SpawnSequenceValidationTests = struct
         [ { Data.Spawn_t.spawn_count = 1;
             character = make_entity_reference ~entity_type:`Character ();
             anchor = make_entity_reference ~entity_type:`Anchor ();
-            target_adventurer_on_spawn = false
+            target_adventurer_on_spawn = false;
+            assault = None
           }
         ]
     }
@@ -508,8 +509,47 @@ module SpawnSequenceValidationTests = struct
   ;;
 end
 
+let test_a_spawn_cannot_assault_and_target_the_adventurers () =
+  let spawn adventurer assault =
+    { Data.Spawn_t.spawn_count = 1;
+      character = make_entity_reference ~entity_type:`Character ();
+      anchor = make_entity_reference ~entity_type:`Anchor ();
+      target_adventurer_on_spawn = adventurer;
+      assault
+    }
+  in
+  let doors = Some (make_entity_reference ~entity_type:`Character ()) in
+  check bool "no order, no flag" true (validate_spawn (spawn false None));
+  check bool "the flag alone" true (validate_spawn (spawn true None));
+  check bool "an order alone" true (validate_spawn (spawn false doors));
+  check bool "an order and the flag together are invalid" false (validate_spawn (spawn true doors))
+;;
+
+let test_ambient_and_skittish_need_the_right_kind_of_character () =
+  let base = Test_fixtures.minimal_character in
+  let skittish = Some { Data.Character_t.alarm_radius = 8.0; stroll_pace = 0.4 } in
+  let ok c = validate_character_body c in
+  check bool "a plain character" true (ok base);
+  check bool "an ambient Folk" true (ok { base with ambient = Some true; faction = Some `Folk });
+  check bool "an ambient Neutral" true (ok { base with ambient = Some true; faction = Some `Neutral });
+  check bool "an ambient monster is invalid" false (ok { base with ambient = Some true; faction = Some `Wilds });
+  check bool "an ambient structure is invalid" false
+    (ok { base with ambient = Some true; faction = Some `Folk; structure = Some true });
+  check bool "a skittish Folk" true (ok { base with skittish; faction = Some `Folk });
+  check bool "a skittish Neutral is invalid" false (ok { base with skittish; faction = Some `Neutral });
+  check bool "a skittish character with no faction is invalid" false (ok { base with skittish });
+  check bool "a skittish character with a skill is invalid" false
+    (ok
+       { base with
+         skittish;
+         faction = Some `Folk;
+         skills = [ Test_fixtures.minimal_entity_reference ] })
+;;
+
 let spawn_sequence_validation_tests =
-  [ ( "validate_spawn_sequence_steps",
+  [ ("validate_spawn assault", `Quick, test_a_spawn_cannot_assault_and_target_the_adventurers);
+    ("validate_character_body", `Quick, test_ambient_and_skittish_need_the_right_kind_of_character);
+    ( "validate_spawn_sequence_steps",
       `Quick,
       SpawnSequenceValidationTests.test_validate_spawn_sequence_steps )
   ]
@@ -850,7 +890,7 @@ module GateValidationTests = struct
       obstacle =
         { kind = `Wall; shape = `Box; x = 1.; z = 2.; radius = None; half_x = Some 2.; half_z = Some 0.5;
           yaw = None; blocks_sight = None; prop = None };
-      starts_open = None; opening; lever; side_x; side_z; drains = None }
+      starts_open = None; opening; lever; side_x; side_z; drains = None; open_prop = None }
   ;;
 
   let test_validate_gates () =

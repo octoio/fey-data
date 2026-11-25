@@ -67,11 +67,15 @@ type stage_prop = {
 
 (* Which ground a ground zone is. Water is walkable but slows everyone inside it to 60% speed (unless the character
    swims); Dry is the ground on an island; Boardwalk is the ground under a boardwalk, walked exactly like Dry but
-   with its own look and footstep sound. *)
+   with its own look and footstep sound. Road (a packed dirt road or yard), Tilled (a ploughed field) and Mud
+   (trampled mud) are walked exactly like Dry too: they only change how the ground is painted and how it sounds. *)
 type ground_kind =
   [ Water
   | Dry
   | Boardwalk
+  | Road
+  | Tilled
+  | Mud
   ]
 
 (* A patch of ground, in stage coordinates: a circle ([radius]) or an oriented box ([half_x], [half_z], turned by [yaw]
@@ -104,7 +108,8 @@ type gate_opening =
    open, it is gone for everybody. [id] is unique on the stage and is what a quest names. It starts closed unless [starts_open]
    is true. Opening is permanent for the stage visit; the stage resets when it is entered again. Opening also drains the
    ground zones whose [id] is in [drains]: they are gone for everybody, like the gate's obstacle (a lever that drains a
-   stretch of water). *)
+   stretch of water). [open_prop] (a pack prop, named like an obstacle's [prop]) is what stands where the obstacle
+   stood once the gate is open (a fence section broken down); a gate without one leaves nothing there. *)
 type gate = {
   id: string <ocaml valid="Validation.string_min_length 1">;
   obstacle: obstacle;
@@ -114,6 +119,7 @@ type gate = {
   ?side_x: float option;
   ?side_z: float option;
   ?drains: string list option;
+  ?open_prop: string option <ocaml valid="Validation.validate_prop_name_if_some">;
 }
 
 (* A playable stage: an art scene plus the anchors (gameplay markers) it owns *)

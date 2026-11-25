@@ -8,6 +8,7 @@ achievement.unlock_kind.ItemPool: remove: misc singles (no data; reader unlocks.
 anchor.anchor: remove: the type alone, no OCaml or Rust code uses it
 anchor.anchor_merchant.binding: remove: anchor bindings (no data; reader data.rs:246)
 anchor.anchor_quest_board.binding: remove: anchor bindings (no data; reader data.rs:246)
+anchor.zone_detection_type.Overlap: remove: zone detection by overlap, no data (reader world/zone.rs:5); left by the farm's reversed zone design (#408)
 animation.animation.sources: remove: goes with the Animation entity type, no data, no reader
 character.character.director_cost: default: when the field is absent (director.rs:291)
 character.character.starting_equipment: default: empty when the field is absent (persist.rs:237)
@@ -80,8 +81,8 @@ projectile.projectile_beam.on_end: remove: projectile end effects, no data (data
 projectile.projectile_homing.on_end: remove: projectile end effects, no data (data.rs:661)
 projectile.projectile_impact: remove: the type alone, no OCaml or Rust code uses it
 projectile.projectile_straight.on_end: remove: projectile end effects, no data (data.rs:661)
-quest.quest_action_internal.OpenGate: for #408: used by farm408, flock438, leaves at its merge
-quest.quest_action_type.OpenGate: for #408: used by farm408, flock438, leaves at its merge
+quest.quest_action_internal.StartSpawnSequence: remove: spawn sequences, no data (readers quest/tree.rs:748, mapgen/quest.rs:128); left by the farm's reversed design (#408)
+quest.quest_action_type.StartSpawnSequence: remove: spawn sequences, no data (reader quest/tree.rs:748); left by the farm's reversed design (#408)
 quest.quest_any_node.bonus_achievement: remove: quest node extras (no data; reader tree.rs:515)
 quest.quest_any_node.children: remove: goes with the quest node kind Any (mapgen/quest.rs:83)
 quest.quest_any_node.optional: remove: quest node extras (no data; reader quest.rs:83)
@@ -89,9 +90,13 @@ quest.quest_assignee.Player: remove: quest origin and assignee values (no data, 
 quest.quest_assignee.PlayerHidden: remove: quest origin and assignee values (no data, no reader)
 quest.quest_assignee.TeamHidden: remove: quest origin and assignee values (no data, no reader)
 quest.quest_condition: remove: the type alone, no OCaml or Rust code uses it
+quest.quest_condition_internal.EnterAnchor: remove: enter-an-anchor condition, no data (reader quest/tree.rs:701); left by the farm's reversed zone design (#408)
+quest.quest_condition_internal.StayInAnchor: remove: stay-in-an-anchor condition, no data (reader quest/tree.rs:710); left by the farm's reversed zone design (#408)
 quest.quest_condition_pick_quest.quest: remove: quest node extras (no data; reader quest.rs:83)
 quest.quest_condition_teleport.stage: remove: quest node extras (no data; reader quest.rs:83)
+quest.quest_condition_type.EnterAnchor: remove: enter-an-anchor condition, no data (reader quest/tree.rs:701)
 quest.quest_condition_type.Interact: remove: quest node extras (no data; reader quest.rs:83)
+quest.quest_condition_type.StayInAnchor: remove: stay-in-an-anchor condition, no data (reader quest/tree.rs:710)
 quest.quest_node: remove: the type alone, no OCaml or Rust code uses it
 quest.quest_node_internal.Any: remove: quest node extras (no data; reader quest.rs:83)
 quest.quest_node_type.Any: remove: quest node extras (no data; reader quest.rs:83)
@@ -104,12 +109,16 @@ quest.quest_origin.Quest: remove: quest origin and assignee values (no data, no 
 quest.quest_origin.World: remove: quest origin and assignee values (no data, no reader)
 quest.quest_parallel_node.bonus_achievement: remove: quest node extras (no data; reader tree.rs:515)
 quest.quest_parallel_node.optional: remove: quest node extras (no data; reader quest.rs:83)
+quest.quest_protect_node.bonus_achievement: default: absent unless a Protect node earns a bonus (reader quest/tree.rs:577)
+quest.quest_protect_node.optional: default: absent for a required node (reader quest/tree.rs:577)
 quest.quest_sequence_node.bonus_achievement: remove: quest node extras (no data; reader tree.rs:515)
 quest.quest_sequence_node.optional: remove: quest node extras (no data; reader quest.rs:83)
 quest.quest_timer_node.bonus_achievement: remove: quest node extras (no data; reader tree.rs:515)
 quest.quest_timer_node.optional: remove: quest node extras (no data; reader quest.rs:83)
 quest.quest_timer_timeout_type.Complete: remove: quest node extras (no data; reader tree.rs:1014)
 quest.quest_timer_timeout_type.Restart: remove: quest node extras (no data; reader tree.rs:1014)
+quest.quest_wait_node.bonus_achievement: default: absent unless a Wait node earns a bonus (reader quest/tree.rs:577)
+quest.quest_wait_node.optional: default: absent for a required node (reader quest/tree.rs:577)
 requirement.requirement: remove: the type alone, no OCaml or Rust code uses it
 skill.projectile_spawn_position_type.World: remove: skill leftovers (no data; reader icons.rs:100)
 skill.skill.interruptible: default: interruptible when the field is absent (casting.rs:224)
@@ -122,6 +131,8 @@ skill.skill_experience.max_level: default: when the field is absent (progression
 skill.skill_experience.power_per_level: default: when the field is absent (progression.rs consts) (progression.rs:189)
 skill.skill_indicator_position.Character: remove: skill leftovers (no data; reader icons.rs:100)
 skill.skill_target_type.Any: remove: skill leftovers (no data; reader icons.rs:100)
+spawn.spawn_sequence.steps: remove: spawn sequences, no data (reader quest/tree.rs:748)
+spawn.spawn_sequence_step.spawns: remove: spawn sequences, no data (reader quest/tree.rs:748)
 stage.gate.drains: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.gate.lever: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.gate.side_x: remove: JSON lever gates (no data; reader gate.rs:66)
@@ -129,12 +140,10 @@ stage.gate.side_z: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.gate.starts_open: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.gate_opening.FromSide: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.gate_opening.Interact: remove: JSON lever gates (no data; reader gate.rs:66)
-stage.gate_opening.Quest: for #408: used by farm408, flock438, leaves at its merge
 stage.ground_kind.Boardwalk: built: by the swamp generator (swamp.rs:129)
 stage.ground_zone.id: remove: JSON lever gates (no data; reader gate.rs:66)
 stage.obstacle_kind.Water: built: by the swamp and sewer generators (swamp.rs:129)
 stage.portal_type: remove: the type alone, no OCaml or Rust code uses it
-stage.stage.gates: for #408: used by farm408, flock438, leaves at its merge
 stage.stage_prop.scale: default: scale 1 when the field is absent (stage.atd:56)
 stage.stage_type: remove: the type alone, no OCaml or Rust code uses it
 stat.stat_sheet.health_globe_chance: default: 0 when the field is absent (stats.rs:112)

@@ -74,8 +74,8 @@ let rec collect_quest_node_ids (node : Quest_t.quest_node_internal) =
   match node with
   | `Sequence { id; children; _ } | `Parallel { id; children; _ } | `Any { id; children; _ }
     -> id :: List.concat_map collect_quest_node_ids children
-  | `Timer { id; child; _ } -> id :: collect_quest_node_ids child
-  | `Objective { id; _ } | `Action { id; _ } -> [ id ]
+  | `Timer { id; child; _ } | `Protect { id; child; _ } -> id :: collect_quest_node_ids child
+  | `Objective { id; _ } | `Action { id; _ } | `Wait { id; _ } -> [ id ]
 ;;
 
 let validate_quest_node_ids (quest : Quest_t.quest) =
@@ -91,7 +91,9 @@ let quest_node_flags (node : Quest_t.quest_node_internal) =
   | `Sequence { optional; bonus_achievement; _ }
   | `Parallel { optional; bonus_achievement; _ }
   | `Any { optional; bonus_achievement; _ }
-  | `Timer { optional; bonus_achievement; _ } -> optional = Some true, bonus_achievement <> None
+  | `Timer { optional; bonus_achievement; _ }
+  | `Protect { optional; bonus_achievement; _ }
+  | `Wait { optional; bonus_achievement; _ } -> optional = Some true, bonus_achievement <> None
   | `Objective { is_optional; bonus_achievement; _ } -> is_optional, bonus_achievement <> None
   | `Action _ -> false, false
 ;;
@@ -106,8 +108,9 @@ let rec quest_optional_placement_ok ~in_parallel (node : Quest_t.quest_node_inte
     List.for_all (quest_optional_placement_ok ~in_parallel:true) children
   | `Sequence { children; _ } | `Any { children; _ } ->
     List.for_all (quest_optional_placement_ok ~in_parallel:false) children
-  | `Timer { child; _ } -> quest_optional_placement_ok ~in_parallel:false child
-  | `Objective _ | `Action _ -> true
+  | `Timer { child; _ } | `Protect { child; _ } ->
+    quest_optional_placement_ok ~in_parallel:false child
+  | `Objective _ | `Action _ | `Wait _ -> true
 ;;
 
 let validate_quest (quest : Quest_t.quest) =
@@ -312,6 +315,30 @@ let validate_triggers (triggers : Trigger_t.trigger list option) =
   | Some triggers ->
     let keys = List.map (fun (t : Trigger_t.trigger) -> t.key) triggers in
     List.length keys = List.length (List.sort_uniq compare keys)
+;;
+
+(* The body flags of a character: ambient life is Folk or Neutral and no structure or nest; an animal (skittish)
+   is Folk and no structure, nest or lurker, and has no skills of its own (its brain never casts) *)
+let validate_character_body (c : Character_t.character) =
+  let flag = Option.value ~default:false in
+  let side_ok faction = Option.fold ~none:true ~some:faction c.faction in
+  let plain = (not (flag c.structure)) && Option.is_none c.nest in
+  let ambient_ok =
+    (not (flag c.ambient))
+    || (plain && side_ok (function `Folk | `Neutral -> true | _ -> false))
+  in
+  let skittish_ok =
+    Option.is_none c.skittish
+    || (plain
+        && (not (flag c.lurks))
+        && c.skills = []
+        && Option.fold ~none:false ~some:(function `Folk -> true | _ -> false) c.faction)
+  in
+  ambient_ok && skittish_ok
+;;
+
+(* An order to assault replaces the "go for the adventurers" flag: both together say two things *)
+let validate_spawn (s : Spawn_t.spawn) = not (s.target_adventurer_on_spawn && Option.is_some s.assault)
 ;;
 
 (* Steps must be non-empty, strictly ordered by timing, and end at timing 1.0 *)

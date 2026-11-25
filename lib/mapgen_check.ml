@@ -226,7 +226,8 @@ let quest_anchors (quest : Data.Quest_t.quest) : (string * bool) list =
     match node with
     | `Sequence { children; _ } | `Parallel { children; _ } | `Any { children; _ } ->
       List.iter (walk optional) children
-    | `Timer { child; _ } -> walk optional child
+    | `Timer { child; _ } | `Protect { child; _ } -> walk optional child
+    | `Wait _ -> ()
     | `Objective { condition; is_optional; _ } ->
       let opt = optional || is_optional in
       (match condition with
@@ -249,6 +250,8 @@ let quest_anchors (quest : Data.Quest_t.quest) : (string * bool) list =
        | `DeactivateAnchor { anchor; _ }
        | `ActivatePortalToStage { anchor; _ }
        | `ActivatePortalToQuestStage { anchor; _ } -> note anchor.id optional
+       | `Call { anchors; _ } ->
+         List.iter (fun (a : Data.Common_t.entity_reference) -> note a.id optional) anchors
        | _ -> ())
   in
   walk false quest.root;
