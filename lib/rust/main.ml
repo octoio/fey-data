@@ -144,6 +144,14 @@ let generate_module ctx (module_name, body) : rs_file =
 (* ---- entry point -------------------------------------------------------- *)
 
 (* [atd_files] are (path, parsed module body); the module name is the file's base name *)
+(* The values the pipeline's checks share with the game ([Gamedata.Shared]) *)
+let constants_source =
+  generated_comment_header
+  ^ Printf.sprintf
+      "\n/// How far scenery (and any light the client places) keeps from an anchor (fey-data `lib/shared.ml`).\npub const DECOR_CLEARANCE: f32 = %.1f;\n"
+      Gamedata.Shared.decor_clearance
+;;
+
 let generate_rust (atd_modules : (string * Atd.Ast.module_body) list) : rs_file list =
   let modules =
     atd_modules
@@ -154,10 +162,11 @@ let generate_rust (atd_modules : (string * Atd.Ast.module_body) list) : rs_file 
   let module_files = List.map (generate_module ctx) modules in
   let mod_rs =
     generated_comment_header
-    ^ "\npub mod runtime;\n"
+    ^ "\npub mod runtime;\npub mod constants;\n"
     ^ String.concat "" (List.map (fun (m, _) -> Printf.sprintf "pub mod %s;\n" m) modules)
   in
   ({ name = "runtime"; content = Runtime.source }
+   :: { name = "constants"; content = constants_source }
    :: { name = "mod"; content = mod_rs }
    :: module_files)
 ;;

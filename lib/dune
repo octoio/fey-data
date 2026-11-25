@@ -11,6 +11,7 @@
   processing
   server
   portrait_check
+  shared
   validate)
  (libraries atd atdgen-runtime re dream lwt digestif base yojson config util data)
  (preprocess

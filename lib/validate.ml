@@ -327,10 +327,9 @@ let ambient_spawn_error_messages definitions =
     definitions
 ;;
 
-(* The ground the party is given around what it uses (the stage keeps decor and scenery off it: [DECOR_CLEARANCE] of
-   fey-rs, world/stage.rs). A zone's footprint is its own radius; a monster spawn point is not the party's *)
+(* The ground the party is given around what it uses (the stage keeps decor and scenery off it: [Shared.decor_clearance]). A zone's footprint is its own radius; a monster spawn point is not the party's *)
 let party_footprint (anchor : Data.Anchor_t.anchor_internal) =
-  let clearance = 2.0 in
+  let clearance = Shared.decor_clearance in
   match anchor with
   | `Zone { radius; _ } -> Some radius
   | `SpawnPoint { team = Some _; _ } -> Some clearance
