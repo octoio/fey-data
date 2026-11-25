@@ -1279,6 +1279,7 @@ let validate_entity_definitions dataset =
   let aggro_spawn_errors = aggro_spawn_error_messages (take_definitions dataset) in
   let ambient_spawn_errors = ambient_spawn_error_messages (take_definitions dataset) in
   let animal_area_errors = animal_area_error_messages (take_definitions dataset) in
+  let status_errors = Status_check.error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1303,7 +1304,8 @@ let validate_entity_definitions dataset =
        @ rehome_errors
        @ aggro_spawn_errors
        @ ambient_spawn_errors
-       @ animal_area_errors)
+       @ animal_area_errors
+       @ status_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

@@ -69,3 +69,8 @@
  (name test_stamp)
  (modules test_stamp)
  (libraries gamedata alcotest unix))
+
+(test
+ (name test_status_check)
+ (modules test_status_check)
+ (libraries gamedata alcotest test_fixtures gamedata.data))
