@@ -1092,7 +1092,7 @@ let sheet_stats (sheet : Data.Stat_t.stat_sheet) : (Data.Stat_t.stat_type * floa
 
 (* A character a player can be (type Adventurer: the data names no other mark) starts with a sheet the card
    writes as it is: each base value is a whole number of the smallest change its stat's display shows (#453).
-   Monsters keep the fractions folded into their sheets until #352 *)
+   Monsters keep the fractions folded into their sheets (fey-rs #473) *)
 let player_sheet_error_messages definitions =
   let displays =
     List.filter_map
