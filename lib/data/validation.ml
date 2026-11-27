@@ -140,8 +140,8 @@ let validate_projectile_straight (p : Projectile_t.projectile_straight) =
 (* A lob must land before its lifetime runs out *)
 let validate_projectile_arc (p : Projectile_t.projectile_arc) = p.flight_time <= p.lifetime
 
-(* A beam ticks at least once while it lasts *)
-let validate_projectile_beam (p : Projectile_t.projectile_beam) = p.tick_interval <= p.lifetime
+(* A beam never ends by itself (its channel ends it): nodes at its end would never run *)
+let validate_projectile_beam (p : Projectile_t.projectile_beam) = p.on_end = []
 
 let validate_charges = function
   | Some n -> n >= 1
@@ -173,10 +173,22 @@ let has_revive_hit = has_hit (fun n -> n.hit_effect.hit_type = `Revive)
    weapon's attack clip only for a skill with a [hit_delay], else a cast *)
 let is_strike (skill : Skill_t.skill) = has_hit (fun _ -> true) (`Requirement skill.execution_root)
 
+(* The projectile references of the Projectile nodes of an action tree *)
+let rec projectile_nodes (node : Skill_t.skill_action_node_internal) =
+  match node with
+  | `Projectile n -> [ n.projectile ]
+  | `Sequence n -> List.concat_map projectile_nodes n.children
+  | `Parallel n -> List.concat_map projectile_nodes n.children
+  | `Requirement n -> projectile_nodes n.child
+  | `Delay _ | `Animation _ | `Sound _ | `Hit _ | `Status _ | `Summon _ | `CallDrain _ | `Move _ | `Interrupt _ -> []
+;;
+
 (* A skill that revives targets a dead ally and a skill that targets a dead ally revives: the target type names
    the corpse the revive hit stands up *)
 let validate_skill (skill : Skill_t.skill) =
   has_revive_hit (`Requirement skill.execution_root) = (skill.target_type = `DeadAlly)
+  && (skill.channel = None
+      || (skill.target_type = `None && skill.walk_while_casting <> Some true))
 ;;
 
 (* An execute bonus: below a fraction of the health in (0, 1], a factor of at least 1 *)

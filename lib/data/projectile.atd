@@ -42,8 +42,8 @@ type projectile_impact_internal =
 (* How a projectile flies (docs/systems/projectiles.md in fey-rs).
    [Homing] turns towards its target. [Straight] is a skillshot: it flies the aimed line, collides with the first hostile
    body and ends at [max_range]. [Arc] is lobbed to the aimed ground point and lands there after [flight_time]; the
-   area is [radius] and every character in it takes the impacts. [Beam] is a channelled line from the caster: it ticks
-   while the cast is held and ends when the caster moves or is interrupted *)
+   area is [radius] and every character in it takes the impacts. [Beam] is the line of a channelled skill: the channel
+   pulses it and ends it *)
 type projectile_type = 
   [ Homing
   | Straight
@@ -113,15 +113,14 @@ type projectile_arc = {
   arc_height: float <ocaml valid="Validation.float_min 0.">;
 } <ocaml valid="Validation.validate_projectile_arc">
 
-(* A line of [range] units and [width] from the caster towards the aim, for [lifetime] seconds at most; every
-   [tick_interval] seconds [on_impact] is applied to the first [max_hit_count] characters on the line. It follows the
-   selected target at [rotation_speed] degrees per second (0: it keeps its direction) and ends when the cast it belongs
-   to is no longer running or the caster moves *)
+(* A line of [range] units and [width] from the caster towards the aim. It has no lifetime, no pulse and no turn rate
+   of its own: the skill's [channel] pulses it, pays for it, steers it and ends it. [on_impact] is applied to the first
+   [max_hit_count] characters on the line at each pulse. A beam never ends by itself, so [on_end] stays empty (a
+   validator refuses nodes in it) *)
 type projectile_beam = {
   metadata: metadata;
   projectile_type <json name="type">: projectile_type;
   model: projectile_model;
-  lifetime: float <ocaml valid="Validation.float_min 0.1">;
   spawn_offset: vector3;
   max_hit_count: int <ocaml valid="Validation.int_min 1">;
   on_impact: projectile_impact_internal list;
@@ -129,8 +128,6 @@ type projectile_beam = {
   ?vfx: projectile_vfx option;
   range: float <ocaml valid="Validation.float_min 0.5">;
   width: float <ocaml valid="Validation.float_min 0.1">;
-  tick_interval: float <ocaml valid="Validation.float_min 0.1">;
-  rotation_speed: float <ocaml valid="Validation.float_min 0.">;
 } <ocaml valid="Validation.validate_projectile_beam">
 
 type projectile_internal = 

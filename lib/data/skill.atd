@@ -237,6 +237,17 @@ type cast_distance = {
   max: float;
 }
 
+(* A channelled skill: the caster stands still and the skill keeps working until the mana cannot pay the next pulse,
+   the caster moves, casts, is stunned or silenced, or cancels. [cost.mana] is the start cost, paid when the cast
+   starts. Every [pulse_interval] seconds the channel pays [pulse_cost] mana (it ends when it cannot) and the
+   skill's Beam projectile pulses. The beam follows the caster's aim at [turn_rate] degrees per second (0: it keeps
+   the direction it started in). The cooldown starts when the channel ends. *)
+type skill_channel = {
+  pulse_interval: float <ocaml valid="Validation.float_min 0.1">;
+  pulse_cost: int <ocaml valid="Validation.int_min 1">;
+  turn_rate: float <ocaml valid="Validation.float_min 0.">;
+}
+
 type skill = {
   metadata: metadata;
   quality: quality_type;
@@ -257,6 +268,9 @@ type skill = {
   ?walk_while_casting: bool option;
   (* true: the skill may be cast while another cast runs, and cancels that cast (a dash out of a cast) *)
   ?cancels_cast: bool option;
+  (* a channelled skill (see [skill_channel]): its tree is only the opening (the Beam projectile node), the channel
+     keeps the caster holding still and pays the pulses. Needs target type None *)
+  ?channel: skill_channel option;
   (* false: no interrupt (a stun, a silence, an Interrupt node, a burst that breaks a status) cancels a cast of this
      skill, and the HUD does not offer "interrupt!" on it (a boss that is immune); absent = true *)
   ?interruptible: bool option;

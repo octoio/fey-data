@@ -1384,6 +1384,127 @@ let test_a_category_is_in_one_weapon_class () =
     (count [ weapon_class_definition "Swords" [ `OneHandSword; `Dagger ]; weapon_class_definition "Knives" [ `Dagger ] ])
 ;;
 
+let conversion_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter_map
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        let text = Atdgen_runtime.Util.Validation.string_of_error e in
+        if Base.String.is_substring text ~substring:"gives too little to show" then Some text else None
+      | None -> None)
+    validated.errors
+;;
+
+let stat_with_conversion key ~format ~decimals ?scale attribute per_point =
+  ( "data/json/" ^ String.lowercase_ascii key ^ ".stat.json",
+    `Stat
+      ({ owner = "ownr";
+         entity_type = `Stat;
+         key;
+         version = 1;
+         id = "ownr:Stat:" ^ key ^ ":1";
+         entity =
+           { minimal_stat with
+             stat_type = `Health;
+             conversions = Some [ { attribute; per_point } ];
+             display = { minimal_stat.display with format; decimals; scale }
+           }
+       }
+        : Data.Entity_t.stat_entity_definition) )
+;;
+
+(* A conversion is a visible change at the display rule of the stat it feeds *)
+let test_a_point_gain_shows_on_the_card () =
+  let errors ~format ~decimals ?scale per_point =
+    conversion_errors [ stat_with_conversion "Regen" ~format ~decimals ?scale `Vit per_point ]
+  in
+  check int "a whole step shows" 0 (List.length (errors ~format:`Flat ~decimals:0 6.0));
+  check int "one percent at one decimal shows" 0 (List.length (errors ~format:`Percent ~decimals:1 0.01));
+  check int "exactly the last decimal shows" 0 (List.length (errors ~format:`Percent ~decimals:1 0.001));
+  check int "the old health regeneration (0.005 at 2 decimals) is refused" 1
+    (List.length (errors ~format:`Flat ~decimals:2 0.005));
+  check int "the old critical damage bonus (0.125% at 0 decimals) is refused" 1
+    (List.length (errors ~format:`Percent ~decimals:0 0.00125));
+  check int "the old critical chance (0.05% at 1 decimal) is refused" 1
+    (List.length (errors ~format:`Percent ~decimals:1 0.0005));
+  check int "a scaled stat counts in its own unit" 1
+    (List.length (errors ~format:`Flat ~decimals:1 ~scale:3.0 0.03));
+  match errors ~format:`Percent ~decimals:1 0.0005 with
+  | [ text ] ->
+    List.iter
+      (fun part ->
+        check bool ("the error names " ^ part) true (Base.String.is_substring text ~substring:part))
+      [ "Regen"; "Vit"; "0.0005"; "0.001" ]
+  | _ -> Alcotest.fail "expected one error"
+;;
+
+let sheet_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter_map
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        let text = Atdgen_runtime.Util.Validation.string_of_error e in
+        if Base.String.is_substring text ~substring:"does not show" then Some text else None
+      | None -> None)
+    validated.errors
+;;
+
+let stat_displayed stat_type key ~format ~decimals =
+  ( "data/json/" ^ String.lowercase_ascii key ^ ".stat.json",
+    `Stat
+      ({ owner = "ownr";
+         entity_type = `Stat;
+         key;
+         version = 1;
+         id = "ownr:Stat:" ^ key ^ ":1";
+         entity = { minimal_stat with stat_type; display = { minimal_stat.display with format; decimals } }
+       }
+        : Data.Entity_t.stat_entity_definition) )
+;;
+
+let character_with_sheet key character_type (sheet : Data.Stat_t.stat_sheet) =
+  ( "data/json/" ^ String.lowercase_ascii key ^ ".character.json",
+    `Character
+      ({ owner = "ownr";
+         entity_type = `Character;
+         key;
+         version = 1;
+         id = "ownr:Character:" ^ key ^ ":1";
+         entity = { minimal_character with character_type; stat_sheet = sheet }
+       }
+        : Data.Entity_t.character_entity_definition) )
+;;
+
+(* The base sheet of a character a player can be is written exactly by the display rule of each stat *)
+let test_a_player_sheet_is_what_the_card_writes () =
+  let stats =
+    [ stat_displayed `Armor "Armor" ~format:`Flat ~decimals:0;
+      stat_displayed `CriticalChance "Crit" ~format:`Percent ~decimals:1;
+      stat_displayed `HealthRegen "Regen" ~format:`Flat ~decimals:2
+    ]
+  in
+  let sheet = { minimal_stat_sheet with armor = 6.0; critical_chance = 0.055; health_regen = 0.44 } in
+  let errors kind sheet = sheet_errors (character_with_sheet "Hero" kind sheet :: stats) in
+  check int "a sheet that shows is accepted" 0 (List.length (errors `Adventurer sheet));
+  check int "a folded armor is refused" 1 (List.length (errors `Adventurer { sheet with armor = 5.75 }));
+  check int "a folded critical chance is refused" 1
+    (List.length (errors `Adventurer { sheet with critical_chance = 0.0505 }));
+  check int "a monster keeps its folded sheet" 0 (List.length (errors `Slime { sheet with armor = 5.75 }));
+  match errors `Adventurer { sheet with armor = 5.75 } with
+  | [ text ] ->
+    List.iter
+      (fun part ->
+        check bool ("the error names " ^ part) true (Base.String.is_substring text ~substring:part))
+      [ "Hero"; "Armor"; "5.75"; "5 and 6" ]
+  | _ -> Alcotest.fail "expected one error"
+;;
+
 let basic_attack_swing_errors defs =
   let validated =
     Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
@@ -1478,6 +1599,117 @@ let test_a_striking_basic_attack_has_a_hit_delay () =
   check int "a swing without a timing" 1 (count ~strikes:true ~hit_delay:None);
   check int "a swing with a timing" 0 (count ~strikes:true ~hit_delay:(Some 0.5));
   check int "a projectile needs none" 0 (count ~strikes:false ~hit_delay:None)
+;;
+
+(* A beam projectile and a channelled skill that pulses through the projectile [beam_key] *)
+let beam_definition key range =
+  ( "data/json/" ^ key ^ ".projectile.json",
+    `Projectile
+      ({ owner = "ownr";
+         entity_type = `Projectile;
+         key;
+         version = 1;
+         id = "ownr:Projectile:" ^ key ^ ":1";
+         entity =
+           `Beam
+             { Data.Projectile_t.metadata = minimal_metadata;
+               projectile_type = `Beam;
+               model = minimal_projectile_model;
+               spawn_offset = minimal_vector3;
+               max_hit_count = 1;
+               on_impact = [];
+               on_end = [];
+               vfx = None;
+               range;
+               width = 0.8
+             }
+       }
+        : Data.Entity_t.projectile_entity_definition) )
+;;
+
+let channel_skill_definition key ~beam_key ~cast_distance =
+  let node : Data.Skill_t.skill_action_node_internal =
+    `Projectile
+      { skill_action_node_type = `Projectile;
+        name = "beam";
+        projectile =
+          { minimal_entity_reference with
+            entity_type = `Projectile;
+            key = beam_key;
+            id = "ownr:Projectile:" ^ beam_key ^ ":1"
+          };
+        spawn_position =
+          { position_type = `Character; position = minimal_vector3; offset = minimal_vector3 };
+        direction = minimal_vector3
+      }
+  in
+  let base = minimal_skill in
+  ( "data/json/" ^ key ^ ".skill.json",
+    `Skill
+      ({ owner = "ownr";
+         entity_type = `Skill;
+         key;
+         version = 1;
+         id = "ownr:Skill:" ^ key ^ ":1";
+         entity =
+           { base with
+             target_type = `None;
+             execution_root = { base.execution_root with child = node };
+             cast_distance = { Data.Skill_t.max = cast_distance };
+             channel = Some { Data.Skill_t.pulse_interval = 0.5; pulse_cost = 1; turn_rate = 120. }
+           }
+       }
+        : Data.Entity_t.skill_entity_definition) )
+;;
+
+let channel_errors defs =
+  let validated =
+    Validate.validate_entity_definitions (TestFixtures.create_dataset_with_definitions defs)
+  in
+  List.filter
+    (fun ({ error; _ } : Dataset.dataset_error) ->
+      match error with
+      | Some e ->
+        Base.String.is_substring
+          (Atdgen_runtime.Util.Validation.string_of_error e)
+          ~substring:"channel"
+        || Base.String.is_substring
+             (Atdgen_runtime.Util.Validation.string_of_error e)
+             ~substring:"cast distance"
+        || Base.String.is_substring
+             (Atdgen_runtime.Util.Validation.string_of_error e)
+             ~substring:"Beam is pulsed"
+      | None -> false)
+    validated.errors
+;;
+
+let test_channel_pulses_through_one_beam_of_its_range () =
+  let count defs = List.length (channel_errors defs) in
+  check int "a channel and a beam of its range" 0
+    (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:10. ]);
+  check int "a beam no channel uses" 1 (count [ beam_definition "Ray" 10. ]);
+  check int "a cast distance that is not the range" 1
+    (count [ beam_definition "Ray" 10.; channel_skill_definition "Siphon" ~beam_key:"Ray" ~cast_distance:8. ]);
+  check int "a projectile that is not a beam" 1
+    (count [ minimal_projectile_entity_definition |> (fun d -> ("data/json/MinimalProjectile.projectile.json", d));
+             channel_skill_definition "Siphon" ~beam_key:"MinimalProjectile" ~cast_distance:10. ]);
+  check int "a channel with no projectile node" 1
+    (count
+       [ ( "data/json/Bare.skill.json",
+           `Skill
+             ({ owner = "ownr";
+                entity_type = `Skill;
+                key = "Bare";
+                version = 1;
+                id = "ownr:Skill:Bare:1";
+                entity =
+                  { minimal_skill with
+                    target_type = `None;
+                    channel = Some { Data.Skill_t.pulse_interval = 0.5; pulse_cost = 1; turn_rate = 0. }
+                  }
+              }
+               : Data.Entity_t.skill_entity_definition) )
+       ])
 ;;
 
 let skill_description_errors defs =
@@ -2116,7 +2348,10 @@ let dataset_tests =
       test_kill_objective_concurrent_with_spawn_is_completable;
     test_case "A category is in one weapon class" `Quick test_a_category_is_in_one_weapon_class;
     test_case "A striking basic attack has a hit_delay" `Quick test_a_striking_basic_attack_has_a_hit_delay;
+    test_case "A channel pulses through one beam of its range" `Quick test_channel_pulses_through_one_beam_of_its_range;
     test_case "A skill description fits the card" `Quick test_a_skill_description_fits_the_card;
+    test_case "A point gain shows on the card" `Quick test_a_point_gain_shows_on_the_card;
+    test_case "A player sheet is what the card writes" `Quick test_a_player_sheet_is_what_the_card_writes;
     test_case "Weapon and visual layer references" `Quick test_weapon_and_visual_references;
     test_case
       "A kill objective may lean on the least the drains pour"

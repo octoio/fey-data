@@ -940,6 +940,57 @@ let basic_attack_swing_error_messages definitions =
     definitions
 ;;
 
+(* A channelled skill pulses through exactly one Beam projectile, and its cast distance is that beam's range (the
+   client draws the line from it, so the two numbers must agree). A Beam is pulsed only by a channel, so a Beam no
+   channelled skill uses would pulse on nothing *)
+let channel_error_messages definitions =
+  let beams =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Projectile { id; entity = `Beam b; _ } -> Some (id, b)
+        | _ -> None)
+      definitions
+  in
+  let channelled_beams =
+    List.concat_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Skill { entity = { channel = Some _; _ } as skill; _ } ->
+          List.map
+            (fun (reference : Data.Common_t.entity_reference) -> reference.id)
+            (Data.Validation.projectile_nodes (`Requirement skill.execution_root))
+        | _ -> [])
+      definitions
+  in
+  let unused_beams =
+    List.filter_map
+      (fun (id, _) ->
+        if List.mem id channelled_beams
+        then None
+        else Some (Printf.sprintf "Projectile %s: a Beam is pulsed only by a channelled skill and none uses it" id))
+      beams
+  in
+  unused_beams
+  @ List.filter_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Skill { key; entity = { channel = Some _; _ } as skill; _ } ->
+        (match Data.Validation.projectile_nodes (`Requirement skill.execution_root) with
+         | [ reference ] ->
+           (match List.assoc_opt reference.id beams with
+            | Some beam when beam.range = skill.cast_distance.max -> None
+            | Some beam ->
+              Some
+                (Printf.sprintf
+                   "Skill %s: its cast distance %g is not the range %g of its beam"
+                   key skill.cast_distance.max beam.range)
+            | None -> Some (Printf.sprintf "Skill %s: a channel pulses through a Beam projectile, %s is not one" key reference.key))
+         | _ -> Some (Printf.sprintf "Skill %s: a channel needs exactly one Projectile node (its beam)" key))
+       | _ -> None)
+      definitions
+  ;;
+
 (* The skill card shows a skill's description as written (#450), so the validation owns how long it may be:
    the card's limit, counted in characters (not bytes) *)
 let skill_description_max = 200
@@ -967,6 +1018,114 @@ let skill_description_error_messages definitions =
                skill_description_max)
         else None
       | _ -> None)
+    definitions
+;;
+
+(* The smallest change of a stat that its display rule shows: one unit of the last displayed decimal, taken
+   back to the stored unit (format, scale and decimals of the rule). Read by every check that a number must
+   show on the card (#453) *)
+let smallest_change_shown (display : Data.Stat_t.stat_display) =
+  let to_shown =
+    Option.value display.scale ~default:1.0
+    *. (match display.format with
+        | `Flat -> 1.0
+        | `Percent | `Change -> 100.0)
+  in
+  10. ** float_of_int (-display.decimals) /. to_shown
+;;
+
+let stat_type_name stat_type =
+  Base.String.strip ~drop:(fun c -> c = '"') (Data.Stat_j.string_of_stat_type stat_type)
+;;
+
+(* A stat's conversion is a visible change on the card: [per_point] is at least the smallest change that the
+   display rule shows. A gain the card cannot show cannot be in the table (#453) *)
+let conversion_error_messages definitions =
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Stat { key; entity = { conversions = Some conversions; display; _ }; _ } ->
+        let step = smallest_change_shown display in
+        List.filter_map
+          (fun ({ attribute; per_point } : Data.Stat_t.stat_conversion) ->
+            if Float.abs per_point >= step *. (1. -. 1e-9)
+            then None
+            else
+              Some
+                (Printf.sprintf
+                   "Stat %s: %s gives too little to show: %g per point reads as a change of less than the %g that %d decimals show"
+                   key
+                   (stat_type_name attribute)
+                   per_point
+                   step
+                   display.decimals))
+          conversions
+      | _ -> [])
+    definitions
+;;
+
+(* The stats of a sheet read by the sheet's fields, the attributes (whole numbers) left out *)
+let sheet_stats (sheet : Data.Stat_t.stat_sheet) : (Data.Stat_t.stat_type * float) list =
+  [ `Armor, sheet.armor;
+    `MagicResist, sheet.magic_resist;
+    `Health, sheet.health;
+    `Mana, sheet.mana;
+    `DamageTakenModifier, sheet.damage_taken_modifier;
+    `DamageModifier, sheet.damage_modifier;
+    `MovementSpeed, sheet.movement_speed;
+    `MovementSpeedModifier, sheet.movement_speed_modifier;
+    `AttackSpeed, sheet.attack_speed;
+    `AttackPower, sheet.attack_power;
+    `AbilityPower, sheet.ability_power;
+    `CriticalChance, sheet.critical_chance;
+    `CriticalDamage, sheet.critical_damage;
+    `CooldownReduction, sheet.cooldown_reduction;
+    `DodgeChance, sheet.dodge_chance;
+    `ManaRegen, sheet.mana_regen;
+    `HealthRegen, sheet.health_regen;
+    `ExperienceModifier, sheet.experience_modifier;
+    `GoldModifier, sheet.gold_modifier;
+    `LifeSteal, sheet.life_steal;
+    `HealthModifier, sheet.health_modifier
+  ]
+;;
+
+(* A character a player can be (type Adventurer: the data names no other mark) starts with a sheet the card
+   writes as it is: each base value is a whole number of the smallest change its stat's display shows (#453).
+   Monsters keep the fractions folded into their sheets (fey-rs #473) *)
+let player_sheet_error_messages definitions =
+  let displays =
+    List.filter_map
+      (fun (definition : Data.Entity_t.entity_definition_internal) ->
+        match definition with
+        | `Stat { entity = { stat_type; display; _ }; _ } -> Some (stat_type, display)
+        | _ -> None)
+      definitions
+  in
+  List.concat_map
+    (fun (definition : Data.Entity_t.entity_definition_internal) ->
+      match definition with
+      | `Character { key; entity = { character_type = `Adventurer; stat_sheet; _ }; _ } ->
+        List.filter_map
+          (fun (stat_type, value) ->
+            match List.assoc_opt stat_type displays with
+            | None -> None
+            | Some display ->
+              let step = smallest_change_shown display in
+              let steps = value /. step in
+              if Float.abs (steps -. Float.round steps) < 1e-6
+              then None
+              else
+                Some
+                  (Printf.sprintf
+                     "Character %s: base %s %g does not show as it is; the nearest values that show are %g and %g"
+                     key
+                     (stat_type_name stat_type)
+                     value
+                     (Float.floor steps *. step)
+                     (Float.ceil steps *. step)))
+          (sheet_stats stat_sheet)
+      | _ -> [])
     definitions
 ;;
 
@@ -1273,12 +1432,15 @@ let validate_entity_definitions dataset =
   let basic_attack_swing_errors = basic_attack_swing_error_messages (take_definitions dataset) in
   let skill_description_errors = skill_description_error_messages (take_definitions dataset) in
   let generator_errors = generator_error_messages (take_definitions dataset) in
+  let channel_errors = channel_error_messages (take_definitions dataset) in
   let run_ending_errors = run_ending_error_messages (take_definitions dataset) in
   let rehome_errors = rehome_error_messages (take_definitions dataset) in
   let aggro_spawn_errors = aggro_spawn_error_messages (take_definitions dataset) in
   let ambient_spawn_errors = ambient_spawn_error_messages (take_definitions dataset) in
   let animal_area_errors = animal_area_error_messages (take_definitions dataset) in
   let status_errors = Status_check.error_messages (take_definitions dataset) in
+  let conversion_errors = conversion_error_messages (take_definitions dataset) in
+  let player_sheet_errors = player_sheet_error_messages (take_definitions dataset) in
   let errors =
     List.map
       (fun message ->
@@ -1299,12 +1461,15 @@ let validate_entity_definitions dataset =
        @ basic_attack_swing_errors
        @ skill_description_errors
        @ generator_errors
+       @ channel_errors
        @ run_ending_errors
        @ rehome_errors
        @ aggro_spawn_errors
        @ ambient_spawn_errors
        @ animal_area_errors
-       @ status_errors)
+       @ status_errors
+       @ conversion_errors
+       @ player_sheet_errors)
   in
   { dataset with errors = errors @ dataset.errors }
 ;;

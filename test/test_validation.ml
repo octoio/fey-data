@@ -1116,21 +1116,37 @@ module ProjectileKindValidationTests = struct
     }
   ;;
 
-  let beam ~lifetime ~tick_interval : Data.Projectile_t.projectile_beam =
+  let beam ~on_end : Data.Projectile_t.projectile_beam =
     { metadata = { Data.Common_t.title = "t"; description = "d" };
       projectile_type = `Beam;
       model;
-      lifetime;
       spawn_offset = make_vector3 0. 0. 0.;
       max_hit_count = 1;
       on_impact = [];
-      on_end = [];
+      on_end;
       vfx = None;
       range = 10.;
-      width = 0.8;
-      tick_interval;
-      rotation_speed = 90.
+      width = 0.8
     }
+  ;;
+
+  (* A beam never ends by itself (its channel ends it): nodes at its end would never run *)
+  let test_beam_has_no_end () =
+    let status : Data.Projectile_t.projectile_impact_internal =
+      `Status
+        { impact_type = `Status;
+          status_effect =
+            { target_mechanic = `Self { mechanic_type = `Self };
+              target = `Any;
+              durations = [];
+              scalers = [];
+              status = make_entity_reference ~entity_type:`Status ();
+              dispel = Some true
+            }
+        }
+    in
+    check bool "a beam with nothing at its end" true (validate_projectile_beam (beam ~on_end:[]));
+    check bool "a beam with nodes at its end" false (validate_projectile_beam (beam ~on_end:[ status ]))
   ;;
 
   let test_kinds () =
@@ -1141,16 +1157,49 @@ module ProjectileKindValidationTests = struct
     check bool "lob lands in time" true
       (validate_projectile_arc (arc ~lifetime:2. ~flight_time:1.));
     check bool "lob outlives its lifetime" false
-      (validate_projectile_arc (arc ~lifetime:1. ~flight_time:1.5));
-    check bool "beam ticks while it lasts" true
-      (validate_projectile_beam (beam ~lifetime:3. ~tick_interval:0.5));
-    check bool "beam never ticks" false
-      (validate_projectile_beam (beam ~lifetime:0.3 ~tick_interval:0.5))
+      (validate_projectile_arc (arc ~lifetime:1. ~flight_time:1.5))
   ;;
 end
 
 let projectile_kind_validation_tests =
-  [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds ]
+  [ "validate_projectile_kinds", `Quick, ProjectileKindValidationTests.test_kinds;
+    "a beam has no end", `Quick, ProjectileKindValidationTests.test_beam_has_no_end
+  ]
+;;
+
+module ChannelValidationTests = struct
+  let channel ?(pulse_interval = 0.5) ?(pulse_cost = 1) ?(turn_rate = 120.) () : Data.Skill_t.skill_channel =
+    { pulse_interval; pulse_cost; turn_rate }
+  ;;
+
+  let valid c = Data.Skill_v.validate_skill_channel [] c = None
+
+  let test_bounds () =
+    check bool "the first values" true (valid (channel ()));
+    check bool "a fixed beam" true (valid (channel ~turn_rate:0. ()));
+    check bool "no pulse cost: mana would not be the limit" false (valid (channel ~pulse_cost:0 ()));
+    check bool "a pulse faster than a tenth of a second" false (valid (channel ~pulse_interval:0.05 ()));
+    check bool "a negative turn rate" false (valid (channel ~turn_rate:(-1.) ()))
+  ;;
+
+  let test_skill () =
+    let skill target_type walk_while_casting : Data.Skill_t.skill =
+      { Test_fixtures.minimal_skill with
+        target_type;
+        walk_while_casting;
+        channel = Some (channel ())
+      }
+    in
+    check bool "an aimed channel" true (validate_skill (skill `None None));
+    check bool "a channel on a target" false (validate_skill (skill `Enemy None));
+    check bool "a channel that walks" false (validate_skill (skill `None (Some true)))
+  ;;
+end
+
+let channel_validation_tests =
+  [ "channel bounds", `Quick, ChannelValidationTests.test_bounds;
+    "channel skill", `Quick, ChannelValidationTests.test_skill
+  ]
 ;;
 
 module StatusDispelValidationTests = struct
@@ -1963,6 +2012,7 @@ let () =
       ("Zone Id Validation", zone_id_validation_tests);
       ("Presentation Validation", presentation_validation_tests);
       ("Revive Hit Validation", revive_hit_validation_tests);
+      ("Channel Validation", channel_validation_tests);
       ("Status Dispel Validation", status_dispel_validation_tests);
       ("Enrage Validation", enrage_validation_tests);
       ("Cone And Burst Validation", cone_and_burst_validation_tests);
